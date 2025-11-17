@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:aura_app/features/splash/splash_screen.dart';
+import 'package:aura_app/screens/splash/splash_screen.dart';
 
 void main() {
   runApp(const AuraApp());
