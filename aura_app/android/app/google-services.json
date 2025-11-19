@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "594779324052",
+    "project_id": "aura-app-nibin",
+    "storage_bucket": "aura-app-nibin.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:594779324052:android:2825481a57cd4c9aa07e81",
+        "android_client_info": {
+          "package_name": "com.example.aura_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "594779324052-5082fd72tsl3rg8mrq6j12pojpqhpgth.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.aura_app",
+            "certificate_hash": "6df1c53b91c171d3b2878079600673abcc812e92"
+          }
+        },
+        {
+          "client_id": "594779324052-cgpvuto9st681s1vvb6m17dpv9b7732h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhWcwowJdmzSHKtK9qkMUpVCmuVCggj2I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "594779324052-cgpvuto9st681s1vvb6m17dpv9b7732h.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
