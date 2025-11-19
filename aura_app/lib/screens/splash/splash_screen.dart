@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../components/loading/ghost_running.dart';
 import '../onboarding/welcome_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -145,20 +146,37 @@ class _SplashScreenState extends State<SplashScreen>
           context,
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-            const WelcomeScreen(),
+                GhostRunning(
+                  onAnimationComplete: () {
+                    Navigator.pushReplacement(
+                      context,
+                      PageRouteBuilder(
+                        pageBuilder: (context, animation, secondaryAnimation) =>
+                        const WelcomeScreen(),
+                        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: ScaleTransition(
+                              scale: Tween<double>(begin: 0.95, end: 1.0).animate(
+                                CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                              ),
+                              child: child,
+                            ),
+                          );
+                        },
+                        transitionDuration: const Duration(milliseconds: 1000),
+                        reverseTransitionDuration: const Duration(milliseconds: 500),
+                      ),
+                    );
+                  },
+                ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(
                 opacity: animation,
-                child: ScaleTransition(
-                  scale: Tween<double>(begin: 0.95, end: 1.0).animate(
-                    CurvedAnimation(parent: animation, curve: Curves.easeOut),
-                  ),
-                  child: child,
-                ),
+                child: child,
               );
             },
-            transitionDuration: const Duration(milliseconds: 1000),
-            reverseTransitionDuration: const Duration(milliseconds: 500),
+            transitionDuration: const Duration(milliseconds: 800),
           ),
         );
       }

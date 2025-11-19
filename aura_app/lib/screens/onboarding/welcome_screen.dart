@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../auth/auth_screen/auth_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
@@ -249,7 +250,19 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                             width: double.infinity,
                             child: ElevatedButton(
                               onPressed: () {
-
+                                Navigator.pushReplacement(
+                                  context,
+                                  PageRouteBuilder(
+                                    transitionDuration: const Duration(milliseconds: 600),
+                                    pageBuilder: (_, __, ___) => const AuthScreen(),
+                                    transitionsBuilder: (_, animation, __, child) {
+                                      return FadeTransition(
+                                        opacity: animation,
+                                        child: child,
+                                      );
+                                    },
+                                  ),
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
