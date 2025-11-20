@@ -2,6 +2,9 @@
 
 class OtpService {
   static String? verificationId;
+  static int? resendToken;
+  static String? phoneNumber;
 }
+
 
 //OtpService.verificationId = id;

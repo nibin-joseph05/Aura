@@ -5,23 +5,25 @@ class FirebaseAuthService {
 
   Future<void> sendOtp({
     required String phoneNumber,
-    required Function(String verificationId) onCodeSent,
+    required Function(String verificationId, int? resendToken) onCodeSent,
     required Function(String error) onError,
+    int? forceResendToken,
   }) async {
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
+        forceResendingToken: forceResendToken,
         verificationCompleted: (PhoneAuthCredential credential) {},
         verificationFailed: (FirebaseAuthException e) {
-          onError(e.message ?? "Verification failed");
+          onError(e.message ?? "Phone verification failed");
         },
         codeSent: (String verificationId, int? resendToken) {
-          onCodeSent(verificationId);
+          onCodeSent(verificationId, resendToken);
         },
         codeAutoRetrievalTimeout: (String verificationId) {},
       );
     } catch (e) {
-      onError(e.toString());
+      onError("Failed to send OTP. Try again.");
     }
   }
 

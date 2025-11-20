@@ -148,13 +148,21 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen>
 
     await FirebaseAuthService().sendOtp(
       phoneNumber: "+91$phone",
-      onCodeSent: (id) {
+      forceResendToken: null,
+      onCodeSent: (String verificationId, int? resendToken) {
         Navigator.pop(context);
-        OtpService.verificationId = id;
+
+        OtpService.verificationId = verificationId;
+        OtpService.resendToken = resendToken;
+        OtpService.phoneNumber = "+91$phone";
 
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const OtpScreen()),
+          MaterialPageRoute(
+            builder: (_) => OtpScreen(
+              phoneNumber: "+91$phone",
+            ),
+          ),
         );
       },
       onError: (error) {
@@ -162,6 +170,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen>
         _showError(error);
       },
     );
+
   }
 
 
