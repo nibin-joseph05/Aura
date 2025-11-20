@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../components/loading/ghost_running.dart';
 import '../../../services/auth/firebase_auth_service.dart';
 import '../../../services/auth/otp_service.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
@@ -44,7 +45,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
+    SmsAutoFill().listenForCode();
 
     _logoController = AnimationController(
       vsync: this,
@@ -271,6 +272,11 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
               _focusNodes[index + 1].requestFocus();
             } else {
               _focusNodes[index].unfocus();
+
+              final otp = _getOtp();
+              if (otp.length == 6 && !_isVerifying) {
+                _verifyOtp();
+              }
             }
           } else {
             if (index > 0) {
@@ -474,10 +480,22 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                     position: _inputSlide,
                     child: FadeTransition(
                       opacity: _inputOpacity,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: List.generate(6, (i) => _otpBox(i)),
-                      ),
+                      child: PinFieldAutoFill(
+                        codeLength: 6,
+                        decoration: UnderlineDecoration(
+                          textStyle: const TextStyle(color: Colors.white, fontSize: 20),
+                          colorBuilder: FixedColorBuilder(Colors.white30),
+                        ),
+                        currentCode: _getOtp(),
+                        onCodeChanged: (code) {
+                          if (code != null && code.length == 6 && !_isVerifying) {
+                            for (int i = 0; i < 6; i++) {
+                              _controllers[i].text = code[i];
+                            }
+                            _verifyOtp();
+                          }
+                        },
+                      )
                     ),
                   ),
 
