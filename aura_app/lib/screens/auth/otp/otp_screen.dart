@@ -46,6 +46,16 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     SmsAutoFill().listenForCode();
+    SmsAutoFill().code.listen((code) {
+      if (code != null && code.length == 6) {
+        for (int i = 0; i < 6; i++) {
+          _controllers[i].text = code[i];
+        }
+        if (!_isVerifying) {
+          _verifyOtp();
+        }
+      }
+    });
 
     _logoController = AnimationController(
       vsync: this,
@@ -480,22 +490,10 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
                     position: _inputSlide,
                     child: FadeTransition(
                       opacity: _inputOpacity,
-                      child: PinFieldAutoFill(
-                        codeLength: 6,
-                        decoration: UnderlineDecoration(
-                          textStyle: const TextStyle(color: Colors.white, fontSize: 20),
-                          colorBuilder: FixedColorBuilder(Colors.white30),
-                        ),
-                        currentCode: _getOtp(),
-                        onCodeChanged: (code) {
-                          if (code != null && code.length == 6 && !_isVerifying) {
-                            for (int i = 0; i < 6; i++) {
-                              _controllers[i].text = code[i];
-                            }
-                            _verifyOtp();
-                          }
-                        },
-                      )
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: List.generate(6, (i) => _otpBox(i)),
+                      ),
                     ),
                   ),
 

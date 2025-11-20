@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -15,7 +16,11 @@ Future<void> main() async {
   await Hive.initFlutter();
   registerHiveAdapters();
 
-  runApp(const AuraApp());
+  runApp(
+    const ProviderScope(
+      child: AuraApp(),
+    ),
+  );
 }
 
 class AuraApp extends StatelessWidget {
@@ -34,4 +39,3 @@ class AuraApp extends StatelessWidget {
     );
   }
 }
-
