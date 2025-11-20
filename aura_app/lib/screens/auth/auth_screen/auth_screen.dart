@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../phone_login/phone_login_screen.dart';
 import '../privacy_policy/privacy_policy.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -127,8 +128,11 @@ class _AuthScreenState extends State<AuthScreen>
     print('Google Sign In pressed');
   }
 
-  void _signInWithPhone() async {
-    print('Phone Sign In pressed');
+  void _signInWithPhone() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PhoneLoginScreen()),
+    );
   }
 
   void _signInWithEmail() async {
