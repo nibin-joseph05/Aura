@@ -53,5 +53,5 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logos/Aura-app-icon.png"
+  image_path: "assets/logos/Aura-app-icon-new.png"
   min_sdk_android: 21

@@ -4,6 +4,7 @@ import '../../../components/loading/ghost_running.dart';
 import '../../../services/auth/firebase_auth_service.dart';
 import '../../../services/auth/otp_service.dart';
 import 'package:sms_autofill/sms_autofill.dart';
+import '../../auth/success/otp_success_screen.dart';
 
 class OtpScreen extends StatefulWidget {
   final String phoneNumber;
@@ -203,7 +204,7 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => const _OtpSuccessScreen(),
+          builder: (_) => const OtpSuccessScreen(),
         ),
       );
     } catch (e) {
@@ -573,58 +574,6 @@ class _OtpScreenState extends State<OtpScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _OtpSuccessScreen extends StatelessWidget {
-  const _OtpSuccessScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0A1A2F),
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 90,
-              height: 90,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.greenAccent.withOpacity(0.15),
-                border: Border.all(
-                  color: Colors.greenAccent.shade200,
-                  width: 2,
-                ),
-              ),
-              child: Icon(
-                Icons.check_rounded,
-                color: Colors.greenAccent.shade200,
-                size: 50,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "OTP Verified!",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              "You're securely signed in to Aura.",
-              style: TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
-            ),
-          ],
         ),
       ),
     );
