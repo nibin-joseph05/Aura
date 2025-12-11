@@ -3,12 +3,12 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_dimensions.dart';
 import '../../utils/responsive.dart';
 
-class AuraPrimaryButton extends StatelessWidget {
+class PrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback onPressed;
   final Responsive responsive;
 
-  const AuraPrimaryButton({
+  const PrimaryButton({
     super.key,
     required this.label,
     required this.onPressed,

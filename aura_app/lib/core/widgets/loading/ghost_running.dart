@@ -289,7 +289,7 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
                       child: Text(
                         secondaryMsg,
                         style: AppTextStyles.textTheme.bodyMedium!.copyWith(
-                        color: AppColors.textLight.withOpacity(0.7),
+                          color: AppColors.textLight.withOpacity(0.7),
                           fontWeight: FontWeight.w400,
                         ),
                         textAlign: TextAlign.center,

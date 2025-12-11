@@ -8,12 +8,7 @@ class AppSnackbar {
     required String message,
     int durationSeconds = 3,
   }) {
-    _show(
-      context,
-      message,
-      AppColors.error,
-      durationSeconds,
-    );
+    _show(context, message, AppColors.error, durationSeconds);
   }
 
   static void showSuccess({
@@ -21,12 +16,7 @@ class AppSnackbar {
     required String message,
     int durationSeconds = 2,
   }) {
-    _show(
-      context,
-      message,
-      AppColors.success,
-      durationSeconds,
-    );
+    _show(context, message, AppColors.success, durationSeconds);
   }
 
   static void showInfo({
@@ -34,20 +24,15 @@ class AppSnackbar {
     required String message,
     int durationSeconds = 3,
   }) {
-    _show(
-      context,
-      message,
-      AppColors.primary,
-      durationSeconds,
-    );
+    _show(context, message, AppColors.primary, durationSeconds);
   }
 
   static void _show(
-      BuildContext context,
-      String message,
-      Color color,
-      int durationSeconds,
-      ) {
+    BuildContext context,
+    String message,
+    Color color,
+    int durationSeconds,
+  ) {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
     final snackBar = SnackBar(

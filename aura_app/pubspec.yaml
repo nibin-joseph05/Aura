@@ -32,6 +32,9 @@ dependencies:
   flutter_riverpod: ^2.5.1
   riverpod: ^2.5.1
 
+  # --- HTTP / Networking ---
+  connectivity_plus: ^5.0.2
+
 
 dev_dependencies:
   flutter_test:

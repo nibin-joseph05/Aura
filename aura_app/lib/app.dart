@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'core/routes/ app_router.dart';
+import 'core/routes/app_router.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
-import 'features/splash/presentation/screens/splash_screen.dart';
+import 'core/utils/connectivity_provider.dart';
+import 'core/utils/connectivity_wrapper.dart';
 
-class AuraApp extends StatelessWidget {
+class AuraApp extends ConsumerWidget {
   const AuraApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final connection = ref.watch(connectivityProvider);
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Aura',
@@ -18,6 +22,10 @@ class AuraApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRouter.onGenerateRoute,
+
+      builder: (context, child) {
+        return ConnectivityWrapper(child: child!);
+      },
     );
   }
 }

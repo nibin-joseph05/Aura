@@ -4,7 +4,6 @@ import '../../../../../core/theme/app_dimensions.dart';
 import '../../../../../core/utils/responsive.dart';
 import '../../../../../core/widgets/common/app_header.dart';
 
-
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
 
@@ -24,9 +23,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              const AppHeader(
-                title: "Privacy Policy",
-              ),
+              const AppHeader(title: "Privacy Policy"),
               Expanded(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.symmetric(
@@ -40,7 +37,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         responsive: responsive,
                         title: "Introduction",
                         content:
-                        "Aura is committed to protecting your privacy. This Privacy Policy explains "
+                            "Aura is committed to protecting your privacy. This Privacy Policy explains "
                             "how we collect, use, and safeguard your information when you use our app.",
                       ),
                       _buildDivider(),
@@ -70,7 +67,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         responsive: responsive,
                         title: "Data Protection",
                         content:
-                        "All your data is securely stored using Firebase services. "
+                            "All your data is securely stored using Firebase services. "
                             "We do not sell, trade, or share your personal information with third parties. "
                             "We implement industry-standard security measures to protect against unauthorized access.",
                       ),
@@ -79,7 +76,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         responsive: responsive,
                         title: "Your Control",
                         content:
-                        "You can request deletion of your account and associated data by contacting support. "
+                            "You can request deletion of your account and associated data by contacting support. "
                             "You may also revoke Google permissions at any time through your Google account settings. "
                             "We respect your right to manage your information.",
                       ),
@@ -88,7 +85,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         responsive: responsive,
                         title: "Third-party Services",
                         content:
-                        "Aura uses Firebase Authentication, Firestore, Analytics, and Crashlytics. "
+                            "Aura uses Firebase Authentication, Firestore, Analytics, and Crashlytics. "
                             "These services follow strict data protection standards, and their use is governed by their "
                             "respective privacy policies.",
                       ),
@@ -97,7 +94,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
                         responsive: responsive,
                         title: "Changes to Policy",
                         content:
-                        "We may update this Privacy Policy to improve clarity or comply with new laws. "
+                            "We may update this Privacy Policy to improve clarity or comply with new laws. "
                             "You will be notified of major changes via email or an in-app notification before they take effect. "
                             "Continued use of the app implies acceptance of the updated policy.",
                       ),
@@ -234,11 +231,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
   }
 
   Widget _buildDivider() {
-    return const Divider(
-      color: Colors.white30,
-      height: 30,
-      thickness: 0.5,
-    );
+    return const Divider(color: Colors.white30, height: 30, thickness: 0.5);
   }
 
   Widget _buildLastUpdated(Responsive responsive) {

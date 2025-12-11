@@ -58,29 +58,27 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     _logoScale = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
-    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
-    );
+    _logoOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
 
-    _titleSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
-    );
-    _titleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _titleController, curve: Curves.easeIn),
-    );
+    _titleSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
+        );
+    _titleOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _titleController, curve: Curves.easeIn));
 
-    _subtitleSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _subtitleController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    _subtitleSlide =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _subtitleController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _subtitleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _subtitleController, curve: Curves.easeIn),
     );
@@ -88,9 +86,10 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     _buttonScale = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _buttonController, curve: Curves.easeOutBack),
     );
-    _buttonOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _buttonController, curve: Curves.easeIn),
-    );
+    _buttonOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _buttonController, curve: Curves.easeIn));
   }
 
   void _startAnimations() {
@@ -125,10 +124,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         transitionDuration: const Duration(milliseconds: 600),
         pageBuilder: (_, __, ___) => const AuthScreen(),
         transitionsBuilder: (_, animation, __, child) {
-          return FadeTransition(
-            opacity: animation,
-            child: child,
-          );
+          return FadeTransition(opacity: animation, child: child);
         },
       ),
     );
@@ -171,7 +167,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Widget _buildAnimatedLogo(Responsive responsive) {
-    
     final logoSize = responsive.isTablet
         ? responsive.w(25)
         : responsive.isLargeTablet
@@ -211,10 +206,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                     return Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            Colors.blue.shade600,
-                            Colors.blue.shade800,
-                          ],
+                          colors: [Colors.blue.shade600, Colors.blue.shade800],
                         ),
                       ),
                       child: Center(
@@ -240,7 +232,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Widget _buildAnimatedTitle(Responsive responsive) {
-    
     final titleSize = responsive.isLargeTablet
         ? 38.0
         : responsive.isTablet
@@ -265,7 +256,6 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   }
 
   Widget _buildAnimatedSubtitle(Responsive responsive) {
-    
     final subtitleSize = responsive.isLargeTablet
         ? 22.0
         : responsive.isTablet
@@ -278,7 +268,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         opacity: _subtitleOpacity,
         child: Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: responsive.isTablet ? responsive.w(15) : responsive.w(7),
+            horizontal: responsive.isTablet
+                ? responsive.w(15)
+                : responsive.w(7),
           ),
           child: Text(
             "Your AI-powered safety, wellness, and social companion — unified into one experience.",
@@ -304,9 +296,11 @@ class _WelcomeScreenState extends State<WelcomeScreen>
             scale: _buttonScale.value,
             child: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: responsive.isTablet ? responsive.w(20) : responsive.w(8),
+                horizontal: responsive.isTablet
+                    ? responsive.w(20)
+                    : responsive.w(8),
               ),
-              child: AuraPrimaryButton(
+              child: PrimaryButton(
                 label: "Get Started",
                 onPressed: _navigateToAuth,
                 responsive: responsive,
@@ -317,5 +311,4 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       },
     );
   }
-
 }

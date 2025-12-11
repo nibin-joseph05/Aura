@@ -63,29 +63,27 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     _logoScale = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
-    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
-    );
+    _logoOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
 
-    _titleSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
-    );
-    _titleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _titleController, curve: Curves.easeIn),
-    );
+    _titleSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
+        );
+    _titleOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _titleController, curve: Curves.easeIn));
 
-    _subtitleSlide = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _subtitleController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
+    _subtitleSlide =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _subtitleController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _subtitleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _subtitleController, curve: Curves.easeIn),
     );
@@ -97,9 +95,10 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
       CurvedAnimation(parent: _buttonsController, curve: Curves.easeIn),
     );
 
-    _footerOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _footerController, curve: Curves.easeIn),
-    );
+    _footerOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _footerController, curve: Curves.easeIn));
   }
 
   void _startAnimations() {
@@ -232,10 +231,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                     return Container(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [
-                            Colors.blue.shade600,
-                            Colors.blue.shade800,
-                          ],
+                          colors: [Colors.blue.shade600, Colors.blue.shade800],
                         ),
                       ),
                       child: Center(
@@ -463,13 +459,13 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                   : null,
               gradient: borderColor == null
                   ? LinearGradient(
-                colors: [
-                  backgroundColor,
-                  Color.lerp(backgroundColor, Colors.black, 0.1)!,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
+                      colors: [
+                        backgroundColor,
+                        Color.lerp(backgroundColor, Colors.black, 0.1)!,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
                   : null,
             ),
             child: Row(
@@ -479,7 +475,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                   width: iconSize + 8,
                   height: iconSize + 8,
                   alignment: Alignment.center,
-                  child: iconWidget ??
+                  child:
+                      iconWidget ??
                       Icon(
                         icon,
                         color: textColor == Colors.white

@@ -38,20 +38,12 @@ class _AppHeaderState extends State<AppHeader>
       duration: const Duration(milliseconds: 550),
     );
 
-    _fade = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    );
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOut);
 
     _slide = Tween<Offset>(
       begin: const Offset(0, -0.18),
       end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeOutBack,
-      ),
-    );
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
     _controller.forward();
   }
@@ -66,7 +58,11 @@ class _AppHeaderState extends State<AppHeader>
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
 
-    final titleSize = responsive.isLargeTablet ? 32 : responsive.isTablet ? 28 : 24;
+    final titleSize = responsive.isLargeTablet
+        ? 32
+        : responsive.isTablet
+        ? 28
+        : 24;
     final subtitleSize = responsive.isTablet ? 16 : 14;
 
     return FadeTransition(
@@ -112,7 +108,7 @@ class _AppHeaderState extends State<AppHeader>
                   ),
                 ],
               ),
-              if (widget.actions != null) Row(children: widget.actions!)
+              if (widget.actions != null) Row(children: widget.actions!),
             ],
           ),
         ),
@@ -142,10 +138,7 @@ class _AppHeaderState extends State<AppHeader>
                 blurRadius: 12,
                 spreadRadius: 1,
               ),
-              BoxShadow(
-                color: Colors.white.withOpacity(0.10),
-                blurRadius: 6,
-              ),
+              BoxShadow(color: Colors.white.withOpacity(0.10), blurRadius: 6),
             ],
           ),
           child: Icon(
