@@ -27,7 +27,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
-
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

@@ -26,6 +26,10 @@ class AppColors {
   static const Color onBackground = Color(0xFF000000);
   static const Color divider = Color(0xFFBDBDBD);
 
+  static const Color splashDark = Color(0xFF0A1A2F);
+  static const Color splashMedium = Color(0xFF0E2A4A);
+  static const Color splashLight = Color(0xFF134B73);
+
   static const List<Color> primaryGradient = [
     Color(0xFF0A1A2F),
     Color(0xFF134B73),
@@ -34,5 +38,12 @@ class AppColors {
   static const List<Color> accentGradient = [
     Color(0xFF00BCD4),
     Color(0xFF2196F3),
+  ];
+
+  static List<Color> splashGradient = [
+    splashDark,
+    splashMedium,
+    splashLight,
+    Color(0xFF1565C0),
   ];
 }

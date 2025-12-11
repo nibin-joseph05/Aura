@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_constants.dart';
+import '../../../core/constants/asset_constants.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_dimensions.dart';
+import '../../../core/theme/app_text_styles.dart';
+import '../../../core/utils/responsive.dart';
+
 class GhostRunningState {
   final bool gifLoaded;
   final bool showFallback;
@@ -38,10 +45,15 @@ final ghostRunningProvider =
 
 class GhostRunning extends ConsumerStatefulWidget {
   final VoidCallback? onAnimationComplete;
+
   final String? primaryMessage;
+
   final String? secondaryMessage;
+
   final Color? backgroundColor;
+
   final List<Color>? gradientColors;
+
   final Duration? animationDuration;
 
   const GhostRunning({
@@ -67,9 +79,12 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
+    _setupTimers();
+  }
 
-    final duration =
-        widget.animationDuration ?? const Duration(milliseconds: 2000);
+  void _initializeAnimations() {
+    final duration = widget.animationDuration ?? AppConstants.longAnimation;
 
     _controller = AnimationController(vsync: this, duration: duration);
 
@@ -88,13 +103,16 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
     );
 
     _controller.forward();
+  }
 
-    Future.delayed(const Duration(milliseconds: 500), () {
+  void _setupTimers() {
+    Future.delayed(AppConstants.mediumAnimation, () {
       if (mounted && !ref.read(ghostRunningProvider).gifLoaded) {
         ref.read(ghostRunningProvider.notifier).setShowFallback(true);
       }
     });
 
+    final duration = widget.animationDuration ?? AppConstants.longAnimation;
     Future.delayed(duration, () {
       if (mounted && widget.onAnimationComplete != null) {
         widget.onAnimationComplete!();
@@ -108,26 +126,28 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
     super.dispose();
   }
 
-  Widget _buildFallbackLoader() {
+  Widget _buildFallbackLoader(Responsive responsive) {
+    final size = responsive.space(80);
+
     return Container(
-      width: 80,
-      height: 80,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
           colors: [
-            Colors.blue.shade600,
-            Colors.blue.shade800,
-            Colors.blue.shade900,
+            AppColors.primaryLight,
+            AppColors.primary,
+            AppColors.primaryDark,
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withOpacity(0.6),
-            blurRadius: 15,
-            spreadRadius: 3,
+            color: AppColors.primary.withOpacity(0.6),
+            blurRadius: responsive.space(15),
+            spreadRadius: responsive.space(3),
           ),
         ],
       ),
@@ -137,44 +157,57 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
             animation: _controller,
             builder: (context, child) {
               return Container(
-                margin: EdgeInsets.all(8 + (4 * _controller.value)),
+                margin: EdgeInsets.all(
+                  responsive.space(8) +
+                      (responsive.space(4) * _controller.value),
+                ),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.2 * _controller.value),
+                  color: AppColors.textLight.withOpacity(
+                    0.2 * _controller.value,
+                  ),
                 ),
               );
             },
           ),
-          const Center(child: Icon(Icons.bolt, color: Colors.white, size: 30)),
+          Center(
+            child: Icon(
+              Icons.bolt,
+              color: AppColors.textLight,
+              size: responsive.icon(AppDimensions.iconL),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildGifLoader() {
+  Widget _buildGifLoader(Responsive responsive) {
+    final size = responsive.space(80);
+
     return Transform.translate(
       offset: Offset(0, _bounce.value),
       child: Container(
-        width: 80,
-        height: 80,
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.withOpacity(0.4),
-              blurRadius: 15,
-              spreadRadius: 3,
+              color: AppColors.primary.withOpacity(0.4),
+              blurRadius: responsive.space(15),
+              spreadRadius: responsive.space(3),
             ),
             BoxShadow(
-              color: Colors.cyan.withOpacity(0.3),
-              blurRadius: 25,
-              spreadRadius: 5,
+              color: AppColors.accent.withOpacity(0.3),
+              blurRadius: responsive.space(25),
+              spreadRadius: responsive.space(5),
             ),
           ],
         ),
         child: ClipOval(
           child: Image.asset(
-            "assets/animations/ghost-running.gif",
+            AssetConstants.ghostRunning,
             fit: BoxFit.cover,
             frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
               if (frame != null) {
@@ -192,7 +225,7 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
                   ref.read(ghostRunningProvider.notifier).setShowFallback(true);
                 });
               }
-              return _buildFallbackLoader();
+              return _buildFallbackLoader(responsive);
             },
           ),
         ),
@@ -202,26 +235,21 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
 
   @override
   Widget build(BuildContext context) {
+    final responsive = Responsive.of(context);
     final loadingState = ref.watch(ghostRunningProvider);
 
-    final primaryMsg =
-        widget.primaryMessage ??
-        (loadingState.showFallback
-            ? "Loading your experience..."
-            : "Loading your experience...");
-
+    final primaryMsg = widget.primaryMessage ?? "Loading your experience...";
     final secondaryMsg = widget.secondaryMessage ?? "Just a moment";
 
-    final bgColors =
-        widget.gradientColors ??
-        [const Color(0xFF0A1A2F), const Color(0xFF134B73)];
+    final bgColor = widget.backgroundColor ?? AppColors.splashDark;
+    final gradientColors = widget.gradientColors ?? AppColors.primaryGradient;
 
     return Scaffold(
-      backgroundColor: widget.backgroundColor ?? const Color(0xFF0A1A2F),
+      backgroundColor: bgColor,
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: bgColors,
+            colors: gradientColors,
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -236,31 +264,35 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     loadingState.showFallback
-                        ? _buildFallbackLoader()
-                        : _buildGifLoader(),
-                    const SizedBox(height: 20),
+                        ? _buildFallbackLoader(responsive)
+                        : _buildGifLoader(responsive),
+
+                    SizedBox(height: responsive.space(AppDimensions.marginL)),
+
                     FadeTransition(
                       opacity: _fade,
                       child: Text(
                         primaryMsg,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white,
+                        style: AppTextStyles.textTheme.bodyLarge!.copyWith(
+                          color: AppColors.textLight,
                           fontWeight: FontWeight.w500,
                           letterSpacing: 0.3,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                    const SizedBox(height: 8),
+
+                    SizedBox(height: responsive.space(AppDimensions.marginS)),
+
                     FadeTransition(
                       opacity: _fade,
                       child: Text(
                         secondaryMsg,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.white70,
+                        style: AppTextStyles.textTheme.bodyMedium!.copyWith(
+                        color: AppColors.textLight.withOpacity(0.7),
                           fontWeight: FontWeight.w400,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ],

@@ -29,9 +29,7 @@ class AppRouter {
         return _build(const PrivacyPolicyScreen());
       default:
         return _build(
-          const Scaffold(
-            body: Center(child: Text("Route not found")),
-          ),
+          const Scaffold(body: Center(child: Text("Route not found"))),
         );
     }
   }

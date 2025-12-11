@@ -21,4 +21,3 @@ class AuraApp extends StatelessWidget {
     );
   }
 }
-
