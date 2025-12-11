@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
+import '../../../../../core/constants/asset_constants.dart';
+import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_dimensions.dart';
+import '../../../../../core/utils/responsive.dart';
 import '../phone_login/phone_login_screen.dart';
 import '../privacy_policy/privacy_policy.dart';
 
@@ -30,7 +34,11 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
+    _startAnimations();
+  }
 
+  void _initializeAnimations() {
     _logoController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
@@ -55,27 +63,29 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     _logoScale = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
-    _logoOpacity = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
+    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
+    );
 
-    _titleSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
-        .animate(
-          CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
-        );
-    _titleOpacity = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _titleController, curve: Curves.easeIn));
+    _titleSlide = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
+    );
+    _titleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _titleController, curve: Curves.easeIn),
+    );
 
-    _subtitleSlide =
-        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _subtitleController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
+    _subtitleSlide = Tween<Offset>(
+      begin: const Offset(0, 0.3),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(
+        parent: _subtitleController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
     _subtitleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _subtitleController, curve: Curves.easeIn),
     );
@@ -87,12 +97,9 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
       CurvedAnimation(parent: _buttonsController, curve: Curves.easeIn),
     );
 
-    _footerOpacity = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: _footerController, curve: Curves.easeIn));
-
-    _startAnimations();
+    _footerOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _footerController, curve: Curves.easeIn),
+    );
   }
 
   void _startAnimations() {
@@ -127,6 +134,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
   void _signInWithGoogle() async {
     print('Google Sign In pressed');
+    // TODO: Implement Google Sign In
   }
 
   void _signInWithPhone() {
@@ -138,6 +146,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
   void _signInWithEmail() async {
     print('Email Sign In pressed');
+    // TODO: Implement Email Sign In
   }
 
   void _navigateToPrivacyPolicy() {
@@ -149,207 +158,32 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final responsive = Responsive.of(context);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF0A1A2F), Color(0xFF134B73)],
+            colors: AppColors.primaryGradient,
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28.0),
+            padding: responsive.horizontal(7),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                AnimatedBuilder(
-                  animation: _logoController,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _logoOpacity.value,
-                      child: Transform.scale(
-                        scale: _logoScale.value,
-                        child: Container(
-                          width: 120,
-                          height: 120,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.blue.withOpacity(0.3),
-                                blurRadius: 20,
-                                spreadRadius: 3,
-                              ),
-                              BoxShadow(
-                                color: Colors.cyan.withOpacity(0.2),
-                                blurRadius: 40,
-                                spreadRadius: 5,
-                              ),
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: Image.asset(
-                              'assets/logos/Aura-logo.png',
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.blue.shade600,
-                                        Colors.blue.shade800,
-                                      ],
-                                    ),
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      'AURA',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.5,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 40),
-
-                SlideTransition(
-                  position: _titleSlide,
-                  child: FadeTransition(
-                    opacity: _titleOpacity,
-                    child: const Text(
-                      "Sign in to Aura",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                SlideTransition(
-                  position: _subtitleSlide,
-                  child: FadeTransition(
-                    opacity: _subtitleOpacity,
-                    child: const Text(
-                      "Choose how you'd like to continue",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 50),
-
-                AnimatedBuilder(
-                  animation: _buttonsController,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _buttonOpacity.value,
-                      child: Transform.scale(
-                        scale: _buttonScale.value,
-                        child: Column(
-                          children: [
-                            _authButton(
-                              icon: Icons.phone_android_rounded,
-                              text: "Continue with Phone",
-                              backgroundColor: Colors.green.shade600,
-                              onTap: _signInWithPhone,
-                            ),
-                            const SizedBox(height: 16),
-
-                            _authButton(
-                              iconWidget: Container(
-                                width: 24,
-                                height: 24,
-                                alignment: Alignment.center,
-                                child: Image.asset(
-                                  'assets/icons/google/google-logo.webp',
-                                  height: 24,
-                                  width: 24,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                              text: "Continue with Google",
-                              backgroundColor: Colors.white,
-                              textColor: Colors.black87,
-                              borderColor: Colors.grey.shade300,
-                              onTap: _signInWithGoogle,
-                            ),
-                            const SizedBox(height: 16),
-
-                            _authButton(
-                              icon: Icons.email_rounded,
-                              text: "Continue with Email",
-                              backgroundColor: Colors.blueAccent,
-                              onTap: _signInWithEmail,
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(height: 40),
-
-                FadeTransition(
-                  opacity: _footerOpacity,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                    child: RichText(
-                      textAlign: TextAlign.center,
-                      text: TextSpan(
-                        style: const TextStyle(
-                          color: Colors.white54,
-                          fontSize: 12,
-                          height: 1.4,
-                        ),
-                        children: [
-                          const TextSpan(
-                            text:
-                                "By continuing, you agree to our Terms of Service and ",
-                          ),
-                          WidgetSpan(
-                            child: GestureDetector(
-                              onTap: _navigateToPrivacyPolicy,
-                              child: const Text(
-                                "Privacy Policy",
-                                style: TextStyle(
-                                  color: Colors.blueAccent,
-                                  fontSize: 12,
-                                  decoration: TextDecoration.underline,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                _buildAnimatedLogo(responsive),
+                SizedBox(height: responsive.h(3)),
+                _buildAnimatedTitle(responsive),
+                SizedBox(height: responsive.h(1.5)),
+                _buildAnimatedSubtitle(responsive),
+                SizedBox(height: responsive.h(5)),
+                _buildAnimatedButtons(responsive),
+                SizedBox(height: responsive.h(4)),
+                _buildAnimatedFooter(responsive),
               ],
             ),
           ),
@@ -358,7 +192,223 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _authButton({
+  Widget _buildAnimatedLogo(Responsive responsive) {
+    final logoSize = responsive.isTablet
+        ? responsive.w(20)
+        : responsive.isLargeTablet
+        ? responsive.w(15)
+        : responsive.w(30);
+
+    return AnimatedBuilder(
+      animation: _logoController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _logoOpacity.value,
+          child: Transform.scale(
+            scale: _logoScale.value,
+            child: Container(
+              width: logoSize,
+              height: logoSize,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blue.withOpacity(0.3),
+                    blurRadius: 20,
+                    spreadRadius: 3,
+                  ),
+                  BoxShadow(
+                    color: Colors.cyan.withOpacity(0.2),
+                    blurRadius: 40,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: Image.asset(
+                  AssetConstants.auraLogo,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blue.shade600,
+                            Colors.blue.shade800,
+                          ],
+                        ),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'AURA',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: logoSize * 0.2,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.5,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnimatedTitle(Responsive responsive) {
+    final titleSize = responsive.isLargeTablet
+        ? 38.0
+        : responsive.isTablet
+        ? 34.0
+        : 28.0;
+
+    return SlideTransition(
+      position: _titleSlide,
+      child: FadeTransition(
+        opacity: _titleOpacity,
+        child: Text(
+          "Sign in to Aura",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: titleSize,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedSubtitle(Responsive responsive) {
+    final subtitleSize = responsive.isLargeTablet
+        ? 22.0
+        : responsive.isTablet
+        ? 19.0
+        : 16.0;
+
+    return SlideTransition(
+      position: _subtitleSlide,
+      child: FadeTransition(
+        opacity: _subtitleOpacity,
+        child: Text(
+          "Choose how you'd like to continue",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white70,
+            fontSize: subtitleSize,
+            height: 1.4,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnimatedButtons(Responsive responsive) {
+    return AnimatedBuilder(
+      animation: _buttonsController,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _buttonOpacity.value,
+          child: Transform.scale(
+            scale: _buttonScale.value,
+            child: Column(
+              children: [
+                _buildAuthButton(
+                  responsive: responsive,
+                  icon: Icons.phone_android_rounded,
+                  text: "Continue with Phone",
+                  backgroundColor: Colors.green.shade600,
+                  onTap: _signInWithPhone,
+                ),
+                SizedBox(height: responsive.h(2)),
+                _buildAuthButton(
+                  responsive: responsive,
+                  iconWidget: Container(
+                    width: 24,
+                    height: 24,
+                    alignment: Alignment.center,
+                    child: Image.asset(
+                      AssetConstants.googleLogo,
+                      height: 24,
+                      width: 24,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  text: "Continue with Google",
+                  backgroundColor: Colors.white,
+                  textColor: Colors.black87,
+                  borderColor: Colors.grey.shade300,
+                  onTap: _signInWithGoogle,
+                ),
+                SizedBox(height: responsive.h(2)),
+                _buildAuthButton(
+                  responsive: responsive,
+                  icon: Icons.email_rounded,
+                  text: "Continue with Email",
+                  backgroundColor: Colors.blueAccent,
+                  onTap: _signInWithEmail,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAnimatedFooter(Responsive responsive) {
+    final footerSize = responsive.isLargeTablet
+        ? 16.0
+        : responsive.isTablet
+        ? 14.0
+        : 12.0;
+
+    return FadeTransition(
+      opacity: _footerOpacity,
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: responsive.isTablet ? responsive.w(10) : responsive.w(5),
+        ),
+        child: RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: footerSize,
+              height: 1.4,
+            ),
+            children: [
+              const TextSpan(
+                text: "By continuing, you agree to our Terms of Service and ",
+              ),
+              WidgetSpan(
+                child: GestureDetector(
+                  onTap: _navigateToPrivacyPolicy,
+                  child: Text(
+                    "Privacy Policy",
+                    style: TextStyle(
+                      color: Colors.blueAccent,
+                      fontSize: footerSize,
+                      decoration: TextDecoration.underline,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAuthButton({
+    required Responsive responsive,
     IconData? icon,
     Widget? iconWidget,
     required String text,
@@ -367,57 +417,83 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     Color? borderColor,
     required VoidCallback onTap,
   }) {
+    final buttonFontSize = responsive.isLargeTablet
+        ? 22.0
+        : responsive.isTablet
+        ? 19.0
+        : 16.0;
+
+    final buttonPadding = responsive.isLargeTablet
+        ? 20.0
+        : responsive.isTablet
+        ? 18.0
+        : 16.0;
+
+    final iconSize = responsive.isLargeTablet
+        ? 28.0
+        : responsive.isTablet
+        ? 26.0
+        : 24.0;
+
     return SizedBox(
       width: double.infinity,
       child: Material(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(16),
-        elevation: 4,
+        borderRadius: BorderRadius.circular(
+          responsive.radius(AppDimensions.radiusXL),
+        ),
+        elevation: AppDimensions.elevationM,
         shadowColor: Colors.black.withOpacity(0.3),
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(
+            responsive.radius(AppDimensions.radiusXL),
+          ),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+            padding: EdgeInsets.symmetric(
+              vertical: buttonPadding,
+              horizontal: responsive.w(5),
+            ),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(
+                responsive.radius(AppDimensions.radiusXL),
+              ),
               border: borderColor != null
                   ? Border.all(color: borderColor, width: 1)
                   : null,
               gradient: borderColor == null
                   ? LinearGradient(
-                      colors: [
-                        backgroundColor,
-                        Color.lerp(backgroundColor, Colors.black, 0.1)!,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
+                colors: [
+                  backgroundColor,
+                  Color.lerp(backgroundColor, Colors.black, 0.1)!,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
                   : null,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 32,
-                  height: 32,
+                  width: iconSize + 8,
+                  height: iconSize + 8,
                   alignment: Alignment.center,
-                  child:
-                      iconWidget ??
+                  child: iconWidget ??
                       Icon(
                         icon,
                         color: textColor == Colors.white
                             ? Colors.white
                             : Colors.black87,
-                        size: 24,
+                        size: iconSize,
                       ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: responsive.w(3)),
                 Text(
                   text,
                   style: TextStyle(
                     color: textColor,
-                    fontSize: 16,
+                    fontSize: buttonFontSize,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.3,
                   ),
