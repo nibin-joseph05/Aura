@@ -4,16 +4,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/routes/app_router.dart';
 import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
-import 'core/utils/connectivity_provider.dart';
-import 'core/utils/connectivity_wrapper.dart';
+import 'core/utils/connectivity/internet_status_provider.dart';
+import 'core/utils/connectivity/connectivity_wrapper.dart';
+import 'core/utils/connectivity/connectivity_wrapper.dart';
 
 class AuraApp extends ConsumerWidget {
   const AuraApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final connection = ref.watch(connectivityProvider);
-
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Aura',

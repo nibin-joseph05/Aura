@@ -2,6 +2,7 @@ class AssetConstants {
   static const String _animationsPath = 'assets/animations';
   static const String _iconsPath = 'assets/icons';
   static const String _logosPath = 'assets/logos';
+  static const String _noInternet = 'assets/no-internet';
 
   // Logos
   static const String auraLogo = '$_logosPath/Aura-logo.png';
@@ -13,4 +14,7 @@ class AssetConstants {
 
   // Icons
   static const String googleLogo = '$_iconsPath/google/google-logo.webp';
+
+  // No Internet
+  static const String noInternetBackground = '$_noInternet/no-internet.webp';
 }

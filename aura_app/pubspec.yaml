@@ -51,6 +51,7 @@ flutter:
     - assets/animations/
     - assets/logos/
     - assets/icons/google/
+    - assets/no-internet/
     - .env
 
 flutter_launcher_icons:
