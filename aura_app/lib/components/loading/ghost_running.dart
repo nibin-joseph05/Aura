@@ -1,30 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class GhostRunning extends StatefulWidget {
-  final VoidCallback? onAnimationComplete;
 
-  const GhostRunning({super.key, this.onAnimationComplete});
+class GhostRunningState {
+  final bool gifLoaded;
+  final bool showFallback;
 
-  @override
-  State<GhostRunning> createState() => _GhostRunningState();
+  const GhostRunningState({
+    this.gifLoaded = false,
+    this.showFallback = false,
+  });
+
+  GhostRunningState copyWith({
+    bool? gifLoaded,
+    bool? showFallback,
+  }) {
+    return GhostRunningState(
+      gifLoaded: gifLoaded ?? this.gifLoaded,
+      showFallback: showFallback ?? this.showFallback,
+    );
+  }
 }
 
-class _GhostRunningState extends State<GhostRunning>
-    with SingleTickerProviderStateMixin {
 
+class GhostRunningNotifier extends StateNotifier<GhostRunningState> {
+  GhostRunningNotifier() : super(const GhostRunningState());
+
+  void setGifLoaded(bool loaded) {
+    state = state.copyWith(gifLoaded: loaded);
+  }
+
+  void setShowFallback(bool show) {
+    state = state.copyWith(showFallback: show);
+  }
+
+  void reset() {
+    state = const GhostRunningState();
+  }
+}
+
+
+final ghostRunningProvider =
+StateNotifierProvider.autoDispose<GhostRunningNotifier, GhostRunningState>(
+      (ref) => GhostRunningNotifier(),
+);
+
+class GhostRunning extends ConsumerStatefulWidget {
+  final VoidCallback? onAnimationComplete;
+  final String? primaryMessage;
+  final String? secondaryMessage;
+  final Color? backgroundColor;
+  final List<Color>? gradientColors;
+  final Duration? animationDuration;
+
+  const GhostRunning({
+    super.key,
+    this.onAnimationComplete,
+    this.primaryMessage,
+    this.secondaryMessage,
+    this.backgroundColor,
+    this.gradientColors,
+    this.animationDuration,
+  });
+
+  @override
+  ConsumerState<GhostRunning> createState() => _GhostRunningState();
+}
+
+class _GhostRunningState extends ConsumerState<GhostRunning>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _bounce;
   late Animation<double> _fade;
-  bool _gifLoaded = false;
-  bool _showFallback = false;
 
   @override
   void initState() {
     super.initState();
 
+    final duration = widget.animationDuration ?? const Duration(milliseconds: 2000);
+
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2000),
+      duration: duration,
     );
 
     _bounce = Tween<double>(begin: -5, end: 5).animate(
@@ -41,20 +98,17 @@ class _GhostRunningState extends State<GhostRunning>
       ),
     );
 
-
     _controller.forward();
 
 
     Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted && !_gifLoaded) {
-        setState(() {
-          _showFallback = true;
-        });
+      if (mounted && !ref.read(ghostRunningProvider).gifLoaded) {
+        ref.read(ghostRunningProvider.notifier).setShowFallback(true);
       }
     });
 
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
+    Future.delayed(duration, () {
       if (mounted && widget.onAnimationComplete != null) {
         widget.onAnimationComplete!();
       }
@@ -105,7 +159,7 @@ class _GhostRunningState extends State<GhostRunning>
               );
             },
           ),
-          Center(
+          const Center(
             child: Icon(
               Icons.bolt,
               color: Colors.white,
@@ -144,16 +198,19 @@ class _GhostRunningState extends State<GhostRunning>
             fit: BoxFit.cover,
             frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
               if (frame != null) {
-                _gifLoaded = true;
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    ref.read(ghostRunningProvider.notifier).setGifLoaded(true);
+                  }
+                });
               }
               return child;
             },
             errorBuilder: (context, error, stackTrace) {
               if (mounted) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  setState(() {
-                    _showFallback = true;
-                  });
+                  ref.read(ghostRunningProvider.notifier).setShowFallback(true);
                 });
               }
               return _buildFallbackLoader();
@@ -166,15 +223,29 @@ class _GhostRunningState extends State<GhostRunning>
 
   @override
   Widget build(BuildContext context) {
+    final loadingState = ref.watch(ghostRunningProvider);
+
+
+    final primaryMsg = widget.primaryMessage ??
+        (loadingState.showFallback
+            ? "Loading your experience..."
+            : "Loading your experience...");
+
+    final secondaryMsg = widget.secondaryMessage ?? "Just a moment";
+
+
+    final bgColors = widget.gradientColors ??
+        [
+          const Color(0xFF0A1A2F),
+          const Color(0xFF134B73),
+        ];
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1A2F),
+      backgroundColor: widget.backgroundColor ?? const Color(0xFF0A1A2F),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFF0A1A2F),
-              Color(0xFF134B73),
-            ],
+            colors: bgColors,
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -188,12 +259,14 @@ class _GhostRunningState extends State<GhostRunning>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _showFallback ? _buildFallbackLoader() : _buildGifLoader(),
+                    loadingState.showFallback
+                        ? _buildFallbackLoader()
+                        : _buildGifLoader(),
                     const SizedBox(height: 20),
                     FadeTransition(
                       opacity: _fade,
                       child: Text(
-                        _showFallback ? "Loading your experience..." : "Ghost is running...",
+                        primaryMsg,
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.white,
@@ -206,8 +279,8 @@ class _GhostRunningState extends State<GhostRunning>
                     FadeTransition(
                       opacity: _fade,
                       child: Text(
-                        "Just a moment",
-                        style: TextStyle(
+                        secondaryMsg,
+                        style: const TextStyle(
                           fontSize: 13,
                           color: Colors.white70,
                           fontWeight: FontWeight.w400,
