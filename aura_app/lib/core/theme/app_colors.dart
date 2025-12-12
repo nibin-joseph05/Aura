@@ -40,7 +40,7 @@ class AppColors {
     Color(0xFF2196F3),
   ];
 
-  static List<Color> splashGradient = [
+  static const List<Color> splashGradient = [
     splashDark,
     splashMedium,
     splashLight,

@@ -16,5 +16,5 @@ class AssetConstants {
   static const String googleLogo = '$_iconsPath/google/google-logo.webp';
 
   // No Internet
-  static const String noInternetBackground = '$_noInternet/no-internet.webp';
+  static const String noInternetBackground = '$_noInternet/no-internet.png';
 }
