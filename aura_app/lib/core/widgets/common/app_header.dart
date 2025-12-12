@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../theme/app_colors.dart';
-import '../../theme/app_dimensions.dart';
 import '../../utils/responsive.dart';
 
-class AppHeader extends StatefulWidget {
+class AppHeader extends ConsumerStatefulWidget {
   final String title;
   final String? subtitle;
   final VoidCallback? onBack;
@@ -20,10 +20,10 @@ class AppHeader extends StatefulWidget {
   });
 
   @override
-  State<AppHeader> createState() => _AppHeaderState();
+  ConsumerState<AppHeader> createState() => _AppHeaderState();
 }
 
-class _AppHeaderState extends State<AppHeader>
+class _AppHeaderState extends ConsumerState<AppHeader>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _fade;
@@ -45,7 +45,9 @@ class _AppHeaderState extends State<AppHeader>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutBack));
 
-    _controller.forward();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _controller.forward();
+    });
   }
 
   @override
@@ -59,11 +61,12 @@ class _AppHeaderState extends State<AppHeader>
     final responsive = Responsive.of(context);
 
     final titleSize = responsive.isLargeTablet
-        ? 32
+        ? 32.0
         : responsive.isTablet
-        ? 28
-        : 24;
-    final subtitleSize = responsive.isTablet ? 16 : 14;
+        ? 28.0
+        : 24.0;
+
+    final subtitleSize = responsive.isTablet ? 16.0 : 14.0;
 
     return FadeTransition(
       opacity: _fade,
@@ -81,7 +84,7 @@ class _AppHeaderState extends State<AppHeader>
             children: [
               Row(
                 children: [
-                  _buildAnimatedBackButton(responsive),
+                  _buildBackButton(context, responsive),
                   SizedBox(width: responsive.w(4.5)),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,7 +92,7 @@ class _AppHeaderState extends State<AppHeader>
                       Text(
                         widget.title,
                         style: TextStyle(
-                          fontSize: titleSize.toDouble(),
+                          fontSize: titleSize,
                           fontWeight: FontWeight.w800,
                           color: widget.textColor,
                           letterSpacing: 0.8,
@@ -99,7 +102,7 @@ class _AppHeaderState extends State<AppHeader>
                         Text(
                           widget.subtitle!,
                           style: TextStyle(
-                            fontSize: subtitleSize.toDouble(),
+                            fontSize: subtitleSize,
                             color: widget.textColor.withOpacity(0.7),
                             height: 1.1,
                           ),
@@ -116,19 +119,16 @@ class _AppHeaderState extends State<AppHeader>
     );
   }
 
-  Widget _buildAnimatedBackButton(Responsive responsive) {
+  Widget _buildBackButton(BuildContext context, Responsive responsive) {
     final size = responsive.isTablet ? 26.0 : 22.0;
 
     return GestureDetector(
-      onTapDown: (_) => setState(() {}),
-      onTapUp: (_) => setState(() {}),
       onTap: widget.onBack ?? () => Navigator.pop(context),
       child: AnimatedScale(
-        scale: 1.0,
         duration: const Duration(milliseconds: 180),
+        scale: 1.0,
         curve: Curves.easeOutBack,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
+        child: Container(
           padding: EdgeInsets.all(responsive.isTablet ? 7 : 5),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -144,7 +144,7 @@ class _AppHeaderState extends State<AppHeader>
           child: Icon(
             Icons.arrow_back_ios_new_rounded,
             size: size,
-            color: Colors.white,
+            color: widget.textColor,
           ),
         ),
       ),
