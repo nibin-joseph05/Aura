@@ -242,7 +242,7 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
     final secondaryMsg = widget.secondaryMessage ?? "Just a moment";
 
     final bgColor = widget.backgroundColor ?? AppColors.splashDark;
-    final gradientColors = widget.gradientColors ?? AppColors.primaryGradient;
+    final gradientColors = widget.gradientColors ?? AppColors.splashGradient;
 
     return Scaffold(
       backgroundColor: bgColor,

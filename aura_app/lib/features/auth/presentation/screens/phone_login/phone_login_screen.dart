@@ -151,7 +151,10 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const GhostRunning(),
+      builder: (_) => const GhostRunning(
+        primaryMessage: "Checking phone number…",
+        secondaryMessage: "Hang tight!",
+      ),
     );
 
     await FirebaseAuthService().sendOtp(
