@@ -29,17 +29,19 @@ class AppSnackbar {
     _show(context, message, AppColors.primary);
   }
 
+  static void showWarning({
+    required BuildContext context,
+    required String message,
+  }) {
+    _show(context, message, AppColors.warning);
+  }
+
   static DateTime? _lastShown;
   static const Duration _cooldown = Duration(milliseconds: 1200);
 
-  static void _show(
-      BuildContext context,
-      String message,
-      Color color,
-      ) {
+  static void _show(BuildContext context, String message, Color color) {
     final now = DateTime.now();
 
-    
     if (_lastShown != null && now.difference(_lastShown!) < _cooldown) {
       return;
     }
@@ -59,10 +61,8 @@ class AppSnackbar {
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeOutCubic,
         tween: Tween(begin: 0.92, end: 1.0),
-        builder: (context, scale, child) => Transform.scale(
-          scale: scale,
-          child: child,
-        ),
+        builder: (context, scale, child) =>
+            Transform.scale(scale: scale, child: child),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(18),
           child: BackdropFilter(
@@ -126,5 +126,4 @@ class AppSnackbar {
 
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
-
 }

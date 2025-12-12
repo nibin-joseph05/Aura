@@ -38,10 +38,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
       duration: AppConstants.mediumAnimation,
     );
 
-    _fade = CurvedAnimation(
-      curve: Curves.easeOutQuad,
-      parent: _controller,
-    );
+    _fade = CurvedAnimation(curve: Curves.easeOutQuad, parent: _controller);
 
     _controller.forward();
   }
@@ -91,7 +88,6 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          
           SizedBox(
             width: responsive.w(70),
             child: Image.asset(
@@ -102,7 +98,6 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
 
           SizedBox(height: responsive.h(3)),
 
-          
           Text(
             "You're Offline",
             style: AppTextStyles.textTheme.displaySmall?.copyWith(
@@ -113,7 +108,6 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
 
           SizedBox(height: responsive.h(2)),
 
-          
           Padding(
             padding: EdgeInsets.symmetric(horizontal: responsive.w(10)),
             child: Text(
@@ -129,7 +123,6 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
 
           SizedBox(height: responsive.h(5)),
 
-          
           GestureDetector(
             onTap: _retryConnection,
             child: Row(
@@ -176,10 +169,7 @@ class _NoInternetScreenState extends ConsumerState<NoInternetScreen>
     );
 
     if (widget.isOverlay) {
-      return Scaffold(
-        backgroundColor: Colors.transparent,
-        body: body,
-      );
+      return Scaffold(backgroundColor: Colors.transparent, body: body);
     }
 
     return Scaffold(body: body);
