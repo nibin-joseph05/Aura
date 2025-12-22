@@ -2,7 +2,6 @@ package com.backend.aura.services.user;
 
 import com.backend.aura.models.user.User;
 import com.backend.aura.repositories.user.UserRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 @Service

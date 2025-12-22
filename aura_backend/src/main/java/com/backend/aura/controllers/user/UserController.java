@@ -1,8 +1,6 @@
 package com.backend.aura.controllers.user;
 
-import com.backend.aura.models.user.User;
 import com.backend.aura.services.user.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
