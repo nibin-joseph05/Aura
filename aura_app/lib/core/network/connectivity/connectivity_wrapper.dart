@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../utils/connectivity/network_quality_provider.dart';
 
 import '../../widgets/common/screens/no_internet_screen.dart';
-import '../app_snackbar.dart';
-import '../app_ui_ready_provider.dart';
+import '../../ui/snackbar/app_snackbar.dart';
+import '../../state/app_ui_ready_provider.dart';
 import 'internet_status_provider.dart';
+import 'network_quality_provider.dart';
 import 'offline_mode_provider.dart';
 
 class ConnectivityWrapper extends ConsumerWidget {

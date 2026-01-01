@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_dimensions.dart';
-import '../../../../../core/utils/responsive.dart';
+import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../../../core/widgets/common/app_header.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {

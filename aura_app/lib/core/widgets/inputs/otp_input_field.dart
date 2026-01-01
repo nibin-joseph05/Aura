@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_dimensions.dart';
-import '../../utils/responsive.dart';
+import '../../ui/responsive/responsive.dart';
 
 class OtpInputField extends StatelessWidget {
   final TextEditingController controller;

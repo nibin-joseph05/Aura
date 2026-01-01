@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/widgets/buttons/primary_button.dart';
 import '../../../auth/presentation/screens/auth_screen/auth_screen.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/responsive.dart';
+import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/constants/asset_constants.dart';
 
 class WelcomeScreen extends StatefulWidget {

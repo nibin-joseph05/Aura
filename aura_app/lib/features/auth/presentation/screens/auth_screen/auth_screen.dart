@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../../core/constants/asset_constants.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_dimensions.dart';
-import '../../../../../core/utils/responsive.dart';
+import '../../../../../core/ui/responsive/responsive.dart';
 import '../phone_login/phone_login_screen.dart';
 import '../privacy_policy/privacy_policy.dart';
 

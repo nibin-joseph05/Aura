@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../utils/responsive.dart';
+import '../../ui/responsive/responsive.dart';
 
 class ResendOtpTimer extends ConsumerWidget {
   final int timerSeconds;

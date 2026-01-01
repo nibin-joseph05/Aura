@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/asset_constants.dart';
+import '../../../../core/state/app_ui_ready_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/utils/responsive.dart';
+import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/loading/ghost_running.dart';
-import '../../../../core/utils/app_ui_ready_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});

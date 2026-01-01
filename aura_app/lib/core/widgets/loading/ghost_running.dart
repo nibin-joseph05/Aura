@@ -6,7 +6,7 @@ import '../../../core/constants/asset_constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_dimensions.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../core/utils/responsive.dart';
+import '../../ui/responsive/responsive.dart';
 
 class GhostRunningState {
   final bool gifLoaded;
