@@ -4,15 +4,9 @@ class PhoneLoginState {
   final String phoneNumber;
   final bool isLoading;
 
-  const PhoneLoginState({
-    this.phoneNumber = '',
-    this.isLoading = false,
-  });
+  const PhoneLoginState({this.phoneNumber = '', this.isLoading = false});
 
-  PhoneLoginState copyWith({
-    String? phoneNumber,
-    bool? isLoading,
-  }) {
+  PhoneLoginState copyWith({String? phoneNumber, bool? isLoading}) {
     return PhoneLoginState(
       phoneNumber: phoneNumber ?? this.phoneNumber,
       isLoading: isLoading ?? this.isLoading,
@@ -37,6 +31,6 @@ class PhoneLoginNotifier extends StateNotifier<PhoneLoginState> {
 }
 
 final phoneLoginProvider =
-StateNotifierProvider<PhoneLoginNotifier, PhoneLoginState>(
+    StateNotifierProvider<PhoneLoginNotifier, PhoneLoginState>(
       (ref) => PhoneLoginNotifier(),
-);
+    );

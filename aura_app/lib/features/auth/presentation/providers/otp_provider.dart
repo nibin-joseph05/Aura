@@ -86,5 +86,5 @@ class OtpNotifier extends StateNotifier<OtpState> {
 }
 
 final otpProvider = StateNotifierProvider.autoDispose<OtpNotifier, OtpState>(
-      (ref) => OtpNotifier(),
+  (ref) => OtpNotifier(),
 );

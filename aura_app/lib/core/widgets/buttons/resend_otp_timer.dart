@@ -26,10 +26,7 @@ class ResendOtpTimer extends ConsumerWidget {
           canResend
               ? "Didn't receive the code?"
               : "Resend OTP in $timerSeconds seconds",
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: textSize,
-          ),
+          style: TextStyle(color: Colors.white70, fontSize: textSize),
           textAlign: TextAlign.center,
         ),
         if (canResend)

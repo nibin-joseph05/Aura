@@ -10,10 +10,9 @@ class FirebaseAuthService {
     int? forceResendToken,
   }) async {
     try {
-      
       await _auth.setSettings(
         appVerificationDisabledForTesting: false,
-        forceRecaptchaFlow: true, 
+        forceRecaptchaFlow: true,
       );
 
       await _auth.verifyPhoneNumber(
@@ -21,7 +20,6 @@ class FirebaseAuthService {
         forceResendingToken: forceResendToken,
         timeout: const Duration(seconds: 60),
         verificationCompleted: (PhoneAuthCredential credential) async {
-          
           try {
             await _auth.signInWithCredential(credential);
           } catch (e) {
@@ -50,9 +48,7 @@ class FirebaseAuthService {
         codeSent: (String verificationId, int? resendToken) {
           onCodeSent(verificationId, resendToken);
         },
-        codeAutoRetrievalTimeout: (String verificationId) {
-          
-        },
+        codeAutoRetrievalTimeout: (String verificationId) {},
       );
     } catch (e) {
       onError("Failed to send OTP: ${e.toString()}");
@@ -81,17 +77,14 @@ class FirebaseAuthService {
     }
   }
 
-  
   Future<void> signOut() async {
     await _auth.signOut();
   }
 
-  
   User? getCurrentUser() {
     return _auth.currentUser;
   }
 
-  
   bool isUserSignedIn() {
     return _auth.currentUser != null;
   }

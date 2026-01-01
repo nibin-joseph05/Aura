@@ -72,46 +72,47 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
     _logoScale = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
-    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
-    );
+    _logoOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
 
-    _titleSlide = Tween<Offset>(
-      begin: const Offset(0, 0.25),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
-    );
-    _titleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _titleController, curve: Curves.easeIn),
-    );
+    _titleSlide = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
+        );
+    _titleOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _titleController, curve: Curves.easeIn));
 
-    _subtitleSlide = Tween<Offset>(
-      begin: const Offset(0, 0.25),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _subtitleController, curve: Curves.easeOutCubic),
-    );
+    _subtitleSlide =
+        Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _subtitleController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _subtitleOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _subtitleController, curve: Curves.easeIn),
     );
 
-    _inputSlide = Tween<Offset>(
-      begin: const Offset(0, 0.25),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _inputController, curve: Curves.easeOutCubic),
-    );
-    _inputOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _inputController, curve: Curves.easeIn),
-    );
+    _inputSlide = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero)
+        .animate(
+          CurvedAnimation(parent: _inputController, curve: Curves.easeOutCubic),
+        );
+    _inputOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _inputController, curve: Curves.easeIn));
 
     _buttonScale = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(parent: _buttonController, curve: Curves.easeOutBack),
     );
-    _buttonOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _buttonController, curve: Curves.easeIn),
-    );
+    _buttonOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _buttonController, curve: Curves.easeIn));
   }
 
   void _startAnimation() {
@@ -222,142 +223,139 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
         : 120.0;
 
     return Scaffold(
-        backgroundColor: const Color(0xFF0A1A2F),
+      backgroundColor: const Color(0xFF0A1A2F),
 
-        body: GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () => FocusScope.of(context).unfocus(),
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => FocusScope.of(context).unfocus(),
 
-          child: SafeArea(
-            child: Column(
-              children: [
-                const AppHeader(
-                  title: "Phone Login",
-                  textColor: Colors.white,
-                ),
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: responsive.w(7),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedBuilder(
-                          animation: _logoController,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: _logoOpacity.value,
-                              child: Transform.scale(
-                                scale: _logoScale.value,
-                                child: Container(
-                                  width: logoSize,
-                                  height: logoSize,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.blue.shade400
-                                            .withOpacity(0.4),
-                                        blurRadius: 25,
-                                        spreadRadius: 4,
+        child: SafeArea(
+          child: Column(
+            children: [
+              const AppHeader(title: "Phone Login", textColor: Colors.white),
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: responsive.w(7),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AnimatedBuilder(
+                            animation: _logoController,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: _logoOpacity.value,
+                                child: Transform.scale(
+                                  scale: _logoScale.value,
+                                  child: Container(
+                                    width: logoSize,
+                                    height: logoSize,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.blue.shade400
+                                              .withOpacity(0.4),
+                                          blurRadius: 25,
+                                          spreadRadius: 4,
+                                        ),
+                                        BoxShadow(
+                                          color: Colors.cyan.shade300
+                                              .withOpacity(0.2),
+                                          blurRadius: 40,
+                                          spreadRadius: 6,
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipOval(
+                                      child: Image.asset(
+                                        "assets/logos/Aura-logo.png",
+                                        fit: BoxFit.cover,
                                       ),
-                                      BoxShadow(
-                                        color: Colors.cyan.shade300
-                                            .withOpacity(0.2),
-                                        blurRadius: 40,
-                                        spreadRadius: 6,
-                                      ),
-                                    ],
-                                  ),
-                                  child: ClipOval(
-                                    child: Image.asset(
-                                      "assets/logos/Aura-logo.png",
-                                      fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(height: responsive.h(4)),
-                        SlideTransition(
-                          position: _titleSlide,
-                          child: FadeTransition(
-                            opacity: _titleOpacity,
-                            child: Text(
-                              "Verify Your Number",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: titleSize,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+                              );
+                            },
                           ),
-                        ),
-                        SizedBox(height: responsive.h(1.2)),
-                        SlideTransition(
-                          position: _subtitleSlide,
-                          child: FadeTransition(
-                            opacity: _subtitleOpacity,
-                            child: Text(
-                              "Enter your mobile number. We'll send you\nan OTP for secure login or registration.",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: subtitleSize,
-                                height: 1.4,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: responsive.h(3)),
-                        PhoneInputField(
-                          controller: _phoneController,
-                          responsive: responsive,
-                          slideAnimation: _inputSlide,
-                          opacityAnimation: _inputOpacity,
-                        ),
-                        SizedBox(height: responsive.h(5)),
-                        AnimatedBuilder(
-                          animation: _buttonController,
-                          builder: (context, _) {
-                            return Opacity(
-                              opacity: _buttonOpacity.value,
-                              child: Transform.scale(
-                                scale: _buttonScale.value,
-                                child: phoneLoginState.isLoading
-                                    ? const Center(
-                                  child: CircularProgressIndicator(
-                                    color: Colors.blueAccent,
-                                  ),
-                                )
-                                    : PrimaryButton(
-                                  label: "Send OTP",
-                                  onPressed: _sendOtp,
-                                  responsive: responsive,
+                          SizedBox(height: responsive.h(4)),
+                          SlideTransition(
+                            position: _titleSlide,
+                            child: FadeTransition(
+                              opacity: _titleOpacity,
+                              child: Text(
+                                "Verify Your Number",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: titleSize,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
-                            );
-                          },
-                        ),
-                        SizedBox(height: responsive.h(3)),
-                      ],
+                            ),
+                          ),
+                          SizedBox(height: responsive.h(1.2)),
+                          SlideTransition(
+                            position: _subtitleSlide,
+                            child: FadeTransition(
+                              opacity: _subtitleOpacity,
+                              child: Text(
+                                "Enter your mobile number. We'll send you\nan OTP for secure login or registration.",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: subtitleSize,
+                                  height: 1.4,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: responsive.h(3)),
+                          PhoneInputField(
+                            controller: _phoneController,
+                            responsive: responsive,
+                            slideAnimation: _inputSlide,
+                            opacityAnimation: _inputOpacity,
+                          ),
+                          SizedBox(height: responsive.h(5)),
+                          AnimatedBuilder(
+                            animation: _buttonController,
+                            builder: (context, _) {
+                              return Opacity(
+                                opacity: _buttonOpacity.value,
+                                child: Transform.scale(
+                                  scale: _buttonScale.value,
+                                  child: phoneLoginState.isLoading
+                                      ? const Center(
+                                          child: CircularProgressIndicator(
+                                            color: Colors.blueAccent,
+                                          ),
+                                        )
+                                      : PrimaryButton(
+                                          label: "Send OTP",
+                                          onPressed: _sendOtp,
+                                          responsive: responsive,
+                                        ),
+                                ),
+                              );
+                            },
+                          ),
+                          SizedBox(height: responsive.h(3)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-        )
     );
   }
 }

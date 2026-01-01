@@ -30,7 +30,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
     with TickerProviderStateMixin {
   final List<TextEditingController> _controllers = List.generate(
     6,
-        (index) => TextEditingController(),
+    (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
@@ -71,16 +71,18 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
     _logoScale = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutBack),
     );
-    _logoOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
-    );
+    _logoOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _logoController, curve: Curves.easeIn));
 
-    _contentSlide = Tween<Offset>(
-      begin: const Offset(0, 0.25),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(parent: _contentController, curve: Curves.easeOutCubic),
-    );
+    _contentSlide =
+        Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _contentController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
     _contentOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _contentController, curve: Curves.easeIn),
     );
@@ -88,9 +90,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
     _buttonScale = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(parent: _buttonController, curve: Curves.easeOutBack),
     );
-    _buttonOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _buttonController, curve: Curves.easeIn),
-    );
+    _buttonOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _buttonController, curve: Curves.easeIn));
 
     _startAnimations();
   }
@@ -108,7 +111,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
   void _setupSmsAutoFill() {
     SmsAutoFill().listenForCode();
     _smsSubscription = SmsAutoFill().code.listen((code) {
-      if (code != null && code.length == 6) {
+      if (code.length == 6) {
         ref.read(otpProvider.notifier).setAutoFillOtp(code);
         for (int i = 0; i < 6; i++) {
           _controllers[i].text = code[i];
@@ -235,10 +238,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
       onError: (error) {
         if (!mounted) return;
         Navigator.pop(context);
-        AppSnackbar.showError(
-          context: context,
-          message: error,
-        );
+        AppSnackbar.showError(context: context, message: error);
       },
     );
   }
@@ -304,18 +304,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
       body: SafeArea(
         child: Column(
           children: [
-            AppHeader(
-              title: "Verify OTP",
-              textColor: Colors.white,
-            ),
+            AppHeader(title: "Verify OTP", textColor: Colors.white),
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
                   child: Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: responsive.w(6),
-                    ),
+                    padding: EdgeInsets.symmetric(horizontal: responsive.w(6)),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -333,14 +328,16 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.blue.shade400
-                                            .withOpacity(0.4),
+                                        color: Colors.blue.shade400.withOpacity(
+                                          0.4,
+                                        ),
                                         blurRadius: 25,
                                         spreadRadius: 4,
                                       ),
                                       BoxShadow(
-                                        color: Colors.cyan.shade300
-                                            .withOpacity(0.2),
+                                        color: Colors.cyan.shade300.withOpacity(
+                                          0.2,
+                                        ),
                                         blurRadius: 40,
                                         spreadRadius: 6,
                                       ),
@@ -357,7 +354,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                             );
                           },
                         ),
-                        SizedBox(height: responsive.space(AppDimensions.marginL)),
+                        SizedBox(
+                          height: responsive.space(AppDimensions.marginL),
+                        ),
                         SlideTransition(
                           position: _contentSlide,
                           child: FadeTransition(
@@ -375,7 +374,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                                   textAlign: TextAlign.center,
                                 ),
                                 SizedBox(
-                                  height: responsive.space(AppDimensions.marginS),
+                                  height: responsive.space(
+                                    AppDimensions.marginS,
+                                  ),
                                 ),
                                 Text(
                                   "We've sent a 6-digit code to",
@@ -407,7 +408,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                             ),
                           ),
                         ),
-                        SizedBox(height: responsive.space(AppDimensions.marginL)),
+                        SizedBox(
+                          height: responsive.space(AppDimensions.marginL),
+                        ),
                         SlideTransition(
                           position: _contentSlide,
                           child: FadeTransition(
@@ -416,7 +419,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: List.generate(
                                 6,
-                                    (i) => OtpInputField(
+                                (i) => OtpInputField(
                                   controller: _controllers[i],
                                   focusNode: _focusNodes[i],
                                   index: i,
@@ -428,13 +431,17 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                             ),
                           ),
                         ),
-                        SizedBox(height: responsive.space(AppDimensions.marginL)),
+                        SizedBox(
+                          height: responsive.space(AppDimensions.marginL),
+                        ),
                         ResendOtpTimer(
                           timerSeconds: otpState.timerSeconds,
                           canResend: otpState.canResend,
                           onResend: _resendOtp,
                         ),
-                        SizedBox(height: responsive.space(AppDimensions.marginXL)),
+                        SizedBox(
+                          height: responsive.space(AppDimensions.marginXL),
+                        ),
                         AnimatedBuilder(
                           animation: _buttonController,
                           builder: (context, _) {
@@ -461,28 +468,30 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                                         ),
                                       ),
                                       elevation: AppDimensions.elevationL,
-                                      shadowColor:
-                                      Colors.blueAccent.withOpacity(0.35),
+                                      shadowColor: Colors.blueAccent
+                                          .withOpacity(0.35),
                                     ),
                                     child: otpState.isVerifying
                                         ? const CircularProgressIndicator(
-                                      color: Colors.white,
-                                    )
+                                            color: Colors.white,
+                                          )
                                         : Text(
-                                      "Verify",
-                                      style: TextStyle(
-                                        fontSize: buttonFontSize,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                                            "Verify",
+                                            style: TextStyle(
+                                              fontSize: buttonFontSize,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                   ),
                                 ),
                               ),
                             );
                           },
                         ),
-                        SizedBox(height: responsive.space(AppDimensions.marginL)),
+                        SizedBox(
+                          height: responsive.space(AppDimensions.marginL),
+                        ),
                       ],
                     ),
                   ),

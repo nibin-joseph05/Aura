@@ -51,10 +51,7 @@ class OtpInputField extends StatelessWidget {
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(
-              color: Colors.blueAccent,
-              width: 2,
-            ),
+            borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
             borderRadius: BorderRadius.circular(
               responsive.radius(AppDimensions.radiusL),
             ),

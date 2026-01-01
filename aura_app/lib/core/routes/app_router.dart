@@ -4,7 +4,6 @@ import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/screens/auth_screen/auth_screen.dart';
 import '../../features/auth/presentation/screens/phone_login/phone_login_screen.dart';
-import '../../features/auth/presentation/screens/otp/otp_screen.dart';
 import '../../features/auth/presentation/screens/success/otp_success_screen.dart';
 import '../../features/auth/presentation/screens/privacy_policy/privacy_policy.dart';
 

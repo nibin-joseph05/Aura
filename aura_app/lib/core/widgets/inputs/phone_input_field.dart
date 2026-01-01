@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/app_colors.dart';
 import '../../theme/app_dimensions.dart';
 import '../../utils/responsive.dart';
 
@@ -54,10 +53,7 @@ class PhoneInputField extends StatelessWidget {
           decoration: InputDecoration(
             counterText: "",
             labelText: "Mobile Number",
-            labelStyle: TextStyle(
-              color: Colors.white70,
-              fontSize: labelSize,
-            ),
+            labelStyle: TextStyle(color: Colors.white70, fontSize: labelSize),
             prefixText: "+91  ",
             prefixStyle: TextStyle(
               color: Colors.white,
@@ -74,10 +70,7 @@ class PhoneInputField extends StatelessWidget {
               ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(
-                color: Colors.blueAccent,
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
               borderRadius: BorderRadius.circular(
                 responsive.radius(AppDimensions.radiusL),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -7,15 +8,16 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/loading/ghost_running.dart';
+import '../../../../core/utils/app_ui_ready_provider.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _glowController;
@@ -152,24 +154,24 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _navigateToNextScreen() {
     Future.delayed(const Duration(milliseconds: 4800), () {
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                GhostRunning(
-                  onAnimationComplete: () {
-                    Navigator.pushReplacementNamed(context, AppRoutes.welcome);
-                  },
-                ),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-            transitionDuration: AppConstants.longAnimation,
+      if (!mounted) return;
+
+      ref.read(appUiReadyProvider.notifier).state = true;
+
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (context, animation, secondaryAnimation) => GhostRunning(
+            onAnimationComplete: () {
+              Navigator.pushReplacementNamed(context, AppRoutes.welcome);
+            },
           ),
-        );
-      }
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          transitionDuration: AppConstants.longAnimation,
+        ),
+      );
     });
   }
 
@@ -212,12 +214,14 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Text(
                         letter,
                         style: AppTextStyles.textTheme.headlineMedium!.copyWith(
-                          color: AppColors.textLight.withOpacity(0.98),
+                          color: AppColors.textLight.withValues(alpha: 0.98),
+
                           fontWeight: FontWeight.w700,
                           fontFamily: 'monospace',
                           shadows: [
                             Shadow(
-                              color: AppColors.primary.withOpacity(0.5),
+                              color: AppColors.primary.withValues(alpha: 0.5),
+
                               blurRadius: 8,
                             ),
                           ],
@@ -231,7 +235,8 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Text(
                         '–',
                         style: AppTextStyles.textTheme.headlineMedium!.copyWith(
-                          color: AppColors.accent.withOpacity(0.7),
+                          color: AppColors.accent.withValues(alpha: 0.7),
+
                           fontWeight: FontWeight.w300,
                         ),
                       ),
@@ -239,12 +244,13 @@ class _SplashScreenState extends State<SplashScreen>
                     Text(
                       word,
                       style: AppTextStyles.textTheme.headlineMedium!.copyWith(
-                        color: AppColors.textLight.withOpacity(0.92),
+                        color: AppColors.textLight.withValues(alpha: 0.92),
+
                         fontWeight: FontWeight.w300,
                         letterSpacing: 1.2,
                         shadows: [
                           Shadow(
-                            color: AppColors.primary.withOpacity(0.3),
+                            color: AppColors.textLight.withValues(alpha: 0.3),
                             blurRadius: 6,
                           ),
                         ],
@@ -273,7 +279,7 @@ class _SplashScreenState extends State<SplashScreen>
               AppColors.splashDark,
               AppColors.splashMedium,
               AppColors.splashLight,
-              AppColors.primaryDark.withOpacity(0.3),
+              AppColors.primaryDark.withValues(alpha: 0.3),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -347,17 +353,20 @@ class _SplashScreenState extends State<SplashScreen>
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(_glow.value * 0.9),
+            color: AppColors.primary.withValues(alpha: _glow.value * 0.9),
+
             blurRadius: 70,
             spreadRadius: 12,
           ),
           BoxShadow(
-            color: AppColors.accent.withOpacity(_glow.value * 0.7),
+            color: AppColors.accent.withValues(alpha: _glow.value * 0.7),
+
             blurRadius: 90,
             spreadRadius: 18,
           ),
           BoxShadow(
-            color: AppColors.textLight.withOpacity(_glow.value * 0.5),
+            color: AppColors.textLight.withValues(alpha: _glow.value * 0.5),
+
             blurRadius: 50,
             spreadRadius: 8,
           ),
@@ -373,7 +382,8 @@ class _SplashScreenState extends State<SplashScreen>
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: AppColors.textLight.withOpacity(0.15),
+          color: AppColors.textLight.withValues(alpha: 0.15),
+
           width: 2.5,
         ),
       ),
@@ -385,7 +395,8 @@ class _SplashScreenState extends State<SplashScreen>
               end: Alignment(_shimmer.value, 0),
               colors: [
                 Colors.transparent,
-                AppColors.textLight.withOpacity(0.3),
+                AppColors.primaryDark.withValues(alpha: 0.3),
+
                 Colors.transparent,
               ],
               stops: const [0.0, 0.5, 1.0],
@@ -489,7 +500,8 @@ class ParticlePainter extends CustomPainter {
       final opacity =
           (0.12 + (i % 4) * 0.06) * (1 - ((animationValue + i * 0.04) % 1.0));
 
-      paint.color = baseColor.withOpacity(opacity);
+      paint.color = baseColor.withValues(alpha: opacity);
+
       canvas.drawCircle(offset, 2.5 + (i % 3).toDouble(), paint);
     }
   }
