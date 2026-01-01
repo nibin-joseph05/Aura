@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../core/routes/app_routes.dart';
 import '../../../../../core/widgets/loading/ghost_running.dart';
 import '../../../../../core/widgets/common/app_header.dart';
 import '../../../../../core/widgets/buttons/primary_button.dart';
@@ -10,7 +11,6 @@ import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../data/datasources/auth_remote_datasource.dart';
 import '../../../domain/usecases/otp_service.dart';
 import '../../providers/phone_login_provider.dart';
-import '../otp/otp_screen.dart';
 
 class PhoneLoginScreen extends ConsumerStatefulWidget {
   const PhoneLoginScreen({super.key});
@@ -170,12 +170,12 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
           OtpService.resendToken = resendToken;
           OtpService.phoneNumber = "+91$phone";
 
-          Navigator.push(
+          Navigator.pushNamed(
             context,
-            MaterialPageRoute(
-              builder: (_) => OtpScreen(phoneNumber: "+91$phone"),
-            ),
+            AppRoutes.otp,
+            arguments: "+91$phone",
           );
+
         }
       },
       onError: (error) {

@@ -4,8 +4,8 @@ import '../../../../../core/constants/asset_constants.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_dimensions.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
+import '../../../../legal/presentation/screens/privacy_policy/privacy_policy.dart';
 import '../phone_login/phone_login_screen.dart';
-import '../privacy_policy/privacy_policy.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
