@@ -57,5 +57,10 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logos/Aura-app-icon-new.png"
+
+  image_path: "assets/logos/Aura-app-logo.png" # fallback
+
+  adaptive_icon_foreground: "assets/logos/Aura-app-logo.png"
+  adaptive_icon_background: "#2F80ED"
+
   min_sdk_android: 21
