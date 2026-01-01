@@ -10,6 +10,7 @@ import '../../../../../core/widgets/loading/ghost_running.dart';
 import '../../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../legal/presentation/screens/privacy_policy/privacy_policy.dart';
 import '../../../data/datasources/auth_remote_datasource.dart';
+import '../../../domain/models/auth_success_payload.dart';
 import '../../providers/google_auth_provider.dart';
 import '../phone_login/phone_login_screen.dart';
 
@@ -171,6 +172,11 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
         context,
         AppRoutes.otpSuccess,
         (route) => false,
+        arguments: const AuthSuccessPayload(
+          method: AuthMethod.google,
+          identifier: null,
+          isNewUser: true,
+        ),
       );
     } catch (e) {
       if (!mounted) return;

@@ -3,15 +3,12 @@ import 'package:flutter/material.dart';
 import '../../../../../core/routes/app_routes.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
-import '../../../../../core/widgets/buttons/primary_button.dart';
+import '../../../../auth/domain/models/auth_success_payload.dart';
 
 class SuccessScreen extends StatefulWidget {
-  const SuccessScreen({
-    super.key,
-    // required this.payload,
-  });
+  final AuthSuccessPayload payload;
 
-  // final AuthSuccessPayload payload;
+  const SuccessScreen({super.key, required this.payload});
 
   @override
   State<SuccessScreen> createState() => _SuccessScreenState();
@@ -35,7 +32,30 @@ class _SuccessScreenState extends State<SuccessScreen> {
       context,
       AppRoutes.profileComplete,
       (_) => false,
+      arguments: widget.payload,
     );
+  }
+
+  String get _title {
+    switch (widget.payload.method) {
+      case AuthMethod.phone:
+        return "Phone verified";
+      case AuthMethod.google:
+        return "Google account connected";
+      case AuthMethod.email:
+        return "Email verified";
+    }
+  }
+
+  String get _subtitle {
+    switch (widget.payload.method) {
+      case AuthMethod.phone:
+        return "Your phone number ${widget.payload.identifier ?? ''} has been verified successfully.";
+      case AuthMethod.google:
+        return "Your Google account has been successfully linked.";
+      case AuthMethod.email:
+        return "Your email ${widget.payload.identifier ?? ''} has been verified.";
+    }
   }
 
   @override
@@ -59,22 +79,22 @@ class _SuccessScreenState extends State<SuccessScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    width: 100,
-                    height: 100,
+                    width: 96,
+                    height: 96,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.greenAccent.withOpacity(0.15),
+                      color: Colors.greenAccent.withOpacity(0.14),
                       border: Border.all(color: Colors.greenAccent, width: 2),
                     ),
                     child: const Icon(
                       Icons.check_rounded,
-                      size: 52,
+                      size: 48,
                       color: Colors.greenAccent,
                     ),
                   ),
                   SizedBox(height: responsive.h(3)),
                   Text(
-                    "Authentication Successful",
+                    _title,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
@@ -83,10 +103,19 @@ class _SuccessScreenState extends State<SuccessScreen> {
                     ),
                   ),
                   SizedBox(height: responsive.h(1)),
-                  const Text(
-                    "Setting up your account…",
+                  Text(
+                    _subtitle,
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                  ),
+                  SizedBox(height: responsive.h(2)),
+                  const Text(
+                    "Preparing your account…",
+                    style: TextStyle(color: Colors.white38, fontSize: 12),
                   ),
                 ],
               ),

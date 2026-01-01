@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../features/auth/domain/models/auth_success_payload.dart';
 import '../../features/auth/presentation/screens/otp/otp_screen.dart';
 import '../../features/auth/presentation/screens/email_login/email_login_screen.dart';
 import '../../features/auth/presentation/screens/profile_complete/profile_complete_screen.dart';
@@ -29,7 +30,8 @@ class AppRouter {
         final phoneNumber = settings.arguments as String;
         return _build(OtpScreen(phoneNumber: phoneNumber));
       case AppRoutes.otpSuccess:
-        return _build(const SuccessScreen());
+        final payload = settings.arguments as AuthSuccessPayload;
+        return _build(SuccessScreen(payload: payload));
       case AppRoutes.privacyPolicy:
         return _build(const PrivacyPolicyScreen());
       case AppRoutes.profileComplete:

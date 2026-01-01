@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
+import '../../../../../core/routes/app_routes.dart';
 import '../../../../../core/widgets/buttons/primary_button.dart';
 import '../../../../../core/widgets/loading/ghost_running.dart';
 import '../../../../../core/widgets/navigation/app_header.dart';
@@ -15,6 +16,7 @@ import '../../../../../core/theme/app_dimensions.dart';
 import '../../../../../core/constants/asset_constants.dart';
 import '../../../../common/presentation/screens/success/success_screen.dart';
 import '../../../data/datasources/auth_remote_datasource.dart';
+import '../../../domain/models/auth_success_payload.dart';
 import '../../../domain/usecases/otp_service.dart';
 import '../../providers/otp_provider.dart';
 
@@ -47,6 +49,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
   late Animation<double> _buttonOpacity;
 
   StreamSubscription? _smsSubscription;
+  bool _hasNavigated = false;
 
   @override
   void initState() {
@@ -112,15 +115,16 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
   void _setupSmsAutoFill() {
     SmsAutoFill().listenForCode();
     _smsSubscription = SmsAutoFill().code.listen((code) {
+      if (_hasNavigated) return;
+
       if (code.length == 6) {
         ref.read(otpProvider.notifier).setAutoFillOtp(code);
+
         for (int i = 0; i < 6; i++) {
           _controllers[i].text = code[i];
         }
-        final otpState = ref.read(otpProvider);
-        if (!otpState.isVerifying) {
-          _verifyOtp();
-        }
+
+        _verifyOtp();
       }
     });
   }
@@ -146,15 +150,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
   }
 
   Future<void> _verifyOtp() async {
+    if (_hasNavigated) return;
+
     final otpState = ref.read(otpProvider);
 
-    if (!otpState.isComplete) {
-      AppSnackbar.showError(
-        context: context,
-        message: "Please enter the complete 6-digit OTP",
-      );
-      return;
-    }
+    if (!otpState.isComplete || otpState.isVerifying) return;
 
     ref.read(otpProvider.notifier).setVerifying(true);
 
@@ -177,32 +177,34 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
       Navigator.pop(context);
 
       if (user == null) {
-        AppSnackbar.showError(
-          context: context,
-          message: "Invalid or expired OTP. Please try again",
-        );
         ref.read(otpProvider.notifier).setVerifying(false);
         ref.read(otpProvider.notifier).clearOtp();
-        for (var controller in _controllers) {
-          controller.clear();
-        }
-        _focusNodes[0].requestFocus();
+        _controllers.forEach((c) => c.clear());
+        _focusNodes.first.requestFocus();
         return;
       }
 
-      ref.read(otpProvider.notifier).setVerifying(false);
+      _hasNavigated = true;
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const SuccessScreen()),
-      );
-    } catch (e) {
+      _smsSubscription?.cancel();
+      ref.invalidate(otpProvider);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        Navigator.pushReplacementNamed(
+          context,
+          AppRoutes.otpSuccess,
+          arguments: AuthSuccessPayload(
+            method: AuthMethod.phone,
+            identifier: widget.phoneNumber,
+            isNewUser: true,
+          ),
+        );
+      });
+    } catch (_) {
       if (!mounted) return;
       Navigator.pop(context);
-      AppSnackbar.showError(
-        context: context,
-        message: "Unable to verify OTP. Please check your connection",
-      );
       ref.read(otpProvider.notifier).setVerifying(false);
     }
   }
@@ -246,16 +248,20 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
 
   @override
   void dispose() {
+    _hasNavigated = true;
     _smsSubscription?.cancel();
+
     for (final c in _controllers) {
       c.dispose();
     }
     for (final f in _focusNodes) {
       f.dispose();
     }
+
     _logoController.dispose();
     _contentController.dispose();
     _buttonController.dispose();
+
     super.dispose();
   }
 

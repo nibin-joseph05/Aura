@@ -12,6 +12,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_dimensions.dart';
 import '../../../../../core/constants/asset_constants.dart';
 import '../../../data/datasources/auth_remote_datasource.dart';
+import '../../../domain/models/auth_success_payload.dart';
 import '../../providers/email_login_provider.dart';
 
 class EmailLoginScreen extends ConsumerStatefulWidget {
@@ -211,6 +212,11 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
         context,
         AppRoutes.otpSuccess,
         (_) => false,
+        arguments: AuthSuccessPayload(
+          method: AuthMethod.email,
+          identifier: email,
+          isNewUser: true,
+        ),
       );
     } catch (e) {
       if (!mounted) return;
