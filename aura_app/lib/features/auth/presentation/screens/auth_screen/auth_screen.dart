@@ -1,20 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/constants/asset_constants.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_dimensions.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
+import '../../../../../core/routes/app_routes.dart';
+import '../../../../../core/widgets/loading/ghost_running.dart';
+import '../../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../legal/presentation/screens/privacy_policy/privacy_policy.dart';
+import '../../../data/datasources/auth_remote_datasource.dart';
+import '../../providers/google_auth_provider.dart';
 import '../phone_login/phone_login_screen.dart';
 
-class AuthScreen extends StatefulWidget {
+class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
+class _AuthScreenState extends ConsumerState<AuthScreen>
+    with TickerProviderStateMixin {
   late AnimationController _logoController;
   late AnimationController _titleController;
   late AnimationController _subtitleController;
@@ -70,8 +77,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
 
     _titleSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
         .animate(
-          CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
-        );
+      CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
+    );
     _titleOpacity = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -131,9 +138,55 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _signInWithGoogle() async {
-    print('Google Sign In pressed');
-    // TODO: Implement Google Sign In
+  Future<void> _signInWithGoogle() async {
+    ref.read(googleAuthProvider.notifier).setLoading(true);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const GhostRunning(
+        primaryMessage: "Signing in with Google...",
+        secondaryMessage: "Please wait",
+      ),
+    );
+
+    try {
+      final user = await FirebaseAuthService().signInWithGoogle();
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      if (user == null) {
+        AppSnackbar.showInfo(
+          context: context,
+          message: "Sign in was cancelled",
+        );
+        ref.read(googleAuthProvider.notifier).setLoading(false);
+        return;
+      }
+
+      ref.read(googleAuthProvider.notifier).setLoading(false);
+
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.otpSuccess,
+            (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+
+      AppSnackbar.showError(
+        context: context,
+        message: errorMessage,
+      );
+      ref.read(googleAuthProvider.notifier).setLoading(false);
+    }
   }
 
   void _signInWithPhone() {
@@ -143,9 +196,8 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _signInWithEmail() async {
-    print('Email Sign In pressed');
-    // TODO: Implement Email Sign In
+  void _signInWithEmail() {
+    Navigator.pushNamed(context, AppRoutes.emailLogin);
   }
 
   void _navigateToPrivacyPolicy() {
@@ -459,13 +511,13 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                   : null,
               gradient: borderColor == null
                   ? LinearGradient(
-                      colors: [
-                        backgroundColor,
-                        Color.lerp(backgroundColor, Colors.black, 0.1)!,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    )
+                colors: [
+                  backgroundColor,
+                  Color.lerp(backgroundColor, Colors.black, 0.1)!,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
                   : null,
             ),
             child: Row(
@@ -475,8 +527,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                   width: iconSize + 8,
                   height: iconSize + 8,
                   alignment: Alignment.center,
-                  child:
-                      iconWidget ??
+                  child: iconWidget ??
                       Icon(
                         icon,
                         color: textColor == Colors.white

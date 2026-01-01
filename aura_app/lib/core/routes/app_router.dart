@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../features/auth/presentation/screens/otp/otp_screen.dart';
+import '../../features/auth/presentation/screens/email_login/email_login_screen.dart';
+import '../../features/auth/presentation/screens/success/success_screen.dart';
 import '../../features/legal/presentation/screens/privacy_policy/privacy_policy.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/screens/auth_screen/auth_screen.dart';
 import '../../features/auth/presentation/screens/phone_login/phone_login_screen.dart';
-import '../../features/auth/presentation/screens/success/success_screen.dart';
 
 import 'app_routes.dart';
 
@@ -21,10 +22,11 @@ class AppRouter {
         return _build(const AuthScreen());
       case AppRoutes.phoneLogin:
         return _build(const PhoneLoginScreen());
+      case AppRoutes.emailLogin:
+        return _build(const EmailLoginScreen());
       case AppRoutes.otp:
         final phoneNumber = settings.arguments as String;
         return _build(OtpScreen(phoneNumber: phoneNumber));
-
       case AppRoutes.otpSuccess:
         return _build(const OtpSuccessScreen());
       case AppRoutes.privacyPolicy:
