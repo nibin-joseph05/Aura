@@ -170,12 +170,22 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
   }
 
   Future<void> _handleAuth() async {
-    if (!_validateInputs()) return;
-
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    ref.read(emailLoginProvider.notifier).setLoading(true);
+    final notifier = ref.read(emailLoginProvider.notifier);
+
+    notifier.clearErrors();
+
+    final isValid = notifier.validateFields(
+      email: email,
+      password: password,
+      context: context,
+    );
+
+    if (!isValid) return;
+
+    notifier.setLoading(true);
 
     showDialog(
       context: context,
@@ -195,30 +205,22 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
       if (!mounted) return;
       Navigator.pop(context);
 
-      ref.read(emailLoginProvider.notifier).setLoading(false);
-
-      if (user == null) {
-        AppSnackbar.showError(
-          context: context,
-          message: "Authentication failed. Please try again.",
-        );
-        return;
-      }
+      notifier.setLoading(false);
 
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.otpSuccess,
-        (route) => false,
+        (_) => false,
       );
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
+      notifier.setLoading(false);
 
-      ref.read(emailLoginProvider.notifier).setLoading(false);
-
-      final message = e.toString().replaceFirst('Exception: ', '');
-
-      AppSnackbar.showError(context: context, message: message);
+      AppSnackbar.showError(
+        context: context,
+        message: e.toString().replaceFirst('Exception: ', ''),
+      );
     }
   }
 
@@ -258,6 +260,7 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
         : 120.0;
 
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -378,23 +381,25 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                                       hint: "Email",
                                       icon: Icons.email_outlined,
                                       keyboardType: TextInputType.emailAddress,
+                                      errorText: emailState.emailError,
                                     ),
 
                                     SizedBox(height: responsive.h(2)),
+
                                     AppTextField(
                                       controller: _passwordController,
                                       responsive: responsive,
                                       hint: "Password",
                                       icon: Icons.lock_outline,
                                       obscureText: emailState.obscurePassword,
+                                      errorText: emailState.passwordError,
                                       suffixIcon: IconButton(
                                         icon: Icon(
                                           emailState.obscurePassword
                                               ? Icons.visibility_outlined
                                               : Icons.visibility_off_outlined,
-                                          color: AppColors.textLight.withValues(
-                                            alpha: 0.7,
-                                          ),
+                                          color: AppColors.textLight
+                                              .withOpacity(0.7),
                                         ),
                                         onPressed: () {
                                           ref

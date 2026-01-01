@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_colors.dart';
 import '../../theme/app_dimensions.dart';
 import '../../ui/responsive/responsive.dart';
 
@@ -34,9 +35,9 @@ class PrimaryButton extends StatelessWidget {
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.symmetric(vertical: buttonPadding),
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: AppColors.primary,
           elevation: AppDimensions.elevationL,
-          shadowColor: Colors.blue.withOpacity(0.5),
+          shadowColor: AppColors.primary.withOpacity(0.35),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               responsive.radius(AppDimensions.radiusL),

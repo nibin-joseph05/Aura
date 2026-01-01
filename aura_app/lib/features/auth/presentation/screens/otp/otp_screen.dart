@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sms_autofill/sms_autofill.dart';
 
+import '../../../../../core/widgets/buttons/primary_button.dart';
 import '../../../../../core/widgets/loading/ghost_running.dart';
 import '../../../../../core/widgets/common/app_header.dart';
 import '../../../../../core/widgets/inputs/otp_input_field.dart';
@@ -300,205 +301,191 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
         : 16.0;
 
     return Scaffold(
-      backgroundColor: AppColors.splashDark,
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppHeader(title: "Verify OTP", textColor: Colors.white),
-            Expanded(
-              child: Center(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: responsive.w(6)),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedBuilder(
-                          animation: _logoController,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: _logoOpacity.value,
-                              child: Transform.scale(
-                                scale: _logoScale.value,
-                                child: Container(
-                                  width: responsive.isTablet ? 140.0 : 120.0,
-                                  height: responsive.isTablet ? 140.0 : 120.0,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.blue.shade400.withOpacity(
-                                          0.4,
+      resizeToAvoidBottomInset: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppHeader(title: "Verify OTP", textColor: Colors.white),
+              Expanded(
+                child: Center(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: responsive.w(6),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AnimatedBuilder(
+                            animation: _logoController,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: _logoOpacity.value,
+                                child: Transform.scale(
+                                  scale: _logoScale.value,
+                                  child: Container(
+                                    width: responsive.isTablet ? 140.0 : 120.0,
+                                    height: responsive.isTablet ? 140.0 : 120.0,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.primary.withOpacity(
+                                            0.4,
+                                          ),
+                                          blurRadius: 25,
+                                          spreadRadius: 4,
                                         ),
-                                        blurRadius: 25,
-                                        spreadRadius: 4,
-                                      ),
-                                      BoxShadow(
-                                        color: Colors.cyan.shade300.withOpacity(
-                                          0.2,
+                                        BoxShadow(
+                                          color: AppColors.accent.withOpacity(
+                                            0.25,
+                                          ),
+                                          blurRadius: 40,
+                                          spreadRadius: 6,
                                         ),
-                                        blurRadius: 40,
-                                        spreadRadius: 6,
+                                      ],
+                                    ),
+                                    child: ClipOval(
+                                      child: Image.asset(
+                                        AssetConstants.auraLogo,
+                                        fit: BoxFit.cover,
                                       ),
-                                    ],
-                                  ),
-                                  child: ClipOval(
-                                    child: Image.asset(
-                                      AssetConstants.auraLogo,
-                                      fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                        ),
-                        SizedBox(
-                          height: responsive.space(AppDimensions.marginL),
-                        ),
-                        SlideTransition(
-                          position: _contentSlide,
-                          child: FadeTransition(
-                            opacity: _contentOpacity,
-                            child: Column(
-                              children: [
-                                Text(
-                                  "Enter the OTP",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: titleSize,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(
-                                  height: responsive.space(
-                                    AppDimensions.marginS,
-                                  ),
-                                ),
-                                Text(
-                                  "We've sent a 6-digit code to",
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: subtitleSize,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                SizedBox(height: responsive.space(4)),
-                                Text(
-                                  widget.phoneNumber,
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: phoneSize,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                SizedBox(height: responsive.space(6)),
-                                Text(
-                                  "If this number is incorrect, go back and edit it",
-                                  style: TextStyle(
-                                    color: Colors.white54,
-                                    fontSize: noteSize,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
-                        ),
-                        SizedBox(
-                          height: responsive.space(AppDimensions.marginL),
-                        ),
-                        SlideTransition(
-                          position: _contentSlide,
-                          child: FadeTransition(
-                            opacity: _contentOpacity,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: List.generate(
-                                6,
-                                (i) => OtpInputField(
-                                  controller: _controllers[i],
-                                  focusNode: _focusNodes[i],
-                                  index: i,
-                                  onChanged: (value) =>
-                                      _handleOtpChange(i, value),
-                                  responsive: responsive,
-                                ),
-                              ),
-                            ),
+                          SizedBox(
+                            height: responsive.space(AppDimensions.marginL),
                           ),
-                        ),
-                        SizedBox(
-                          height: responsive.space(AppDimensions.marginL),
-                        ),
-                        ResendOtpTimer(
-                          timerSeconds: otpState.timerSeconds,
-                          canResend: otpState.canResend,
-                          onResend: _resendOtp,
-                        ),
-                        SizedBox(
-                          height: responsive.space(AppDimensions.marginXL),
-                        ),
-                        AnimatedBuilder(
-                          animation: _buttonController,
-                          builder: (context, _) {
-                            return Opacity(
-                              opacity: _buttonOpacity.value,
-                              child: Transform.scale(
-                                scale: _buttonScale.value,
-                                child: SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: otpState.isVerifying
-                                        ? null
-                                        : _verifyOtp,
-                                    style: ElevatedButton.styleFrom(
-                                      padding: EdgeInsets.symmetric(
-                                        vertical: buttonPadding,
-                                      ),
-                                      backgroundColor: Colors.blueAccent,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          responsive.radius(
-                                            AppDimensions.radiusL,
-                                          ),
-                                        ),
-                                      ),
-                                      elevation: AppDimensions.elevationL,
-                                      shadowColor: Colors.blueAccent
-                                          .withOpacity(0.35),
+                          SlideTransition(
+                            position: _contentSlide,
+                            child: FadeTransition(
+                              opacity: _contentOpacity,
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "Enter the OTP",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: titleSize,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
                                     ),
-                                    child: otpState.isVerifying
-                                        ? const CircularProgressIndicator(
-                                            color: Colors.white,
-                                          )
-                                        : Text(
-                                            "Verify",
-                                            style: TextStyle(
-                                              fontSize: buttonFontSize,
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(
+                                    height: responsive.space(
+                                      AppDimensions.marginS,
+                                    ),
+                                  ),
+                                  Text(
+                                    "We've sent a 6-digit code to",
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: subtitleSize,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  SizedBox(height: responsive.space(4)),
+                                  Text(
+                                    widget.phoneNumber,
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: phoneSize,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  SizedBox(height: responsive.space(6)),
+                                  Text(
+                                    "If this number is incorrect, go back and edit it",
+                                    style: TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: noteSize,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          SizedBox(
+                            height: responsive.space(AppDimensions.marginL),
+                          ),
+                          SlideTransition(
+                            position: _contentSlide,
+                            child: FadeTransition(
+                              opacity: _contentOpacity,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: List.generate(
+                                  6,
+                                  (i) => OtpInputField(
+                                    controller: _controllers[i],
+                                    focusNode: _focusNodes[i],
+                                    index: i,
+                                    onChanged: (value) =>
+                                        _handleOtpChange(i, value),
+                                    responsive: responsive,
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                        ),
-                        SizedBox(
-                          height: responsive.space(AppDimensions.marginL),
-                        ),
-                      ],
+                            ),
+                          ),
+                          SizedBox(
+                            height: responsive.space(AppDimensions.marginL),
+                          ),
+                          ResendOtpTimer(
+                            timerSeconds: otpState.timerSeconds,
+                            canResend: otpState.canResend,
+                            onResend: _resendOtp,
+                          ),
+                          SizedBox(
+                            height: responsive.space(AppDimensions.marginXL),
+                          ),
+                          AnimatedBuilder(
+                            animation: _buttonController,
+                            builder: (context, _) {
+                              return Opacity(
+                                opacity: _buttonOpacity.value,
+                                child: Transform.scale(
+                                  scale: _buttonScale.value,
+                                  child: otpState.isVerifying
+                                      ? const CircularProgressIndicator(
+                                          color: Colors.white,
+                                        )
+                                      : PrimaryButton(
+                                          label: "Verify",
+                                          onPressed: _verifyOtp,
+                                          responsive: responsive,
+                                        ),
+                                ),
+                              );
+                            },
+                          ),
+
+                          SizedBox(
+                            height: responsive.space(AppDimensions.marginL),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

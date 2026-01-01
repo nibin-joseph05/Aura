@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/routes/app_routes.dart';
+import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/widgets/loading/ghost_running.dart';
 import '../../../../../core/widgets/common/app_header.dart';
 import '../../../../../core/widgets/buttons/primary_button.dart';
@@ -218,136 +219,144 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
         : 120.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1A2F),
-
-      body: GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onTap: () => FocusScope.of(context).unfocus(),
-
-        child: SafeArea(
-          child: Column(
-            children: [
-              const AppHeader(title: "Phone Login", textColor: Colors.white),
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: responsive.w(7),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AnimatedBuilder(
-                            animation: _logoController,
-                            builder: (context, child) {
-                              return Opacity(
-                                opacity: _logoOpacity.value,
-                                child: Transform.scale(
-                                  scale: _logoScale.value,
-                                  child: Container(
-                                    width: logoSize,
-                                    height: logoSize,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.blue.shade400
-                                              .withOpacity(0.4),
-                                          blurRadius: 25,
-                                          spreadRadius: 4,
+      resizeToAvoidBottomInset: true,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: SafeArea(
+            child: Column(
+              children: [
+                const AppHeader(title: "Phone Login", textColor: Colors.white),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: responsive.w(7),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            AnimatedBuilder(
+                              animation: _logoController,
+                              builder: (context, child) {
+                                return Opacity(
+                                  opacity: _logoOpacity.value,
+                                  child: Transform.scale(
+                                    scale: _logoScale.value,
+                                    child: Container(
+                                      width: logoSize,
+                                      height: logoSize,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.primary
+                                                .withOpacity(0.4),
+                                            blurRadius: 25,
+                                            spreadRadius: 4,
+                                          ),
+                                          BoxShadow(
+                                            color: AppColors.accent.withOpacity(
+                                              0.25,
+                                            ),
+                                            blurRadius: 40,
+                                            spreadRadius: 6,
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipOval(
+                                        child: Image.asset(
+                                          "assets/logos/Aura-logo.png",
+                                          fit: BoxFit.cover,
                                         ),
-                                        BoxShadow(
-                                          color: Colors.cyan.shade300
-                                              .withOpacity(0.2),
-                                          blurRadius: 40,
-                                          spreadRadius: 6,
-                                        ),
-                                      ],
-                                    ),
-                                    child: ClipOval(
-                                      child: Image.asset(
-                                        "assets/logos/Aura-logo.png",
-                                        fit: BoxFit.cover,
                                       ),
                                     ),
                                   ),
+                                );
+                              },
+                            ),
+                            SizedBox(height: responsive.h(4)),
+                            SlideTransition(
+                              position: _titleSlide,
+                              child: FadeTransition(
+                                opacity: _titleOpacity,
+                                child: Text(
+                                  "Verify Your Number",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: titleSize,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: responsive.h(4)),
-                          SlideTransition(
-                            position: _titleSlide,
-                            child: FadeTransition(
-                              opacity: _titleOpacity,
-                              child: Text(
-                                "Verify Your Number",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: titleSize,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                ),
-                                textAlign: TextAlign.center,
                               ),
                             ),
-                          ),
-                          SizedBox(height: responsive.h(1.2)),
-                          SlideTransition(
-                            position: _subtitleSlide,
-                            child: FadeTransition(
-                              opacity: _subtitleOpacity,
-                              child: Text(
-                                "Enter your mobile number. We'll send you\nan OTP for secure login or registration.",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: subtitleSize,
-                                  height: 1.4,
+                            SizedBox(height: responsive.h(1.2)),
+                            SlideTransition(
+                              position: _subtitleSlide,
+                              child: FadeTransition(
+                                opacity: _subtitleOpacity,
+                                child: Text(
+                                  "Enter your mobile number. We'll send you\nan OTP for secure login or registration.",
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: subtitleSize,
+                                    height: 1.4,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
                             ),
-                          ),
-                          SizedBox(height: responsive.h(3)),
-                          PhoneInputField(
-                            controller: _phoneController,
-                            responsive: responsive,
-                            slideAnimation: _inputSlide,
-                            opacityAnimation: _inputOpacity,
-                          ),
-                          SizedBox(height: responsive.h(5)),
-                          AnimatedBuilder(
-                            animation: _buttonController,
-                            builder: (context, _) {
-                              return Opacity(
-                                opacity: _buttonOpacity.value,
-                                child: Transform.scale(
-                                  scale: _buttonScale.value,
-                                  child: phoneLoginState.isLoading
-                                      ? const Center(
-                                          child: CircularProgressIndicator(
-                                            color: Colors.blueAccent,
+                            SizedBox(height: responsive.h(3)),
+                            PhoneInputField(
+                              controller: _phoneController,
+                              responsive: responsive,
+                              slideAnimation: _inputSlide,
+                              opacityAnimation: _inputOpacity,
+                            ),
+                            SizedBox(height: responsive.h(5)),
+                            AnimatedBuilder(
+                              animation: _buttonController,
+                              builder: (context, _) {
+                                return Opacity(
+                                  opacity: _buttonOpacity.value,
+                                  child: Transform.scale(
+                                    scale: _buttonScale.value,
+                                    child: phoneLoginState.isLoading
+                                        ? const Center(
+                                            child: CircularProgressIndicator(
+                                              color: Colors.blueAccent,
+                                            ),
+                                          )
+                                        : PrimaryButton(
+                                            label: "Send OTP",
+                                            onPressed: _sendOtp,
+                                            responsive: responsive,
                                           ),
-                                        )
-                                      : PrimaryButton(
-                                          label: "Send OTP",
-                                          onPressed: _sendOtp,
-                                          responsive: responsive,
-                                        ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: responsive.h(3)),
-                        ],
+                                  ),
+                                );
+                              },
+                            ),
+                            SizedBox(height: responsive.h(3)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

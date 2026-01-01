@@ -293,12 +293,8 @@ class _WelcomeScreenState extends State<WelcomeScreen>
           opacity: _buttonOpacity.value,
           child: Transform.scale(
             scale: _buttonScale.value,
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: responsive.isTablet
-                    ? responsive.w(20)
-                    : responsive.w(8),
-              ),
+            child: SizedBox(
+              width: responsive.isTablet ? responsive.w(60) : responsive.w(85),
               child: PrimaryButton(
                 label: "Get Started",
                 onPressed: _navigateToAuth,
