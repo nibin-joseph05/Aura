@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../widgets/common/screens/no_internet_screen.dart';
 import '../../ui/snackbar/app_snackbar.dart';
 import '../../state/app_ui_ready_provider.dart';
+import '../../widgets/screens/no_internet_screen.dart';
 import 'internet_status_provider.dart';
 import 'network_quality_provider.dart';
 import 'offline_mode_provider.dart';

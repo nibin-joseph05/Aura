@@ -11,6 +11,7 @@ class AppTextField extends StatelessWidget {
   final TextInputType keyboardType;
   final Widget? suffixIcon;
   final String? errorText;
+  final bool enabled;
 
   const AppTextField({
     super.key,
@@ -22,6 +23,7 @@ class AppTextField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.suffixIcon,
     this.errorText,
+    this.enabled = true,
   });
 
   @override
@@ -33,6 +35,7 @@ class AppTextField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         TextFormField(
+          enabled: enabled,
           controller: controller,
           obscureText: obscureText,
           keyboardType: keyboardType,

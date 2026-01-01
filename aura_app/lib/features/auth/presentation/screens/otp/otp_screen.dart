@@ -5,7 +5,7 @@ import 'package:sms_autofill/sms_autofill.dart';
 
 import '../../../../../core/widgets/buttons/primary_button.dart';
 import '../../../../../core/widgets/loading/ghost_running.dart';
-import '../../../../../core/widgets/common/app_header.dart';
+import '../../../../../core/widgets/navigation/app_header.dart';
 import '../../../../../core/widgets/inputs/otp_input_field.dart';
 import '../../../../../core/widgets/buttons/resend_otp_timer.dart';
 import '../../../../../core/ui/snackbar/app_snackbar.dart';
@@ -13,10 +13,10 @@ import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_dimensions.dart';
 import '../../../../../core/constants/asset_constants.dart';
+import '../../../../common/presentation/screens/success/success_screen.dart';
 import '../../../data/datasources/auth_remote_datasource.dart';
 import '../../../domain/usecases/otp_service.dart';
 import '../../providers/otp_provider.dart';
-import '../success/success_screen.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
@@ -194,7 +194,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (_) => const OtpSuccessScreen()),
+        MaterialPageRoute(builder: (_) => const SuccessScreen()),
       );
     } catch (e) {
       if (!mounted) return;

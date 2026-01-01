@@ -7,4 +7,5 @@ class AppRoutes {
   static const otp = '/otp';
   static const otpSuccess = '/otp-success';
   static const privacyPolicy = '/privacy-policy';
+  static const profileComplete = '/profile-complete';
 }

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../features/auth/presentation/screens/otp/otp_screen.dart';
 import '../../features/auth/presentation/screens/email_login/email_login_screen.dart';
-import '../../features/auth/presentation/screens/success/success_screen.dart';
+import '../../features/auth/presentation/screens/profile_complete/profile_complete_screen.dart';
+import '../../features/common/presentation/screens/success/success_screen.dart';
 import '../../features/legal/presentation/screens/privacy_policy/privacy_policy.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
@@ -28,9 +29,11 @@ class AppRouter {
         final phoneNumber = settings.arguments as String;
         return _build(OtpScreen(phoneNumber: phoneNumber));
       case AppRoutes.otpSuccess:
-        return _build(const OtpSuccessScreen());
+        return _build(const SuccessScreen());
       case AppRoutes.privacyPolicy:
         return _build(const PrivacyPolicyScreen());
+      case AppRoutes.profileComplete:
+        return _build(const ProfileCompleteScreen());
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),

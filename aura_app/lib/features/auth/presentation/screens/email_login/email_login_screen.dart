@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/routes/app_routes.dart';
 import '../../../../../core/widgets/inputs/app_text_field.dart';
 import '../../../../../core/widgets/loading/ghost_running.dart';
-import '../../../../../core/widgets/common/app_header.dart';
+import '../../../../../core/widgets/navigation/app_header.dart';
 import '../../../../../core/widgets/buttons/primary_button.dart';
 import '../../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../../core/ui/responsive/responsive.dart';

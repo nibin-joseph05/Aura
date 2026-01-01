@@ -8,6 +8,7 @@ class AppHeader extends ConsumerStatefulWidget {
   final VoidCallback? onBack;
   final List<Widget>? actions;
   final Color textColor;
+  final bool showBack;
 
   const AppHeader({
     super.key,
@@ -16,6 +17,7 @@ class AppHeader extends ConsumerStatefulWidget {
     this.onBack,
     this.actions,
     this.textColor = Colors.white,
+    this.showBack = true,
   });
 
   @override
@@ -83,8 +85,10 @@ class _AppHeaderState extends ConsumerState<AppHeader>
             children: [
               Row(
                 children: [
-                  _buildBackButton(context, responsive),
-                  SizedBox(width: responsive.w(4.5)),
+                  if (widget.showBack) ...[
+                    _buildBackButton(context, responsive),
+                    SizedBox(width: responsive.w(4.5)),
+                  ],
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

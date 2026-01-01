@@ -2,15 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../constants/app_constants.dart';
-import '../../../constants/asset_constants.dart';
-import '../../../network/connectivity/internet_status_provider.dart';
-import '../../../network/connectivity/offline_mode_provider.dart';
-import '../../../theme/app_colors.dart';
-import '../../../theme/app_dimensions.dart';
-import '../../../theme/app_text_styles.dart';
-import '../../../ui/snackbar/app_snackbar.dart';
-import '../../../ui/responsive/responsive.dart';
+import '../../constants/app_constants.dart';
+import '../../constants/asset_constants.dart';
+import '../../network/connectivity/internet_status_provider.dart';
+import '../../network/connectivity/offline_mode_provider.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_dimensions.dart';
+import '../../theme/app_text_styles.dart';
+import '../../ui/responsive/responsive.dart';
+import '../../ui/snackbar/app_snackbar.dart';
 
 class NoInternetScreen extends ConsumerStatefulWidget {
   final bool isOverlay;
