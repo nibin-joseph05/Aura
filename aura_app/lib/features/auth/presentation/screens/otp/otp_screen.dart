@@ -15,7 +15,7 @@ import '../../../../../core/constants/asset_constants.dart';
 import '../../../data/datasources/auth_remote_datasource.dart';
 import '../../../domain/usecases/otp_service.dart';
 import '../../providers/otp_provider.dart';
-import '../success/otp_success_screen.dart';
+import '../success/success_screen.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
   final String phoneNumber;
