@@ -170,12 +170,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
           OtpService.resendToken = resendToken;
           OtpService.phoneNumber = "+91$phone";
 
-          Navigator.pushNamed(
-            context,
-            AppRoutes.otp,
-            arguments: "+91$phone",
-          );
-
+          Navigator.pushNamed(context, AppRoutes.otp, arguments: "+91$phone");
         }
       },
       onError: (error) {

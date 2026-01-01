@@ -88,7 +88,7 @@ class FirebaseAuthService {
       }
 
       final GoogleSignInAuthentication googleAuth =
-      await googleUser.authentication;
+          await googleUser.authentication;
 
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
@@ -100,7 +100,9 @@ class FirebaseAuthService {
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'account-exists-with-different-credential':
-          throw Exception('An account already exists with a different sign-in method');
+          throw Exception(
+            'An account already exists with a different sign-in method',
+          );
         case 'invalid-credential':
           throw Exception('Invalid credentials. Please try again');
         case 'operation-not-allowed':
@@ -178,10 +180,7 @@ class FirebaseAuthService {
   }
 
   Future<void> signOut() async {
-    await Future.wait([
-      _auth.signOut(),
-      _googleSignIn.signOut(),
-    ]);
+    await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
   }
 
   User? getCurrentUser() {

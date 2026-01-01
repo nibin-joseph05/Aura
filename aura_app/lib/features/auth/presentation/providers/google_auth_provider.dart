@@ -23,6 +23,6 @@ class GoogleAuthNotifier extends StateNotifier<GoogleAuthState> {
 }
 
 final googleAuthProvider =
-StateNotifierProvider<GoogleAuthNotifier, GoogleAuthState>(
+    StateNotifierProvider<GoogleAuthNotifier, GoogleAuthState>(
       (ref) => GoogleAuthNotifier(),
-);
+    );

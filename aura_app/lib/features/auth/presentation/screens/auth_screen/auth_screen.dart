@@ -77,8 +77,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
 
     _titleSlide = Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
         .animate(
-      CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
-    );
+          CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
+        );
     _titleOpacity = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -170,7 +170,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.otpSuccess,
-            (route) => false,
+        (route) => false,
       );
     } catch (e) {
       if (!mounted) return;
@@ -181,10 +181,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
         errorMessage = errorMessage.substring(11);
       }
 
-      AppSnackbar.showError(
-        context: context,
-        message: errorMessage,
-      );
+      AppSnackbar.showError(context: context, message: errorMessage);
       ref.read(googleAuthProvider.notifier).setLoading(false);
     }
   }
@@ -511,13 +508,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                   : null,
               gradient: borderColor == null
                   ? LinearGradient(
-                colors: [
-                  backgroundColor,
-                  Color.lerp(backgroundColor, Colors.black, 0.1)!,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              )
+                      colors: [
+                        backgroundColor,
+                        Color.lerp(backgroundColor, Colors.black, 0.1)!,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
                   : null,
             ),
             child: Row(
@@ -527,7 +524,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                   width: iconSize + 8,
                   height: iconSize + 8,
                   alignment: Alignment.center,
-                  child: iconWidget ??
+                  child:
+                      iconWidget ??
                       Icon(
                         icon,
                         color: textColor == Colors.white

@@ -82,8 +82,8 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
 
     _titleSlide = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero)
         .animate(
-      CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
-    );
+          CurvedAnimation(parent: _titleController, curve: Curves.easeOutCubic),
+        );
     _titleOpacity = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -102,8 +102,8 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
 
     _inputSlide = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero)
         .animate(
-      CurvedAnimation(parent: _inputController, curve: Curves.easeOutCubic),
-    );
+          CurvedAnimation(parent: _inputController, curve: Curves.easeOutCubic),
+        );
     _inputOpacity = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -166,15 +166,6 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
       return false;
     }
 
-    final emailState = ref.read(emailLoginProvider);
-    if (emailState.isSignUp && password.length < 6) {
-      AppSnackbar.showError(
-        context: context,
-        message: "Password must be at least 6 characters",
-      );
-      return false;
-    }
-
     return true;
   }
 
@@ -183,30 +174,20 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
 
     final email = _emailController.text.trim();
     final password = _passwordController.text;
-    final emailState = ref.read(emailLoginProvider);
 
     ref.read(emailLoginProvider.notifier).setLoading(true);
-    ref.read(emailLoginProvider.notifier).updateEmail(email);
-    ref.read(emailLoginProvider.notifier).updatePassword(password);
 
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => GhostRunning(
-        primaryMessage: emailState.isSignUp
-            ? "Creating your account..."
-            : "Signing you in...",
+      builder: (_) => const GhostRunning(
+        primaryMessage: "Signing you in...",
         secondaryMessage: "Please wait",
       ),
     );
 
     try {
-      final user = emailState.isSignUp
-          ? await FirebaseAuthService().signUpWithEmailPassword(
-        email: email,
-        password: password,
-      )
-          : await FirebaseAuthService().signInWithEmailPassword(
+      final user = await FirebaseAuthService().signInWithEmailPassword(
         email: email,
         password: password,
       );
@@ -214,36 +195,30 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
       if (!mounted) return;
       Navigator.pop(context);
 
+      ref.read(emailLoginProvider.notifier).setLoading(false);
+
       if (user == null) {
         AppSnackbar.showError(
           context: context,
-          message: "Authentication failed. Please try again",
+          message: "Authentication failed. Please try again.",
         );
-        ref.read(emailLoginProvider.notifier).setLoading(false);
         return;
       }
-
-      ref.read(emailLoginProvider.notifier).setLoading(false);
 
       Navigator.pushNamedAndRemoveUntil(
         context,
         AppRoutes.otpSuccess,
-            (route) => false,
+        (route) => false,
       );
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
 
-      String errorMessage = e.toString();
-      if (errorMessage.startsWith('Exception: ')) {
-        errorMessage = errorMessage.substring(11);
-      }
-
-      AppSnackbar.showError(
-        context: context,
-        message: errorMessage,
-      );
       ref.read(emailLoginProvider.notifier).setLoading(false);
+
+      final message = e.toString().replaceFirst('Exception: ', '');
+
+      AppSnackbar.showError(context: context, message: message);
     }
   }
 
@@ -296,210 +271,177 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
           onTap: () => FocusScope.of(context).unfocus(),
           child: SafeArea(
             child: Column(
-            children: [
-              const AppHeader(title: "Email Login", textColor: AppColors.textLight),
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: responsive.w(7),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AnimatedBuilder(
-                            animation: _logoController,
-                            builder: (context, child) {
-                              return Opacity(
-                                opacity: _logoOpacity.value,
-                                child: Transform.scale(
-                                  scale: _logoScale.value,
-                                  child: Container(
-                                    width: logoSize,
-                                    height: logoSize,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: AppColors.primary.withOpacity(0.4),
-                                          blurRadius: 25,
-                                          spreadRadius: 4,
+              children: [
+                const AppHeader(
+                  title: "Email Login",
+                  textColor: AppColors.textLight,
+                ),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: responsive.w(7),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            AnimatedBuilder(
+                              animation: _logoController,
+                              builder: (context, child) {
+                                return Opacity(
+                                  opacity: _logoOpacity.value,
+                                  child: Transform.scale(
+                                    scale: _logoScale.value,
+                                    child: Container(
+                                      width: logoSize,
+                                      height: logoSize,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.primary
+                                                .withOpacity(0.4),
+                                            blurRadius: 25,
+                                            spreadRadius: 4,
+                                          ),
+                                          BoxShadow(
+                                            color: AppColors.accent.withOpacity(
+                                              0.25,
+                                            ),
+                                            blurRadius: 40,
+                                            spreadRadius: 6,
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipOval(
+                                        child: Image.asset(
+                                          AssetConstants.auraLogo,
+                                          fit: BoxFit.cover,
                                         ),
-                                        BoxShadow(
-                                          color: AppColors.accent.withOpacity(0.25),
-                                          blurRadius: 40,
-                                          spreadRadius: 6,
-                                        ),
-                                      ],
-
-                                    ),
-                                    child: ClipOval(
-                                      child: Image.asset(
-                                        AssetConstants.auraLogo,
-                                        fit: BoxFit.cover,
                                       ),
                                     ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: responsive.h(4)),
-                          SlideTransition(
-                            position: _titleSlide,
-                            child: FadeTransition(
-                              opacity: _titleOpacity,
-                              child: Text(
-                                emailState.isSignUp
-                                    ? "Create Account"
-                                    : "Welcome Back",
-                                style: TextStyle(
-                                  color: AppColors.textLight,
-
-                                  fontSize: titleSize,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
+                                );
+                              },
                             ),
-                          ),
-                          SizedBox(height: responsive.h(1.2)),
-                          SlideTransition(
-                            position: _subtitleSlide,
-                            child: FadeTransition(
-                              opacity: _subtitleOpacity,
-                              child: Text(
-                                emailState.isSignUp
-                                    ? "Sign up with your email and password"
-                                    : "Sign in to continue to your account",
-                                style: TextStyle(
-                                  color: AppColors.textLight,
+                            SizedBox(height: responsive.h(4)),
 
-                                  fontSize: subtitleSize,
-                                  height: 1.4,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: responsive.h(3)),
-                          SlideTransition(
-                            position: _inputSlide,
-                            child: FadeTransition(
-                              opacity: _inputOpacity,
-                              child: Column(
-                                children: [
-                                  AppTextField(
-                                    controller: _emailController,
-                                    responsive: responsive,
-                                    hint: "Email",
-                                    icon: Icons.email_outlined,
-                                    keyboardType: TextInputType.emailAddress,
+                            SlideTransition(
+                              position: _titleSlide,
+                              child: FadeTransition(
+                                opacity: _titleOpacity,
+                                child: Text(
+                                  "Sign in with Email",
+                                  style: TextStyle(
+                                    color: AppColors.textLight,
+                                    fontSize: titleSize,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1,
                                   ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ),
 
-                                  SizedBox(height: responsive.h(2)),
-                                  AppTextField(
-                                    controller: _passwordController,
-                                    responsive: responsive,
-                                    hint: "Password",
-                                    icon: Icons.lock_outline,
-                                    obscureText: emailState.obscurePassword,
-                                    suffixIcon: IconButton(
-                                      icon: Icon(
-                                        emailState.obscurePassword
-                                            ? Icons.visibility_outlined
-                                            : Icons.visibility_off_outlined,
-                                        color: AppColors.textLight.withValues(alpha: 0.7),
-                                      ),
-                                      onPressed: () {
-                                        ref.read(emailLoginProvider.notifier)
-                                            .togglePasswordVisibility();
-                                      },
+                            SizedBox(height: responsive.h(1.2)),
+
+                            SlideTransition(
+                              position: _subtitleSlide,
+                              child: FadeTransition(
+                                opacity: _subtitleOpacity,
+                                child: Text(
+                                  "Use the email linked to your Google or Phone login",
+                                  style: TextStyle(
+                                    color: AppColors.textLight.withOpacity(
+                                      0.75,
                                     ),
+                                    fontSize: subtitleSize,
+                                    height: 1.4,
                                   ),
-
-                                ],
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(height: responsive.h(4)),
-                          AnimatedBuilder(
-                            animation: _buttonController,
-                            builder: (context, _) {
-                              return Opacity(
-                                opacity: _buttonOpacity.value,
-                                child: Transform.scale(
-                                  scale: _buttonScale.value,
-                                  child: Column(
-                                    children: [
-                                      emailState.isLoading
-                                          ? const Center(
-                                        child: CircularProgressIndicator(
-                                          color: AppColors.primary,
+
+                            SizedBox(height: responsive.h(3)),
+                            SlideTransition(
+                              position: _inputSlide,
+                              child: FadeTransition(
+                                opacity: _inputOpacity,
+                                child: Column(
+                                  children: [
+                                    AppTextField(
+                                      controller: _emailController,
+                                      responsive: responsive,
+                                      hint: "Email",
+                                      icon: Icons.email_outlined,
+                                      keyboardType: TextInputType.emailAddress,
+                                    ),
+
+                                    SizedBox(height: responsive.h(2)),
+                                    AppTextField(
+                                      controller: _passwordController,
+                                      responsive: responsive,
+                                      hint: "Password",
+                                      icon: Icons.lock_outline,
+                                      obscureText: emailState.obscurePassword,
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          emailState.obscurePassword
+                                              ? Icons.visibility_outlined
+                                              : Icons.visibility_off_outlined,
+                                          color: AppColors.textLight.withValues(
+                                            alpha: 0.7,
+                                          ),
                                         ),
-                                      )
-                                          : PrimaryButton(
-                                        label: emailState.isSignUp
-                                            ? "Sign Up"
-                                            : "Sign In",
-                                        onPressed: _handleAuth,
-                                        responsive: responsive,
+                                        onPressed: () {
+                                          ref
+                                              .read(emailLoginProvider.notifier)
+                                              .togglePasswordVisibility();
+                                        },
                                       ),
-                                      SizedBox(height: responsive.h(2)),
-                                      _buildToggleMode(
-                                          responsive, emailState),
-                                    ],
-                                  ),
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: responsive.h(3)),
-                        ],
+                              ),
+                            ),
+                            SizedBox(height: responsive.h(4)),
+
+                            AnimatedBuilder(
+                              animation: _buttonController,
+                              builder: (context, _) {
+                                return Opacity(
+                                  opacity: _buttonOpacity.value,
+                                  child: Transform.scale(
+                                    scale: _buttonScale.value,
+                                    child: emailState.isLoading
+                                        ? const CircularProgressIndicator(
+                                            color: AppColors.primary,
+                                          )
+                                        : PrimaryButton(
+                                            label: "Sign In",
+                                            onPressed: _handleAuth,
+                                            responsive: responsive,
+                                          ),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            SizedBox(height: responsive.h(3)),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      )
-    );
-  }
-
-  Widget _buildToggleMode(Responsive responsive, EmailLoginState state) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          state.isSignUp
-              ? "Already have an account? "
-              : "Don't have an account? ",
-          style: TextStyle(
-            color: AppColors.textLight.withValues(alpha: 0.7),
-            fontSize: responsive.isTablet ? 15.0 : 14.0,
-          ),
-        ),
-        GestureDetector(
-          onTap: () {
-            ref.read(emailLoginProvider.notifier).toggleMode();
-          },
-          child: Text(
-            state.isSignUp ? "Sign In" : "Sign Up",
-            style: TextStyle(
-              color: AppColors.primary,
-              fontSize: responsive.isTablet ? 15.0 : 14.0,
-              fontWeight: FontWeight.w600,
-              decoration: TextDecoration.underline,
+              ],
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
