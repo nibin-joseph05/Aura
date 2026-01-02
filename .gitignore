@@ -30,4 +30,6 @@ build/
 !**/src/test/**/build/
 
 .vscode/
-./env.properties
+.idea/
+*.iml
+env.properties
