@@ -1,6 +1,6 @@
-package com.backend.aura.controllers.user;
+package com.backend.aura.modules.user.controller;
 
-import com.backend.aura.services.user.UserService;
+import com.backend.aura.modules.user.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

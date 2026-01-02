@@ -1,6 +1,6 @@
-package com.backend.aura.repositories.user;
+package com.backend.aura.modules.user.repository;
 
-import com.backend.aura.models.user.User;
+import com.backend.aura.modules.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

@@ -1,4 +1,4 @@
-package com.backend.aura.models.user;
+package com.backend.aura.modules.user.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

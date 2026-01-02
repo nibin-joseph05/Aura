@@ -1,7 +1,7 @@
-package com.backend.aura.services.user;
+package com.backend.aura.modules.user.service;
 
-import com.backend.aura.models.user.User;
-import com.backend.aura.repositories.user.UserRepository;
+import com.backend.aura.modules.user.model.User;
+import com.backend.aura.modules.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 @Service
