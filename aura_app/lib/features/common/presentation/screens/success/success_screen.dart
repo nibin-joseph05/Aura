@@ -4,6 +4,8 @@ import '../../../../../core/routes/app_routes.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../../auth/domain/models/auth_success_payload.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
 
 class SuccessScreen extends StatefulWidget {
   final AuthSuccessPayload payload;
@@ -20,6 +22,7 @@ class _SuccessScreenState extends State<SuccessScreen> {
   @override
   void initState() {
     super.initState();
+    _printIdToken();
     _navigateNext();
   }
 
@@ -124,5 +127,25 @@ class _SuccessScreenState extends State<SuccessScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _printIdToken() async {
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      debugPrint(" No Firebase user found");
+      return;
+    }
+
+    final String? idToken = await user.getIdToken(true);
+
+    if (idToken == null || idToken.isEmpty) {
+      debugPrint(" Failed to retrieve Firebase ID token");
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: idToken));
+
+    debugPrint(" Firebase ID token copied to clipboard");
   }
 }
