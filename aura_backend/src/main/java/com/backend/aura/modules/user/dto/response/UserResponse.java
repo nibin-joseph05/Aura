@@ -1,61 +1,34 @@
-package com.backend.aura.modules.user.model;
+package com.backend.aura.modules.user.dto.response;
 
 import com.backend.aura.modules.user.model.enums.AccountStatus;
 import com.backend.aura.modules.user.model.enums.SignupMethod;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
-@Entity
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class User {
+public class UserResponse {
 
-    @Id
     private String uid;
-
-    @Column(unique = true)
     private String phone;
-
-    @Column(unique = true)
     private String email;
 
     private boolean phoneVerified;
     private boolean emailVerified;
 
-    @Enumerated(EnumType.STRING)
     private SignupMethod signupMethod;
 
-    private boolean googleLinked;
-    private boolean emailPasswordLinked;
-    private boolean phoneLinked;
-
     private String name;
-
-    @Column(unique = true)
     private String username;
-
     private String profileImageUrl;
     private String gender;
     private String dob;
 
     private boolean profileCompleted;
-
-    @Enumerated(EnumType.STRING)
     private AccountStatus accountStatus;
 
-
-    @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date updatedAt;
-
-    @Temporal(TemporalType.TIMESTAMP)
     private Date lastLoginAt;
-
 }

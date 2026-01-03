@@ -1,6 +1,10 @@
 package com.backend.aura.modules.user.controller;
 
+import com.backend.aura.modules.user.dto.request.UpdateProfileRequest;
+import com.backend.aura.modules.user.dto.response.UserResponse;
+import com.backend.aura.modules.user.dto.response.UsernameAvailabilityResponse;
 import com.backend.aura.modules.user.service.UserService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -13,18 +17,32 @@ public class UserController {
         this.userService = userService;
     }
 
-//    @PostMapping("/create")
-//    public User createUser(@RequestBody User user) {
-//        return userService.createUser(user);
-//    }
-//
-//    @GetMapping("/{uid}")
-//    public User getUser(@PathVariable String uid) {
-//        return userService.getUserById(uid);
-//    }
-//
-//    @PutMapping("/update")
-//    public User updateUser(@RequestBody User user) {
-//        return userService.updateUser(user);
-//    }
+    @GetMapping("/{uid}")
+    public ResponseEntity<UserResponse> getUser(@PathVariable String uid) {
+
+        UserResponse user = userService.getUserDtoByUid(uid);
+
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(user);
+    }
+
+    @GetMapping("/username-available")
+    public ResponseEntity<UsernameAvailabilityResponse> isUsernameAvailable(
+            @RequestParam String username) {
+
+        boolean available = userService.isUsernameAvailable(username);
+        return ResponseEntity.ok(
+                new UsernameAvailabilityResponse(available)
+        );
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateProfile(
+            @RequestBody UpdateProfileRequest dto) {
+
+        return ResponseEntity.ok(userService.updateProfile(dto));
+    }
 }
