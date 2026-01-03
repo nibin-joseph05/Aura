@@ -34,3 +34,6 @@ build/
 env.properties
 .idea/
 *.iml
+
+# Firebase Admin credentials
+src/main/resources/firebase/
