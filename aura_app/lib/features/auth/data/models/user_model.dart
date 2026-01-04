@@ -23,34 +23,31 @@ class UserModel {
   final String signupMethod;
 
   @HiveField(6)
-  final bool googleLinked;
-
-  @HiveField(7)
-  final bool emailPasswordLinked;
-
-  @HiveField(8)
   final String? name;
 
-  @HiveField(9)
+  @HiveField(7)
   final String? username;
 
-  @HiveField(10)
+  @HiveField(8)
   final String? profileImageUrl;
 
-  @HiveField(11)
+  @HiveField(9)
   final String? gender;
 
-  @HiveField(12)
+  @HiveField(10)
   final String? dob;
 
-  @HiveField(13)
+  @HiveField(11)
   final bool profileCompleted;
 
-  @HiveField(14)
+  @HiveField(12)
+  final String? accountStatus;
+
+  @HiveField(13)
   final DateTime? createdAt;
 
-  @HiveField(15)
-  final DateTime? updatedAt;
+  @HiveField(14)
+  final DateTime? lastLoginAt;
 
   UserModel({
     required this.uid,
@@ -58,17 +55,16 @@ class UserModel {
     this.email,
     this.phoneVerified = false,
     this.emailVerified = false,
-    this.signupMethod = "phone",
-    this.googleLinked = false,
-    this.emailPasswordLinked = false,
+    this.signupMethod = "PHONE",
     this.name,
     this.username,
     this.profileImageUrl,
     this.gender,
     this.dob,
     this.profileCompleted = false,
+    this.accountStatus,
     this.createdAt,
-    this.updatedAt,
+    this.lastLoginAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -78,20 +74,19 @@ class UserModel {
       email: json["email"],
       phoneVerified: json["phoneVerified"] ?? false,
       emailVerified: json["emailVerified"] ?? false,
-      signupMethod: json["signupMethod"] ?? "phone",
-      googleLinked: json["googleLinked"] ?? false,
-      emailPasswordLinked: json["emailPasswordLinked"] ?? false,
+      signupMethod: json["signupMethod"] ?? "PHONE",
       name: json["name"],
       username: json["username"],
       profileImageUrl: json["profileImageUrl"],
       gender: json["gender"],
       dob: json["dob"],
       profileCompleted: json["profileCompleted"] ?? false,
+      accountStatus: json["accountStatus"],
       createdAt: json["createdAt"] != null
           ? DateTime.parse(json["createdAt"])
           : null,
-      updatedAt: json["updatedAt"] != null
-          ? DateTime.parse(json["updatedAt"])
+      lastLoginAt: json["lastLoginAt"] != null
+          ? DateTime.parse(json["lastLoginAt"])
           : null,
     );
   }
@@ -104,16 +99,15 @@ class UserModel {
       "phoneVerified": phoneVerified,
       "emailVerified": emailVerified,
       "signupMethod": signupMethod,
-      "googleLinked": googleLinked,
-      "emailPasswordLinked": emailPasswordLinked,
       "name": name,
       "username": username,
       "profileImageUrl": profileImageUrl,
       "gender": gender,
       "dob": dob,
       "profileCompleted": profileCompleted,
+      "accountStatus": accountStatus,
       "createdAt": createdAt?.toIso8601String(),
-      "updatedAt": updatedAt?.toIso8601String(),
+      "lastLoginAt": lastLoginAt?.toIso8601String(),
     };
   }
 }

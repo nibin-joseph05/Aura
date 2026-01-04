@@ -23,23 +23,22 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
       phoneVerified: fields[3] as bool,
       emailVerified: fields[4] as bool,
       signupMethod: fields[5] as String,
-      googleLinked: fields[6] as bool,
-      emailPasswordLinked: fields[7] as bool,
-      name: fields[8] as String?,
-      username: fields[9] as String?,
-      profileImageUrl: fields[10] as String?,
-      gender: fields[11] as String?,
-      dob: fields[12] as String?,
-      profileCompleted: fields[13] as bool,
-      createdAt: fields[14] as DateTime?,
-      updatedAt: fields[15] as DateTime?,
+      name: fields[6] as String?,
+      username: fields[7] as String?,
+      profileImageUrl: fields[8] as String?,
+      gender: fields[9] as String?,
+      dob: fields[10] as String?,
+      profileCompleted: fields[11] as bool,
+      accountStatus: fields[12] as String?,
+      createdAt: fields[13] as DateTime?,
+      lastLoginAt: fields[14] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, UserModel obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -53,25 +52,23 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
       ..writeByte(5)
       ..write(obj.signupMethod)
       ..writeByte(6)
-      ..write(obj.googleLinked)
-      ..writeByte(7)
-      ..write(obj.emailPasswordLinked)
-      ..writeByte(8)
       ..write(obj.name)
-      ..writeByte(9)
+      ..writeByte(7)
       ..write(obj.username)
-      ..writeByte(10)
+      ..writeByte(8)
       ..write(obj.profileImageUrl)
-      ..writeByte(11)
+      ..writeByte(9)
       ..write(obj.gender)
-      ..writeByte(12)
+      ..writeByte(10)
       ..write(obj.dob)
-      ..writeByte(13)
+      ..writeByte(11)
       ..write(obj.profileCompleted)
-      ..writeByte(14)
+      ..writeByte(12)
+      ..write(obj.accountStatus)
+      ..writeByte(13)
       ..write(obj.createdAt)
-      ..writeByte(15)
-      ..write(obj.updatedAt);
+      ..writeByte(14)
+      ..write(obj.lastLoginAt);
   }
 
   @override

@@ -1,40 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../../core/routes/app_routes.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../../auth/domain/models/auth_success_payload.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/services.dart';
+import '../../../../user/presentation/providers/user_provider.dart';
 
-class SuccessScreen extends StatefulWidget {
+class SuccessScreen extends ConsumerStatefulWidget {
   final AuthSuccessPayload payload;
 
   const SuccessScreen({super.key, required this.payload});
 
   @override
-  State<SuccessScreen> createState() => _SuccessScreenState();
+  ConsumerState<SuccessScreen> createState() => _SuccessScreenState();
 }
 
-class _SuccessScreenState extends State<SuccessScreen> {
+class _SuccessScreenState extends ConsumerState<SuccessScreen> {
   static const _delay = Duration(seconds: 2);
 
   @override
   void initState() {
     super.initState();
-    _printIdToken();
-    _navigateNext();
+    _syncUserAndNavigate();
   }
 
-  Future<void> _navigateNext() async {
+  Future<void> _syncUserAndNavigate() async {
     await Future.delayed(_delay);
 
     if (!mounted) return;
 
+    try {
+      await ref.read(userProvider.notifier).syncCurrentUser();
+
+      if (!mounted) return;
+
+      final userState = ref.read(userProvider);
+      final user = userState.user;
+
+      if (user == null) {
+        _navigateToProfileComplete();
+        return;
+      }
+
+      if (user.profileCompleted) {
+        _navigateToHome();
+      } else {
+        _navigateToProfileComplete();
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _navigateToProfileComplete();
+    }
+  }
+
+  void _navigateToHome() {
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.home,
+          (_) => false,
+    );
+  }
+
+  void _navigateToProfileComplete() {
     Navigator.pushNamedAndRemoveUntil(
       context,
       AppRoutes.profileComplete,
-      (_) => false,
+          (_) => false,
       arguments: widget.payload,
     );
   }
@@ -127,25 +159,5 @@ class _SuccessScreenState extends State<SuccessScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _printIdToken() async {
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user == null) {
-      debugPrint(" No Firebase user found");
-      return;
-    }
-
-    final String? idToken = await user.getIdToken(true);
-
-    if (idToken == null || idToken.isEmpty) {
-      debugPrint(" Failed to retrieve Firebase ID token");
-      return;
-    }
-
-    await Clipboard.setData(ClipboardData(text: idToken));
-
-    debugPrint(" Firebase ID token copied to clipboard");
   }
 }

@@ -1,3 +1,4 @@
+import 'package:aura_app/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/auth/domain/models/auth_success_payload.dart';
@@ -36,6 +37,8 @@ class AppRouter {
         return _build(const PrivacyPolicyScreen());
       case AppRoutes.profileComplete:
         return _build(const ProfileCompleteScreen());
+      case AppRoutes.home:
+        return _build(const HomeScreen());
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),

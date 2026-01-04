@@ -31,9 +31,10 @@ public class UserController {
 
     @GetMapping("/username-available")
     public ResponseEntity<UsernameAvailabilityResponse> isUsernameAvailable(
-            @RequestParam String username) {
+            @RequestParam String username,
+            @RequestParam String uid) {
 
-        boolean available = userService.isUsernameAvailable(username);
+        boolean available = userService.isUsernameAvailable(username, uid);
         return ResponseEntity.ok(
                 new UsernameAvailabilityResponse(available)
         );

@@ -44,9 +44,10 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
-    public boolean isUsernameAvailable(String username) {
-        return !userRepository.existsByUsername(username);
+    public boolean isUsernameAvailable(String username, String uid) {
+        return !userRepository.existsByUsernameAndUidNot(username, uid);
     }
+
     public UserResponse updateProfile(UpdateProfileRequest dto) {
 
         User user = getUserByUid(dto.getUid());
