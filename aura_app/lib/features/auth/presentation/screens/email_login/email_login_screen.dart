@@ -9,7 +9,6 @@ import '../../../../../core/widgets/buttons/primary_button.dart';
 import '../../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/theme/app_dimensions.dart';
 import '../../../../../core/constants/asset_constants.dart';
 import '../../../data/datasources/auth_remote_datasource.dart';
 import '../../../domain/models/auth_success_payload.dart';

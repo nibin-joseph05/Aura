@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import '../../config/app_config.dart';
-import 'auth_interceptor.dart';
+import 'firebase_auth_interceptor.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();
@@ -20,9 +20,7 @@ class DioClient {
         baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: {"Content-Type": "application/json"},
       ),
     );
 

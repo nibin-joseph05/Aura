@@ -4,9 +4,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 class AuthInterceptor extends Interceptor {
   @override
   Future<void> onRequest(
-      RequestOptions options,
-      RequestInterceptorHandler handler,
-      ) async {
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {

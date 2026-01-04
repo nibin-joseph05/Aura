@@ -14,7 +14,6 @@ import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_dimensions.dart';
 import '../../../../../core/constants/asset_constants.dart';
-import '../../../../common/presentation/screens/success/success_screen.dart';
 import '../../../data/datasources/auth_remote_datasource.dart';
 import '../../../domain/models/auth_success_payload.dart';
 import '../../../domain/usecases/otp_service.dart';
@@ -179,7 +178,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
       if (user == null) {
         ref.read(otpProvider.notifier).setVerifying(false);
         ref.read(otpProvider.notifier).clearOtp();
-        _controllers.forEach((c) => c.clear());
+        for (var c in _controllers) {
+          c.clear();
+        }
         _focusNodes.first.requestFocus();
         return;
       }
