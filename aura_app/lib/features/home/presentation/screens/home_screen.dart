@@ -39,11 +39,7 @@ class HomeScreen extends ConsumerWidget {
                     const CircleAvatar(
                       radius: 60,
                       backgroundColor: Colors.white24,
-                      child: Icon(
-                        Icons.person,
-                        size: 60,
-                        color: Colors.white,
-                      ),
+                      child: Icon(Icons.person, size: 60, color: Colors.white),
                     ),
                   SizedBox(height: responsive.h(3)),
                   Text(
@@ -80,9 +76,7 @@ class HomeScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.2),
-                      ),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
                     ),
                     child: Column(
                       children: [
@@ -105,10 +99,7 @@ class HomeScreen extends ConsumerWidget {
                         const Text(
                           'This is your home screen. More features coming soon!',
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                       ],
                     ),

@@ -23,8 +23,7 @@ class ProfileCompleteScreen extends ConsumerStatefulWidget {
       _ProfileCompleteScreenState();
 }
 
-class _ProfileCompleteScreenState
-    extends ConsumerState<ProfileCompleteScreen> {
+class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _dobController = TextEditingController();
@@ -130,24 +129,22 @@ class _ProfileCompleteScreenState
     );
 
     try {
-      await ref.read(userProvider.notifier).updateProfile(
-        uid: uid,
-        name: name,
-        username: username,
-        gender: gender,
-        dob: dob,
-      );
+      await ref
+          .read(userProvider.notifier)
+          .updateProfile(
+            uid: uid,
+            name: name,
+            username: username,
+            gender: gender,
+            dob: dob,
+          );
 
       if (!mounted) return;
       Navigator.pop(context);
 
       notifier.setLoading(false);
 
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        AppRoutes.home,
-            (_) => false,
-      );
+      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
@@ -169,12 +166,14 @@ class _ProfileCompleteScreenState
     return ConfirmExitWrapper(
       title: "Exit profile setup?",
       message:
-      "If you leave now, your profile setup will be cancelled. You can complete it later.",
+          "If you leave now, your profile setup will be cancelled. You can complete it later.",
       confirmText: "Exit",
       cancelText: "Continue",
       onExit: () async {
-        Navigator.of(context, rootNavigator: true)
-            .pushNamedAndRemoveUntil(AppRoutes.welcome, (_) => false);
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pushNamedAndRemoveUntil(AppRoutes.welcome, (_) => false);
       },
       child: Scaffold(
         resizeToAvoidBottomInset: true,
@@ -241,22 +240,22 @@ class _ProfileCompleteScreenState
                               onChanged: _onUsernameChanged,
                               suffixIcon: profileState.isCheckingUsername
                                   ? const Padding(
-                                padding: EdgeInsets.all(12),
-                                child: SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                              )
+                                      padding: EdgeInsets.all(12),
+                                      child: SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    )
                                   : profileState.isUsernameAvailable &&
-                                  _usernameController.text.length >= 3
+                                        _usernameController.text.length >= 3
                                   ? const Icon(
-                                Icons.check_circle,
-                                color: Colors.greenAccent,
-                              )
+                                      Icons.check_circle,
+                                      color: Colors.greenAccent,
+                                    )
                                   : null,
                             ),
                             SizedBox(height: responsive.h(2)),
@@ -277,15 +276,15 @@ class _ProfileCompleteScreenState
                             SizedBox(height: responsive.h(4)),
                             profileState.isLoading
                                 ? const Center(
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                              ),
-                            )
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                    ),
+                                  )
                                 : PrimaryButton(
-                              label: "Continue",
-                              onPressed: _submitProfile,
-                              responsive: responsive,
-                            ),
+                                    label: "Continue",
+                                    onPressed: _submitProfile,
+                                    responsive: responsive,
+                                  ),
                             SizedBox(height: responsive.h(3)),
                           ],
                         ),
@@ -302,7 +301,9 @@ class _ProfileCompleteScreenState
   }
 
   Widget _buildGenderSelector(
-      Responsive responsive, ProfileCompleteState state) {
+    Responsive responsive,
+    ProfileCompleteState state,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -321,10 +322,7 @@ class _ProfileCompleteScreenState
             padding: EdgeInsets.only(left: responsive.w(4)),
             child: Text(
               state.genderError!,
-              style: const TextStyle(
-                color: Colors.redAccent,
-                fontSize: 12,
-              ),
+              style: const TextStyle(color: Colors.redAccent, fontSize: 12),
             ),
           ),
         ],
@@ -333,7 +331,10 @@ class _ProfileCompleteScreenState
   }
 
   Widget _buildGenderOption(
-      String gender, Responsive responsive, ProfileCompleteState state) {
+    String gender,
+    Responsive responsive,
+    ProfileCompleteState state,
+  ) {
     final isSelected = state.selectedGender == gender;
     return Expanded(
       child: GestureDetector(
@@ -341,9 +342,7 @@ class _ProfileCompleteScreenState
           ref.read(profileCompleteProvider.notifier).setSelectedGender(gender);
         },
         child: Container(
-          padding: EdgeInsets.symmetric(
-            vertical: responsive.space(12),
-          ),
+          padding: EdgeInsets.symmetric(vertical: responsive.space(12)),
           decoration: BoxDecoration(
             color: isSelected
                 ? Colors.white.withOpacity(0.2)

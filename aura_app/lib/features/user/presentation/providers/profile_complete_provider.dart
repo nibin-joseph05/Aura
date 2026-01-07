@@ -56,7 +56,7 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
   final UserRemoteDataSource _dataSource;
 
   ProfileCompleteNotifier(this._dataSource)
-      : super(const ProfileCompleteState());
+    : super(const ProfileCompleteState());
 
   void setSelectedGender(String gender) {
     state = state.copyWith(selectedGender: gender);
@@ -99,7 +99,7 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
       usernameError = "Username must be at least 3 characters";
     } else if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username)) {
       usernameError =
-      "Username can only contain letters, numbers, and underscores";
+          "Username can only contain letters, numbers, and underscores";
     }
 
     if (gender.isEmpty) {
@@ -143,10 +143,7 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
       return;
     }
 
-    state = state.copyWith(
-      isCheckingUsername: true,
-      usernameError: null,
-    );
+    state = state.copyWith(isCheckingUsername: true, usernameError: null);
 
     try {
       final available = await _dataSource.isUsernameAvailable(
@@ -177,6 +174,6 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
 }
 
 final profileCompleteProvider =
-StateNotifierProvider<ProfileCompleteNotifier, ProfileCompleteState>(
+    StateNotifierProvider<ProfileCompleteNotifier, ProfileCompleteState>(
       (ref) => ProfileCompleteNotifier(UserRemoteDataSource()),
-);
+    );

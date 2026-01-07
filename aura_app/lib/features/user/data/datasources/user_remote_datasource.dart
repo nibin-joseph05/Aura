@@ -32,10 +32,7 @@ class UserRemoteDataSource {
     try {
       final response = await _dio.get(
         ApiEndpoints.usernameAvailable,
-        queryParameters: {
-          'username': username,
-          'uid': uid,
-        },
+        queryParameters: {'username': username, 'uid': uid},
       );
       return response.data['available'] ?? false;
     } catch (e) {
