@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../features/auth/domain/models/auth_success_payload.dart';
 import '../../features/auth/presentation/screens/otp/otp_screen.dart';
 import '../../features/auth/presentation/screens/email_login/email_login_screen.dart';
-import '../../features/auth/presentation/screens/profile_complete/profile_complete_screen.dart';
+import '../../features/user/presentation/screens/profile_complete/profile_complete_screen.dart';
 import '../../features/common/presentation/screens/success/success_screen.dart';
 import '../../features/legal/presentation/screens/privacy_policy/privacy_policy.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
@@ -18,35 +18,36 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case AppRoutes.splash:
-        return _build(const SplashScreen());
+        return _build(const SplashScreen(), settings);
       case AppRoutes.welcome:
-        return _build(const WelcomeScreen());
+        return _build(const WelcomeScreen(), settings);
       case AppRoutes.auth:
-        return _build(const AuthScreen());
+        return _build(const AuthScreen(), settings);
       case AppRoutes.phoneLogin:
-        return _build(const PhoneLoginScreen());
+        return _build(const PhoneLoginScreen(), settings);
       case AppRoutes.emailLogin:
-        return _build(const EmailLoginScreen());
+        return _build(const EmailLoginScreen(), settings);
       case AppRoutes.otp:
         final phoneNumber = settings.arguments as String;
-        return _build(OtpScreen(phoneNumber: phoneNumber));
+        return _build(OtpScreen(phoneNumber: phoneNumber), settings);
       case AppRoutes.otpSuccess:
         final payload = settings.arguments as AuthSuccessPayload;
-        return _build(SuccessScreen(payload: payload));
+        return _build(SuccessScreen(payload: payload), settings);
       case AppRoutes.privacyPolicy:
-        return _build(const PrivacyPolicyScreen());
+        return _build(const PrivacyPolicyScreen(), settings);
       case AppRoutes.profileComplete:
-        return _build(const ProfileCompleteScreen());
+        return _build(const ProfileCompleteScreen(), settings);
       case AppRoutes.home:
-        return _build(const HomeScreen());
+        return _build(const HomeScreen(), settings);
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),
+          settings,
         );
     }
   }
 
-  static MaterialPageRoute _build(Widget child) {
-    return MaterialPageRoute(builder: (_) => child);
+  static MaterialPageRoute _build(Widget child, RouteSettings settings) {
+    return MaterialPageRoute(builder: (_) => child, settings: settings);
   }
 }

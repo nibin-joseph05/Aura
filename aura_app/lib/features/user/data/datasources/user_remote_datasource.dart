@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/network/http/api_endpoints.dart';
 import '../../../../core/network/http/dio_client.dart';
-import '../../../auth/data/models/user_model.dart';
+import '../models/user_model.dart';
 
 class UserRemoteDataSource {
   final Dio _dio = DioClient().dio;
@@ -44,9 +44,12 @@ class UserRemoteDataSource {
     required String uid,
     String? name,
     String? username,
+    String? email,
+    String? phone,
     String? gender,
     String? dob,
     String? profileImageUrl,
+    String? password,
   }) async {
     try {
       final response = await _dio.put(
@@ -55,9 +58,12 @@ class UserRemoteDataSource {
           'uid': uid,
           if (name != null) 'name': name,
           if (username != null) 'username': username,
+          if (email != null) 'email': email,
+          if (phone != null) 'phone': phone,
           if (gender != null) 'gender': gender,
           if (dob != null) 'dob': dob,
           if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
+          if (password != null) 'password': password,
         },
       );
       return UserModel.fromJson(response.data);

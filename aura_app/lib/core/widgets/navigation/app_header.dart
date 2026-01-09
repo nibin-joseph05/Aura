@@ -9,6 +9,7 @@ class AppHeader extends ConsumerStatefulWidget {
   final List<Widget>? actions;
   final Color textColor;
   final bool showBack;
+  final bool compact;
 
   const AppHeader({
     super.key,
@@ -18,6 +19,7 @@ class AppHeader extends ConsumerStatefulWidget {
     this.actions,
     this.textColor = Colors.white,
     this.showBack = true,
+    this.compact = false,
   });
 
   @override
@@ -61,13 +63,19 @@ class _AppHeaderState extends ConsumerState<AppHeader>
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
 
-    final titleSize = responsive.isLargeTablet
-        ? 32.0
-        : responsive.isTablet
-        ? 28.0
-        : 24.0;
+    final titleSize = widget.compact
+        ? (responsive.isTablet ? 20.0 : 18.0)
+        : (responsive.isLargeTablet
+              ? 32.0
+              : responsive.isTablet
+              ? 28.0
+              : 22.0);
 
-    final subtitleSize = responsive.isTablet ? 16.0 : 14.0;
+    final subtitleSize = responsive.isTablet ? 14.0 : 12.0;
+
+    final verticalPadding = widget.compact
+        ? responsive.h(1.0)
+        : responsive.h(1.5);
 
     return FadeTransition(
       opacity: _fade,
@@ -75,44 +83,50 @@ class _AppHeaderState extends ConsumerState<AppHeader>
         position: _slide,
         child: Container(
           padding: EdgeInsets.only(
-            top: responsive.h(1.8),
+            top: verticalPadding,
             left: responsive.w(4),
             right: responsive.w(4),
-            bottom: responsive.h(1.4),
+            bottom: verticalPadding,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  if (widget.showBack) ...[
-                    _buildBackButton(context, responsive),
-                    SizedBox(width: responsive.w(4.5)),
-                  ],
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.title,
-                        style: TextStyle(
-                          fontSize: titleSize,
-                          fontWeight: FontWeight.w800,
-                          color: widget.textColor,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      if (widget.subtitle != null)
-                        Text(
-                          widget.subtitle!,
-                          style: TextStyle(
-                            fontSize: subtitleSize,
-                            color: widget.textColor.withOpacity(0.7),
-                            height: 1.1,
-                          ),
-                        ),
+              Expanded(
+                child: Row(
+                  children: [
+                    if (widget.showBack) ...[
+                      _buildBackButton(context, responsive),
+                      SizedBox(width: responsive.w(3)),
                     ],
-                  ),
-                ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: TextStyle(
+                              fontSize: titleSize,
+                              fontWeight: FontWeight.w700,
+                              color: widget.textColor,
+                              letterSpacing: 0.5,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (widget.subtitle != null)
+                            Text(
+                              widget.subtitle!,
+                              style: TextStyle(
+                                fontSize: subtitleSize,
+                                color: widget.textColor.withValues(alpha: 0.7),
+                                height: 1.1,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               if (widget.actions != null) Row(children: widget.actions!),
             ],
@@ -123,32 +137,20 @@ class _AppHeaderState extends ConsumerState<AppHeader>
   }
 
   Widget _buildBackButton(BuildContext context, Responsive responsive) {
-    final size = responsive.isTablet ? 26.0 : 22.0;
+    final size = responsive.isTablet ? 24.0 : 20.0;
 
     return GestureDetector(
       onTap: widget.onBack ?? () => Navigator.pop(context),
-      child: AnimatedScale(
-        duration: const Duration(milliseconds: 180),
-        scale: 1.0,
-        curve: Curves.easeOutBack,
-        child: Container(
-          padding: EdgeInsets.all(responsive.isTablet ? 7 : 5),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.blueAccent.withOpacity(0.15),
-                blurRadius: 12,
-                spreadRadius: 1,
-              ),
-              BoxShadow(color: Colors.white.withOpacity(0.10), blurRadius: 6),
-            ],
-          ),
-          child: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: size,
-            color: widget.textColor,
-          ),
+      child: Container(
+        padding: EdgeInsets.all(responsive.isTablet ? 6 : 4),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withValues(alpha: 0.1),
+        ),
+        child: Icon(
+          Icons.arrow_back_ios_new_rounded,
+          size: size,
+          color: widget.textColor,
         ),
       ),
     );

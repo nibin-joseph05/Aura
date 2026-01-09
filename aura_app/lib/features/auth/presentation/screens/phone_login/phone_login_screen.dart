@@ -9,8 +9,8 @@ import '../../../../../core/widgets/buttons/primary_button.dart';
 import '../../../../../core/widgets/inputs/phone_input_field.dart';
 import '../../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
-import '../../../data/datasources/auth_remote_datasource.dart';
-import '../../../domain/usecases/otp_service.dart';
+import '../../../data/datasources/firebase_auth_datasource.dart';
+import '../../providers/otp_state_provider.dart';
 import '../../providers/phone_login_provider.dart';
 
 class PhoneLoginScreen extends ConsumerStatefulWidget {
@@ -159,7 +159,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
       ),
     );
 
-    await FirebaseAuthService().sendOtp(
+    await FirebaseAuthDataSource().sendOtp(
       phoneNumber: "+91$phone",
       forceResendToken: null,
       onCodeSent: (String verificationId, int? resendToken) {
@@ -167,9 +167,13 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
           Navigator.pop(context);
           ref.read(phoneLoginProvider.notifier).setLoading(false);
 
-          OtpService.verificationId = verificationId;
-          OtpService.resendToken = resendToken;
-          OtpService.phoneNumber = "+91$phone";
+          ref
+              .read(otpStateProvider.notifier)
+              .setVerificationData(
+                verificationId: verificationId,
+                resendToken: resendToken,
+                phoneNumber: "+91$phone",
+              );
 
           Navigator.pushNamed(context, AppRoutes.otp, arguments: "+91$phone");
         }

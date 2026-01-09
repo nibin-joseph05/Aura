@@ -14,9 +14,9 @@ import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_dimensions.dart';
 import '../../../../../core/constants/asset_constants.dart';
-import '../../../data/datasources/auth_remote_datasource.dart';
+import '../../../data/datasources/firebase_auth_datasource.dart';
 import '../../../domain/models/auth_success_payload.dart';
-import '../../../domain/usecases/otp_service.dart';
+import '../../providers/otp_state_provider.dart';
 import '../../providers/otp_provider.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
@@ -167,8 +167,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
     );
 
     try {
-      final user = await FirebaseAuthService().verifyOtp(
-        verificationId: OtpService.verificationId!,
+      final otpStoredState = ref.read(otpStateProvider);
+      final user = await FirebaseAuthDataSource().verifyOtp(
+        verificationId: otpStoredState.verificationId!,
         otp: otpState.fullOtp,
       );
 
@@ -225,14 +226,18 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
       ),
     );
 
-    await FirebaseAuthService().sendOtp(
+    await FirebaseAuthDataSource().sendOtp(
       phoneNumber: widget.phoneNumber,
-      forceResendToken: OtpService.resendToken,
+      forceResendToken: ref.read(otpStateProvider).resendToken,
       onCodeSent: (verificationId, resendToken) {
         if (!mounted) return;
         Navigator.pop(context);
-        OtpService.verificationId = verificationId;
-        OtpService.resendToken = resendToken;
+        ref
+            .read(otpStateProvider.notifier)
+            .setVerificationData(
+              verificationId: verificationId,
+              resendToken: resendToken,
+            );
 
         AppSnackbar.showSuccess(
           context: context,

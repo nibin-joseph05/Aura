@@ -1,4 +1,4 @@
-package com.backend.aura.modules.common.service;
+package com.backend.aura.modules.common.health.service;
 
 import com.backend.aura.modules.common.health.dto.response.HealthResponse;
 import org.springframework.stereotype.Service;

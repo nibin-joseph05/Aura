@@ -28,10 +28,8 @@ public class FirebaseAuthService {
             String uid = decodedToken.getUid();
             String email = decodedToken.getEmail();
 
-
             String phone = (String) decodedToken.getClaims()
                     .get("phone_number");
-
 
             Map<String, Object> firebaseClaims =
                     (Map<String, Object>) decodedToken.getClaims()
@@ -52,12 +50,33 @@ public class FirebaseAuthService {
             user.setPhoneVerified(phone != null);
             user.setLastLoginAt(new Date());
 
+            setProviderLinks(user, provider);
+
             userService.createOrUpdateUser(user);
 
             return new AuthenticatedUserContext(uid, email, phone, provider);
 
         } catch (Exception e) {
             throw new RuntimeException("Invalid Firebase token", e);
+        }
+    }
+
+    private void setProviderLinks(User user, String provider) {
+        if (provider == null) {
+            user.setEmailPasswordLinked(true);
+            return;
+        }
+
+        switch (provider) {
+            case "google.com":
+                user.setGoogleLinked(true);
+                break;
+            case "phone":
+                user.setPhoneLinked(true);
+                break;
+            default:
+                user.setEmailPasswordLinked(true);
+                break;
         }
     }
 

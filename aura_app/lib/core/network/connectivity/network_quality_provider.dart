@@ -15,7 +15,6 @@ final networkQualityProvider = StreamProvider<NetworkQuality>((ref) async* {
 
 Future<NetworkQuality> _checkQuality() async {
   final stopwatch = Stopwatch()..start();
-  // await Future.delayed(const Duration(milliseconds: 500));
 
   try {
     final result = await InternetAddress.lookup(

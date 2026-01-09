@@ -1,12 +1,26 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../core/routes/app_routes.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
+
+  Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    await FirebaseAuth.instance.signOut();
+    ref.read(userProvider.notifier).clearUser();
+    if (context.mounted) {
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.welcome,
+        (_) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -74,9 +88,11 @@ class HomeScreen extends ConsumerWidget {
                   Container(
                     padding: EdgeInsets.all(responsive.space(20)),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -102,6 +118,25 @@ class HomeScreen extends ConsumerWidget {
                           style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                       ],
+                    ),
+                  ),
+                  SizedBox(height: responsive.h(4)),
+                  ElevatedButton.icon(
+                    onPressed: () => _logout(context, ref),
+                    icon: const Icon(Icons.logout, color: Colors.white),
+                    label: const Text(
+                      'Logout',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: responsive.w(6),
+                        vertical: responsive.h(1.5),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ],

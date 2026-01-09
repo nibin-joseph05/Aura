@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../../../auth/data/models/user_model.dart';
-import '../../../user/data/datasources/user_remote_datasource.dart';
+import '../../data/models/user_model.dart';
+import '../../data/datasources/user_remote_datasource.dart';
 
 class UserState {
   final UserModel? user;
@@ -55,9 +55,12 @@ class UserNotifier extends StateNotifier<UserState> {
     required String uid,
     String? name,
     String? username,
+    String? email,
+    String? phone,
     String? gender,
     String? dob,
     String? profileImageUrl,
+    String? password,
   }) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
@@ -65,9 +68,12 @@ class UserNotifier extends StateNotifier<UserState> {
         uid: uid,
         name: name,
         username: username,
+        email: email,
+        phone: phone,
         gender: gender,
         dob: dob,
         profileImageUrl: profileImageUrl,
+        password: password,
       );
       await _saveUserLocally(updatedUser);
       state = state.copyWith(user: updatedUser, isLoading: false);

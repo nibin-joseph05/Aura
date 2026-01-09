@@ -14,36 +14,37 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final FirebaseAuthFilter firebaseAuthFilter;
+        private final FirebaseAuthFilter firebaseAuthFilter;
 
-    public SecurityConfig(FirebaseAuthFilter firebaseAuthFilter) {
-        this.firebaseAuthFilter = firebaseAuthFilter;
-    }
+        public SecurityConfig(FirebaseAuthFilter firebaseAuthFilter) {
+                this.firebaseAuthFilter = firebaseAuthFilter;
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> {})
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .cors(cors -> {
+                                })
 
-                .httpBasic(AbstractHttpConfigurer::disable)
-                .formLogin(AbstractHttpConfigurer::disable)
+                                .httpBasic(AbstractHttpConfigurer::disable)
+                                .formLogin(AbstractHttpConfigurer::disable)
 
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/health/**",
-                                "/api/auth/**",
-                                "/api/user/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+                                .authorizeHttpRequests(auth -> auth
+                                                .requestMatchers(
+                                                                "/api/health/**",
+                                                                "/api/auth/**",
+                                                                "/api/user/**",
+                                                                "/api/upload/**",
+                                                                "/uploads/**")
+                                                .permitAll()
+                                                .anyRequest().authenticated())
 
-                .addFilterBefore(
-                        firebaseAuthFilter,
-                        UsernamePasswordAuthenticationFilter.class
-                );
+                                .addFilterBefore(
+                                                firebaseAuthFilter,
+                                                UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+                return http.build();
+        }
 }

@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -43,7 +44,13 @@ class _SuccessScreenState extends ConsumerState<SuccessScreen> {
         return;
       }
 
-      if (user.profileCompleted) {
+      final hasBasicInfo =
+          user.name != null &&
+          user.name!.isNotEmpty &&
+          user.username != null &&
+          user.username!.isNotEmpty;
+
+      if (user.profileCompleted && hasBasicInfo) {
         _navigateToHome();
       } else {
         _navigateToProfileComplete();
@@ -59,12 +66,57 @@ class _SuccessScreenState extends ConsumerState<SuccessScreen> {
   }
 
   void _navigateToProfileComplete() {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final userState = ref.read(userProvider);
+    final user = userState.user;
+
+    final isGoogleAuth = widget.payload.method == AuthMethod.google;
+    final isPhoneAuth = widget.payload.method == AuthMethod.phone;
+
+    String? email;
+    String? phone;
+
+    if (isGoogleAuth) {
+      email = widget.payload.identifier ?? user?.email ?? currentUser?.email;
+      phone = user?.phone;
+    } else if (isPhoneAuth) {
+      phone =
+          widget.payload.identifier ?? user?.phone ?? currentUser?.phoneNumber;
+      email = user?.email;
+    } else {
+      email = widget.payload.identifier ?? user?.email ?? currentUser?.email;
+      phone = user?.phone ?? currentUser?.phoneNumber;
+    }
+
     Navigator.pushNamedAndRemoveUntil(
       context,
       AppRoutes.profileComplete,
       (_) => false,
-      arguments: widget.payload,
+      arguments: {
+        'payload': widget.payload,
+        'email': email,
+        'phone': phone,
+        'displayName': user?.name ?? currentUser?.displayName,
+        'photoUrl': user?.profileImageUrl ?? currentUser?.photoURL,
+        'signupMethod':
+            user?.signupMethod ?? widget.payload.method.name.toUpperCase(),
+      },
     );
+  }
+
+  String get _displayIdentifier {
+    if (widget.payload.identifier != null &&
+        widget.payload.identifier!.isNotEmpty) {
+      return widget.payload.identifier!;
+    }
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (widget.payload.method == AuthMethod.google) {
+      return currentUser?.email ?? '';
+    }
+    if (widget.payload.method == AuthMethod.phone) {
+      return currentUser?.phoneNumber ?? '';
+    }
+    return currentUser?.email ?? '';
   }
 
   String get _title {
@@ -79,13 +131,16 @@ class _SuccessScreenState extends ConsumerState<SuccessScreen> {
   }
 
   String get _subtitle {
+    final identifier = _displayIdentifier;
     switch (widget.payload.method) {
       case AuthMethod.phone:
-        return "Your phone number ${widget.payload.identifier ?? ''} has been verified successfully.";
+        return "Your phone number $identifier has been verified successfully.";
       case AuthMethod.google:
-        return "Your Google account has been successfully linked.";
+        return identifier.isNotEmpty
+            ? "Your Google account $identifier has been successfully linked."
+            : "Your Google account has been successfully linked.";
       case AuthMethod.email:
-        return "Your email ${widget.payload.identifier ?? ''} has been verified.";
+        return "Your email $identifier has been verified.";
     }
   }
 

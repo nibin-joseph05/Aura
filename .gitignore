@@ -33,3 +33,11 @@ build/
 .idea/
 *.iml
 env.properties
+
+# Android / Kotlin
+**/android/.kotlin/
+
+# Flutter platform generated files
+**/flutter/generated_plugin_registrant.*
+**/flutter/generated_plugins.cmake
+

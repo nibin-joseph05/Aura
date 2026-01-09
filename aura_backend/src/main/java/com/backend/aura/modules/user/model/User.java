@@ -46,9 +46,10 @@ public class User {
 
     private boolean profileCompleted;
 
+    private String password;
+
     @Enumerated(EnumType.STRING)
     private AccountStatus accountStatus;
-
 
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;

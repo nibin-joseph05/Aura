@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -9,6 +10,7 @@ import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/widgets/loading/ghost_running.dart';
+import '../../../user/presentation/providers/user_provider.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -153,10 +155,27 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   void _navigateToNextScreen() {
-    Future.delayed(const Duration(milliseconds: 4800), () {
+    Future.delayed(const Duration(milliseconds: 4800), () async {
       if (!mounted) return;
 
       ref.read(appUiReadyProvider.notifier).state = true;
+
+      final currentUser = FirebaseAuth.instance.currentUser;
+
+      if (currentUser != null) {
+        try {
+          await ref.read(userProvider.notifier).syncCurrentUser();
+          if (!mounted) return;
+
+          final userState = ref.read(userProvider);
+          final user = userState.user;
+
+          if (user != null && user.profileCompleted) {
+            Navigator.pushReplacementNamed(context, AppRoutes.home);
+            return;
+          }
+        } catch (_) {}
+      }
 
       Navigator.pushReplacement(
         context,

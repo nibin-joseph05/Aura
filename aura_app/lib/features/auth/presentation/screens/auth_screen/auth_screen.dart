@@ -9,7 +9,7 @@ import '../../../../../core/routes/app_routes.dart';
 import '../../../../../core/widgets/loading/ghost_running.dart';
 import '../../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../legal/presentation/screens/privacy_policy/privacy_policy.dart';
-import '../../../data/datasources/auth_remote_datasource.dart';
+import '../../../data/datasources/firebase_auth_datasource.dart';
 import '../../../domain/models/auth_success_payload.dart';
 import '../../providers/google_auth_provider.dart';
 import '../phone_login/phone_login_screen.dart';
@@ -152,7 +152,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
     );
 
     try {
-      final user = await FirebaseAuthService().signInWithGoogle();
+      final user = await FirebaseAuthDataSource().signInWithGoogle();
 
       if (!mounted) return;
       Navigator.pop(context);
@@ -172,9 +172,9 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
         context,
         AppRoutes.otpSuccess,
         (route) => false,
-        arguments: const AuthSuccessPayload(
+        arguments: AuthSuccessPayload(
           method: AuthMethod.google,
-          identifier: null,
+          identifier: user.email,
           isNewUser: true,
         ),
       );

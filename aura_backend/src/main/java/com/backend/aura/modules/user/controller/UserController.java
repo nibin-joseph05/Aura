@@ -1,5 +1,6 @@
 package com.backend.aura.modules.user.controller;
 
+import com.backend.aura.modules.auth.firebase.context.AuthenticatedUserContext;
 import com.backend.aura.modules.user.dto.request.UpdateProfileRequest;
 import com.backend.aura.modules.user.dto.response.UserResponse;
 import com.backend.aura.modules.user.dto.response.UsernameAvailabilityResponse;
@@ -15,6 +16,24 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getCurrentUser(
+            @RequestAttribute(name = "AUTH_CONTEXT", required = false)
+            AuthenticatedUserContext authContext) {
+
+        if (authContext == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        UserResponse user = userService.getUserDtoByUid(authContext.getUid());
+
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(user);
     }
 
     @GetMapping("/{uid}")
