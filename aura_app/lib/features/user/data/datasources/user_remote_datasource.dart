@@ -67,6 +67,11 @@ class UserRemoteDataSource {
         },
       );
       return UserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      final errorMessage =
+          e.response?.data?['error'] ??
+          'Failed to update profile: ${e.message}';
+      throw Exception(errorMessage);
     } catch (e) {
       throw Exception('Failed to update profile: ${e.toString()}');
     }

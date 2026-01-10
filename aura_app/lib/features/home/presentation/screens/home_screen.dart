@@ -2,17 +2,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../core/config/app_config.dart';
 import '../../../../../core/routes/app_routes.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
+import '../../../user/presentation/providers/profile_image_provider.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
+  String? _buildFullImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http')) return path;
+    final base = AppConfig.baseUrl;
+    return '$base/uploads/$path';
+  }
+
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     await FirebaseAuth.instance.signOut();
     ref.read(userProvider.notifier).clearUser();
+    ref.read(profileImageProvider.notifier).reset();
     if (context.mounted) {
       Navigator.pushNamedAndRemoveUntil(
         context,
@@ -27,6 +37,7 @@ class HomeScreen extends ConsumerWidget {
     final responsive = Responsive.of(context);
     final userState = ref.watch(userProvider);
     final user = userState.user;
+    final profileImageUrl = _buildFullImageUrl(user?.profileImageUrl);
 
     return Scaffold(
       body: Container(
@@ -44,10 +55,10 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (user?.profileImageUrl != null)
+                  if (profileImageUrl != null)
                     CircleAvatar(
                       radius: 60,
-                      backgroundImage: NetworkImage(user!.profileImageUrl!),
+                      backgroundImage: NetworkImage(profileImageUrl),
                     )
                   else
                     const CircleAvatar(

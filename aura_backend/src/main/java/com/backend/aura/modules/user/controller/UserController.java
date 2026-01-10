@@ -1,6 +1,7 @@
 package com.backend.aura.modules.user.controller;
 
 import com.backend.aura.modules.auth.firebase.context.AuthenticatedUserContext;
+import com.backend.aura.modules.common.dto.ErrorResponse;
 import com.backend.aura.modules.user.dto.request.UpdateProfileRequest;
 import com.backend.aura.modules.user.dto.response.UserResponse;
 import com.backend.aura.modules.user.dto.response.UsernameAvailabilityResponse;
@@ -20,8 +21,7 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getCurrentUser(
-            @RequestAttribute(name = "AUTH_CONTEXT", required = false)
-            AuthenticatedUserContext authContext) {
+            @RequestAttribute(name = "AUTH_CONTEXT", required = false) AuthenticatedUserContext authContext) {
 
         if (authContext == null) {
             return ResponseEntity.status(401).build();
@@ -55,14 +55,16 @@ public class UserController {
 
         boolean available = userService.isUsernameAvailable(username, uid);
         return ResponseEntity.ok(
-                new UsernameAvailabilityResponse(available)
-        );
+                new UsernameAvailabilityResponse(available));
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<UserResponse> updateProfile(
+    public ResponseEntity<?> updateProfile(
             @RequestBody UpdateProfileRequest dto) {
-
-        return ResponseEntity.ok(userService.updateProfile(dto));
+        try {
+            return ResponseEntity.ok(userService.updateProfile(dto));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
     }
 }

@@ -125,12 +125,18 @@ public class UserService {
 
         if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
             if (user.getEmail() == null || user.getEmail().isEmpty()) {
+                if (userRepository.existsByEmailAndUidNot(dto.getEmail(), dto.getUid())) {
+                    throw new RuntimeException("Email already in use by another account");
+                }
                 user.setEmail(dto.getEmail());
             }
         }
 
         if (dto.getPhone() != null && !dto.getPhone().isEmpty()) {
             if (user.getPhone() == null || user.getPhone().isEmpty()) {
+                if (userRepository.existsByPhoneAndUidNot(dto.getPhone(), dto.getUid())) {
+                    throw new RuntimeException("Phone number already in use by another account");
+                }
                 user.setPhone(dto.getPhone());
                 user.setPhoneLinked(true);
             }
