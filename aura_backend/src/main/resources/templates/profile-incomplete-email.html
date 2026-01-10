@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Your Profile - Aura</title>
+</head>
+
+<body
+    style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0A1A2F;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse;">
+
+                    <tr>
+                        <td align="center" style="padding: 30px 0;">
+                            <div
+                                style="width: 80px; height: 80px; background: linear-gradient(135deg, #2196F3, #00BCD4); border-radius: 50%; display: inline-block; line-height: 80px; text-align: center;">
+                                <span style="color: white; font-size: 36px; font-weight: bold;">A</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td
+                            style="background: linear-gradient(135deg, #1E4D6B, #0F2A3D); border-radius: 20px; padding: 40px 30px;">
+
+                            <h1 style="color: #FF9800; font-size: 26px; margin: 0 0 10px 0; text-align: center;">
+                                Your Profile Needs Attention ⚡
+                            </h1>
+
+                            <p
+                                style="color: #B0BEC5; font-size: 16px; line-height: 1.6; text-align: center; margin: 0 0 25px 0;">
+                                Hey <span th:text="${userName}" style="color: #00BCD4; font-weight: 600;">there</span>,
+                            </p>
+
+                            <p
+                                style="color: #ECEFF1; font-size: 16px; line-height: 1.8; text-align: center; margin: 0 0 25px 0;">
+                                We noticed you started setting up your Aura account but haven't completed your profile
+                                yet.
+                                Complete it now to unlock all the amazing features!
+                            </p>
+
+                            <div
+                                style="background: rgba(255, 152, 0, 0.1); border-radius: 12px; padding: 20px; margin-bottom: 25px; border: 1px solid rgba(255, 152, 0, 0.3);">
+                                <p style="color: #FFB74D; font-size: 15px; margin: 0; text-align: center;">
+                                    🎯 Complete your profile to access:
+                                </p>
+                                <ul
+                                    style="color: #90A4AE; font-size: 14px; line-height: 2; padding-left: 20px; margin: 15px 0 0 0;">
+                                    <li>Personalized wellness tracking</li>
+                                    <li>Emergency SOS features</li>
+                                    <li>Smart daily routines</li>
+                                    <li>Community connections</li>
+                                </ul>
+                            </div>
+
+                            <p
+                                style="color: #B0BEC5; font-size: 14px; line-height: 1.6; text-align: center; margin: 0;">
+                                It only takes a minute! Open the Aura app and finish setting up your profile.
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 30px 0; text-align: center;">
+                            <p style="color: #607D8B; font-size: 13px; margin: 0 0 10px 0;">
+                                Move safely. Live healthily. Stay connected.
+                            </p>
+                            <p style="color: #455A64; font-size: 12px; margin: 0;">
+                                © 2024 Aura. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Aura</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0A1A2F;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse;">
+                    
+                    <tr>
+                        <td align="center" style="padding: 30px 0;">
+                            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #2196F3, #00BCD4); border-radius: 50%; display: inline-block; line-height: 80px; text-align: center;">
+                                <span style="color: white; font-size: 36px; font-weight: bold;">A</span>
+                            </div>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #1E4D6B, #0F2A3D); border-radius: 20px; padding: 40px 30px;">
+                            
+                            <h1 style="color: #64B5F6; font-size: 28px; margin: 0 0 10px 0; text-align: center;">
+                                Welcome to Aura! 🎉
+                            </h1>
+                            
+                            <p style="color: #B0BEC5; font-size: 16px; line-height: 1.6; text-align: center; margin: 0 0 25px 0;">
+                                Hi <span th:text="${userName}" style="color: #00BCD4; font-weight: 600;">there</span>,
+                            </p>
+                            
+                            <p style="color: #ECEFF1; font-size: 16px; line-height: 1.8; text-align: center; margin: 0 0 30px 0;">
+                                Your profile is now complete, and you're all set to start your journey with Aura — 
+                                your smart companion for safe commuting, wellness, and daily activity.
+                            </p>
+                            
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                                <tr>
+                                    <td style="padding: 15px; background: rgba(33, 150, 243, 0.1); border-radius: 12px; border-left: 4px solid #2196F3;">
+                                        <table role="presentation" style="width: 100%;">
+                                            <tr>
+                                                <td style="width: 50px; vertical-align: top;">
+                                                    <span style="font-size: 28px;">🏃</span>
+                                                </td>
+                                                <td>
+                                                    <h3 style="color: #64B5F6; margin: 0 0 5px 0; font-size: 16px;">Wellness Tracking</h3>
+                                                    <p style="color: #90A4AE; margin: 0; font-size: 14px;">Monitor your daily activities and stay healthy</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr><td style="height: 12px;"></td></tr>
+                                <tr>
+                                    <td style="padding: 15px; background: rgba(0, 188, 212, 0.1); border-radius: 12px; border-left: 4px solid #00BCD4;">
+                                        <table role="presentation" style="width: 100%;">
+                                            <tr>
+                                                <td style="width: 50px; vertical-align: top;">
+                                                    <span style="font-size: 28px;">🚨</span>
+                                                </td>
+                                                <td>
+                                                    <h3 style="color: #4DD0E1; margin: 0 0 5px 0; font-size: 16px;">SOS & Safety</h3>
+                                                    <p style="color: #90A4AE; margin: 0; font-size: 14px;">Stay safe with instant emergency alerts</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr><td style="height: 12px;"></td></tr>
+                                <tr>
+                                    <td style="padding: 15px; background: rgba(100, 181, 246, 0.1); border-radius: 12px; border-left: 4px solid #64B5F6;">
+                                        <table role="presentation" style="width: 100%;">
+                                            <tr>
+                                                <td style="width: 50px; vertical-align: top;">
+                                                    <span style="font-size: 28px;">📅</span>
+                                                </td>
+                                                <td>
+                                                    <h3 style="color: #81D4FA; margin: 0 0 5px 0; font-size: 16px;">Smart Routines</h3>
+                                                    <p style="color: #90A4AE; margin: 0; font-size: 14px;">Build healthy habits with personalized routines</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr><td style="height: 12px;"></td></tr>
+                                <tr>
+                                    <td style="padding: 15px; background: rgba(33, 150, 243, 0.1); border-radius: 12px; border-left: 4px solid #2196F3;">
+                                        <table role="presentation" style="width: 100%;">
+                                            <tr>
+                                                <td style="width: 50px; vertical-align: top;">
+                                                    <span style="font-size: 28px;">👥</span>
+                                                </td>
+                                                <td>
+                                                    <h3 style="color: #64B5F6; margin: 0 0 5px 0; font-size: 16px;">Community</h3>
+                                                    <p style="color: #90A4AE; margin: 0; font-size: 14px;">Connect with like-minded wellness enthusiasts</p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #B0BEC5; font-size: 14px; line-height: 1.6; text-align: center; margin: 0;">
+                                Open the Aura app and start exploring all the features designed to make your daily commute safer and your lifestyle healthier.
+                            </p>
+                            
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td style="padding: 30px 0; text-align: center;">
+                            <p style="color: #607D8B; font-size: 13px; margin: 0 0 10px 0;">
+                                Move safely. Live healthily. Stay connected.
+                            </p>
+                            <p style="color: #455A64; font-size: 12px; margin: 0;">
+                                © 2026 Aura. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

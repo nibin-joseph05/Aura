@@ -1,5 +1,6 @@
 package com.backend.aura.modules.user.service;
 
+import com.backend.aura.modules.mail.service.EmailService;
 import com.backend.aura.modules.user.dto.request.UpdateProfileRequest;
 import com.backend.aura.modules.user.dto.response.UserResponse;
 import com.backend.aura.modules.user.model.User;
@@ -15,10 +16,13 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
+            EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.emailService = emailService;
     }
 
     public User saveUser(User user) {
@@ -152,6 +156,8 @@ public class UserService {
             user.setEmailPasswordLinked(true);
         }
 
+        boolean wasProfileComplete = user.isProfileCompleted();
+
         boolean isProfileComplete = user.getName() != null && !user.getName().isEmpty() &&
                 user.getUsername() != null && !user.getUsername().isEmpty() &&
                 user.getGender() != null && !user.getGender().isEmpty() &&
@@ -161,6 +167,11 @@ public class UserService {
         user.setUpdatedAt(new Date());
 
         User savedUser = userRepository.save(user);
+
+        if (isProfileComplete && !wasProfileComplete && savedUser.getEmail() != null) {
+            emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getName());
+        }
+
         return mapToUserResponse(savedUser);
     }
 
