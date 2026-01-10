@@ -48,6 +48,9 @@ class _ProfileImagePickerState extends ConsumerState<ProfileImagePicker> {
     if (path == null || path.isEmpty) return null;
     if (path.startsWith('http')) return path;
     final base = AppConfig.baseUrl;
+    if (path.startsWith('profile-images/')) {
+      return '$base/uploads/$path';
+    }
     return '$base/uploads/$path';
   }
 

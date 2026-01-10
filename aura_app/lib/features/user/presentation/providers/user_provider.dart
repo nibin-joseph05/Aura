@@ -91,6 +91,16 @@ class UserNotifier extends StateNotifier<UserState> {
     await box.put('currentUser', user);
   }
 
+  Future<void> setUser(UserModel user) async {
+    await _saveUserLocally(user);
+    state = state.copyWith(user: user, isLoading: false, error: null);
+  }
+
+  Future<void> setUserFromJson(Map<String, dynamic> json) async {
+    final user = UserModel.fromJson(json);
+    await setUser(user);
+  }
+
   void clearUser() {
     state = const UserState();
     Hive.box<UserModel>('user').delete('currentUser');

@@ -5,7 +5,6 @@ import com.backend.aura.modules.user.dto.response.UserResponse;
 import com.backend.aura.modules.user.model.User;
 import com.backend.aura.modules.user.model.enums.AccountStatus;
 import com.backend.aura.modules.user.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +15,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
-
-    @Value("${server.address:localhost}")
-    private String serverAddress;
-
-    @Value("${server.port:8080}")
-    private String serverPort;
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -180,14 +173,47 @@ public class UserService {
         return userRepository.findById(uid).orElse(null);
     }
 
-    private String buildFullImageUrl(String relativePath) {
-        if (relativePath == null || relativePath.isEmpty()) {
+    public User findByIdentifier(String identifier) {
+        if (identifier == null || identifier.isEmpty()) {
             return null;
         }
-        if (relativePath.startsWith("http")) {
-            return relativePath;
+
+        String trimmed = identifier.trim();
+
+        User user = userRepository.findByEmail(trimmed).orElse(null);
+        if (user != null) {
+            return user;
         }
-        return "http://" + serverAddress + ":" + serverPort + "/uploads/" + relativePath;
+
+        user = userRepository.findByUsername(trimmed).orElse(null);
+        if (user != null) {
+            return user;
+        }
+
+        user = userRepository.findByPhone(trimmed).orElse(null);
+        if (user != null) {
+            return user;
+        }
+
+        if (!trimmed.startsWith("+")) {
+            user = userRepository.findByPhone("+91" + trimmed).orElse(null);
+            if (user != null) {
+                return user;
+            }
+        }
+
+        return null;
+    }
+
+    public boolean validatePassword(User user, String rawPassword) {
+        if (user == null || user.getPassword() == null || rawPassword == null) {
+            return false;
+        }
+        return passwordEncoder.matches(rawPassword, user.getPassword());
+    }
+
+    public UserResponse mapUserToResponse(User user) {
+        return mapToUserResponse(user);
     }
 
     private UserResponse mapToUserResponse(User user) {
@@ -200,7 +226,7 @@ public class UserService {
                 user.getSignupMethod(),
                 user.getName(),
                 user.getUsername(),
-                buildFullImageUrl(user.getProfileImageUrl()),
+                user.getProfileImageUrl(),
                 user.getGender(),
                 user.getDob(),
                 user.isProfileCompleted(),

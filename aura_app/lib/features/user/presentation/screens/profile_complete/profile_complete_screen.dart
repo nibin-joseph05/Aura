@@ -204,11 +204,32 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
             password: password,
           );
 
+      if (password.isNotEmpty &&
+          emailToSend != null &&
+          emailToSend.isNotEmpty) {
+        try {
+          final firebaseAuth = FirebaseAuth.instance;
+          final currentUser = firebaseAuth.currentUser;
+          if (currentUser != null) {
+            final credential = EmailAuthProvider.credential(
+              email: emailToSend,
+              password: password,
+            );
+            await currentUser.linkWithCredential(credential);
+          }
+        } catch (_) {}
+      }
+
       if (!mounted) return;
       Navigator.pop(context);
       notifier.setLoading(false);
 
-      Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        AppRoutes.home,
+        (_) => false,
+        arguments: {'showSuccess': true, 'successType': 'profileComplete'},
+      );
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);

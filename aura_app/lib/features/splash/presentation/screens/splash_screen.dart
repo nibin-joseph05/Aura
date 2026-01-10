@@ -175,6 +175,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
             return;
           }
         } catch (_) {}
+      } else {
+        await ref.read(userProvider.notifier).loadUserFromLocal();
+        if (!mounted) return;
+
+        final userState = ref.read(userProvider);
+        final user = userState.user;
+
+        if (user != null && user.profileCompleted) {
+          Navigator.pushReplacementNamed(context, AppRoutes.home);
+          return;
+        }
       }
 
       Navigator.pushReplacement(

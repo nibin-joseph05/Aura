@@ -62,7 +62,12 @@ class _SuccessScreenState extends ConsumerState<SuccessScreen> {
   }
 
   void _navigateToHome() {
-    Navigator.pushNamedAndRemoveUntil(context, AppRoutes.home, (_) => false);
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      AppRoutes.home,
+      (_) => false,
+      arguments: {'showSuccess': true, 'successType': 'login'},
+    );
   }
 
   void _navigateToProfileComplete() {

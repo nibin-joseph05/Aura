@@ -190,4 +190,40 @@ class FirebaseAuthDataSource {
   bool isUserSignedIn() {
     return _auth.currentUser != null;
   }
+
+  Future<void> linkEmailPassword({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw Exception('No user signed in');
+      }
+
+      final credential = EmailAuthProvider.credential(
+        email: email.trim(),
+        password: password,
+      );
+
+      await user.linkWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      switch (e.code) {
+        case 'provider-already-linked':
+          break;
+        case 'invalid-credential':
+          throw Exception('Invalid credentials');
+        case 'credential-already-in-use':
+          throw Exception('This email is already linked to another account');
+        case 'email-already-in-use':
+          break;
+        default:
+          throw Exception(e.message ?? 'Failed to link email');
+      }
+    } catch (e) {
+      if (!e.toString().contains('already')) {
+        throw Exception('Failed to link email: ${e.toString()}');
+      }
+    }
+  }
 }

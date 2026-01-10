@@ -1,43 +1,46 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../../core/config/app_config.dart';
-import '../../../../../core/routes/app_routes.dart';
-import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/ui/responsive/responsive.dart';
-import '../../../user/presentation/providers/profile_image_provider.dart';
-import '../../../user/presentation/providers/user_provider.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/ui/responsive/responsive.dart';
+import '../../../../core/widgets/screens/success_overlay_card.dart';
+import '../providers/success_overlay_provider.dart';
+import '../widgets/home_footer.dart';
+import '../widgets/home_header.dart';
+import 'my_account_screen.dart';
+
+final selectedNavItemProvider = StateProvider<HomeNavItem>(
+  (ref) => HomeNavItem.home,
+);
+final _hasCheckedArgsProvider = StateProvider<bool>((ref) => false);
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
-  String? _buildFullImageUrl(String? path) {
-    if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http')) return path;
-    final base = AppConfig.baseUrl;
-    return '$base/uploads/$path';
-  }
-
-  Future<void> _logout(BuildContext context, WidgetRef ref) async {
-    await FirebaseAuth.instance.signOut();
-    ref.read(userProvider.notifier).clearUser();
-    ref.read(profileImageProvider.notifier).reset();
-    if (context.mounted) {
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        AppRoutes.welcome,
-        (_) => false,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final responsive = Responsive.of(context);
-    final userState = ref.watch(userProvider);
-    final user = userState.user;
-    final profileImageUrl = _buildFullImageUrl(user?.profileImageUrl);
+    final overlayData = ref.watch(successOverlayProvider);
+    final selectedNavItem = ref.watch(selectedNavItemProvider);
+    final hasCheckedArgs = ref.watch(_hasCheckedArgsProvider);
+
+    if (!hasCheckedArgs) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        if (args != null && args['showSuccess'] == true) {
+          final successType = args['successType'] as String?;
+          if (successType == 'login') {
+            ref.read(successOverlayProvider.notifier).showLogin();
+          } else if (successType == 'profileComplete') {
+            ref.read(successOverlayProvider.notifier).showProfileComplete();
+          } else {
+            ref.read(successOverlayProvider.notifier).showLogin();
+          }
+        }
+        ref.read(_hasCheckedArgsProvider.notifier).state = true;
+      });
+    }
 
     return Scaffold(
       body: Container(
@@ -48,112 +51,95 @@ class HomeScreen extends ConsumerWidget {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: responsive.horizontal(7),
+        child: Stack(
+          children: [
+            SafeArea(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (profileImageUrl != null)
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundImage: NetworkImage(profileImageUrl),
-                    )
-                  else
-                    const CircleAvatar(
-                      radius: 60,
-                      backgroundColor: Colors.white24,
-                      child: Icon(Icons.person, size: 60, color: Colors.white),
-                    ),
-                  SizedBox(height: responsive.h(3)),
-                  Text(
-                    'Welcome to Aura!',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: responsive.isTablet ? 32 : 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: responsive.h(2)),
-                  if (user != null) ...[
-                    Text(
-                      user.name ?? 'User',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: responsive.isTablet ? 24 : 20,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: responsive.h(1)),
-                    if (user.username != null)
-                      Text(
-                        '@${user.username}',
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: responsive.isTablet ? 18 : 16,
-                        ),
-                      ),
-                  ],
-                  SizedBox(height: responsive.h(4)),
-                  Container(
-                    padding: EdgeInsets.all(responsive.space(20)),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.check_circle_outline,
-                          size: 64,
-                          color: Colors.greenAccent,
-                        ),
-                        SizedBox(height: responsive.h(2)),
-                        const Text(
-                          'Your account is all set up!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: responsive.h(1)),
-                        const Text(
-                          'This is your home screen. More features coming soon!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: responsive.h(4)),
-                  ElevatedButton.icon(
-                    onPressed: () => _logout(context, ref),
-                    icon: const Icon(Icons.logout, color: Colors.white),
-                    label: const Text(
-                      'Logout',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: responsive.w(6),
-                        vertical: responsive.h(1.5),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
+                  const HomeHeader(),
+                  Expanded(child: _buildMainContent(responsive)),
+                  HomeFooter(
+                    selectedItem: selectedNavItem,
+                    onItemSelected: (item) =>
+                        _onNavItemSelected(context, ref, item),
                   ),
                 ],
               ),
             ),
-          ),
+            if (overlayData.isVisible)
+              SuccessOverlayCard(
+                title: overlayData.title,
+                message: overlayData.message,
+                buttonText: overlayData.buttonText,
+                icon: overlayData.icon,
+                iconColor: overlayData.iconColor,
+                onDismiss: () {
+                  ref.read(successOverlayProvider.notifier).hide();
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onNavItemSelected(
+    BuildContext context,
+    WidgetRef ref,
+    HomeNavItem item,
+  ) {
+    if (item == HomeNavItem.account) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const MyAccountScreen()),
+      );
+    } else if (item == HomeNavItem.sos) {
+    } else {
+      ref.read(selectedNavItemProvider.notifier).state = item;
+    }
+  }
+
+  Widget _buildMainContent(Responsive responsive) {
+    return Center(
+      child: Padding(
+        padding: responsive.horizontal(7),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(responsive.space(20)),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.explore_rounded,
+                    size: responsive.isTablet ? 64 : 52,
+                    color: AppColors.accent,
+                  ),
+                  SizedBox(height: responsive.h(2)),
+                  Text(
+                    'Welcome to Aura',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: responsive.isTablet ? 22 : 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: responsive.h(1)),
+                  const Text(
+                    'More features coming soon. Stay tuned!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

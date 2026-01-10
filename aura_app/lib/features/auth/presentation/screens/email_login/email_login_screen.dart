@@ -10,8 +10,9 @@ import '../../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../../core/ui/responsive/responsive.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/constants/asset_constants.dart';
-import '../../../data/datasources/firebase_auth_datasource.dart';
+import '../../../data/datasources/auth_remote_datasource.dart';
 import '../../../domain/models/auth_success_payload.dart';
+import '../../../../user/presentation/providers/user_provider.dart';
 import '../../providers/email_login_provider.dart';
 
 class EmailLoginScreen extends ConsumerStatefulWidget {
@@ -23,7 +24,7 @@ class EmailLoginScreen extends ConsumerStatefulWidget {
 
 class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
     with TickerProviderStateMixin {
-  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _identifierController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   late AnimationController _logoController;
@@ -138,24 +139,20 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
     });
   }
 
-  bool _validateInputs() {
-    final email = _emailController.text.trim();
+  Future<void> _handleAuth() async {
+    final identifier = _identifierController.text.trim();
     final password = _passwordController.text;
 
-    if (email.isEmpty) {
-      AppSnackbar.showError(
-        context: context,
-        message: "Please enter your email address",
-      );
-      return false;
-    }
+    final notifier = ref.read(emailLoginProvider.notifier);
 
-    if (!email.contains('@') || !email.contains('.')) {
+    notifier.clearErrors();
+
+    if (identifier.isEmpty) {
       AppSnackbar.showError(
         context: context,
-        message: "Please enter a valid email address",
+        message: "Please enter your email, username or phone",
       );
-      return false;
+      return;
     }
 
     if (password.isEmpty) {
@@ -163,27 +160,8 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
         context: context,
         message: "Please enter your password",
       );
-      return false;
+      return;
     }
-
-    return true;
-  }
-
-  Future<void> _handleAuth() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-
-    final notifier = ref.read(emailLoginProvider.notifier);
-
-    notifier.clearErrors();
-
-    final isValid = notifier.validateFields(
-      email: email,
-      password: password,
-      context: context,
-    );
-
-    if (!isValid) return;
 
     notifier.setLoading(true);
 
@@ -197,26 +175,53 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
     );
 
     try {
-      await FirebaseAuthDataSource().signInWithEmailPassword(
-        email: email,
+      final loginResponse = await AuthRemoteDataSource().login(
+        identifier: identifier,
         password: password,
       );
+
+      final email = loginResponse['email'] as String?;
+      final userData = loginResponse['user'] as Map<String, dynamic>?;
+
+      if (email == null || email.isEmpty) {
+        throw Exception('No email found for this account');
+      }
+
+      if (userData != null) {
+        await ref.read(userProvider.notifier).setUserFromJson(userData);
+      }
 
       if (!mounted) return;
       Navigator.pop(context);
 
       notifier.setLoading(false);
 
-      Navigator.pushNamedAndRemoveUntil(
-        context,
-        AppRoutes.otpSuccess,
-        (_) => false,
-        arguments: AuthSuccessPayload(
-          method: AuthMethod.email,
-          identifier: email,
-          isNewUser: true,
-        ),
-      );
+      final profileCompleted = userData?['profileCompleted'] == true;
+      final hasName =
+          userData?['name'] != null && (userData?['name'] as String).isNotEmpty;
+      final hasUsername =
+          userData?['username'] != null &&
+          (userData?['username'] as String).isNotEmpty;
+
+      if (profileCompleted && hasName && hasUsername) {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.home,
+          (_) => false,
+          arguments: {'showSuccess': true, 'successType': 'login'},
+        );
+      } else {
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.otpSuccess,
+          (_) => false,
+          arguments: AuthSuccessPayload(
+            method: AuthMethod.email,
+            identifier: email,
+            isNewUser: false,
+          ),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
@@ -231,7 +236,7 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     _logoController.dispose();
     _titleController.dispose();
@@ -281,7 +286,7 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
             child: Column(
               children: [
                 const AppHeader(
-                  title: "Email Login",
+                  title: "Sign In",
                   textColor: AppColors.textLight,
                 ),
                 Expanded(
@@ -309,14 +314,15 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: AppColors.primary
-                                                .withOpacity(0.4),
+                                            color: AppColors.primary.withValues(
+                                              alpha: 0.4,
+                                            ),
                                             blurRadius: 25,
                                             spreadRadius: 4,
                                           ),
                                           BoxShadow(
-                                            color: AppColors.accent.withOpacity(
-                                              0.25,
+                                            color: AppColors.accent.withValues(
+                                              alpha: 0.25,
                                             ),
                                             blurRadius: 40,
                                             spreadRadius: 6,
@@ -341,7 +347,7 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                               child: FadeTransition(
                                 opacity: _titleOpacity,
                                 child: Text(
-                                  "Sign in with Email",
+                                  "Welcome Back",
                                   style: TextStyle(
                                     color: AppColors.textLight,
                                     fontSize: titleSize,
@@ -360,10 +366,10 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                               child: FadeTransition(
                                 opacity: _subtitleOpacity,
                                 child: Text(
-                                  "Use the email linked to your Google or Phone login",
+                                  "Sign in with your email, username or phone",
                                   style: TextStyle(
-                                    color: AppColors.textLight.withOpacity(
-                                      0.75,
+                                    color: AppColors.textLight.withValues(
+                                      alpha: 0.75,
                                     ),
                                     fontSize: subtitleSize,
                                     height: 1.4,
@@ -381,11 +387,11 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                                 child: Column(
                                   children: [
                                     AppTextField(
-                                      controller: _emailController,
+                                      controller: _identifierController,
                                       responsive: responsive,
-                                      hint: "Email",
-                                      icon: Icons.email_outlined,
-                                      keyboardType: TextInputType.emailAddress,
+                                      hint: "Email, Username or Phone",
+                                      icon: Icons.person_outline,
+                                      keyboardType: TextInputType.text,
                                       errorText: emailState.emailError,
                                     ),
 
@@ -403,8 +409,9 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                                           emailState.obscurePassword
                                               ? Icons.visibility_outlined
                                               : Icons.visibility_off_outlined,
-                                          color: AppColors.textLight
-                                              .withOpacity(0.7),
+                                          color: AppColors.textLight.withValues(
+                                            alpha: 0.7,
+                                          ),
                                         ),
                                         onPressed: () {
                                           ref
