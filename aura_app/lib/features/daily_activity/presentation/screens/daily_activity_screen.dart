@@ -9,6 +9,8 @@ import '../../../../core/widgets/wrappers/app_bottom_sheet.dart';
 import '../../data/models/daily_activity_model.dart';
 import '../providers/daily_activity_provider.dart';
 
+final selectedActivityTypeProvider = StateProvider<String>((ref) => 'Exercise');
+
 class DailyActivityScreen extends ConsumerStatefulWidget {
   const DailyActivityScreen({super.key});
 
@@ -429,6 +431,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   }
 
   void _showAddActivitySheet(BuildContext context) {
+    ref.read(selectedActivityTypeProvider.notifier).state = 'Exercise';
     AppBottomSheet.show(
       context: context,
       title: 'Add New Activity',
@@ -447,17 +450,17 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   }
 }
 
-class _AddActivityContent extends StatefulWidget {
+class _AddActivityContent extends ConsumerStatefulWidget {
   final void Function(String type, String title, String? description) onAdd;
 
   const _AddActivityContent({required this.onAdd});
 
   @override
-  State<_AddActivityContent> createState() => _AddActivityContentState();
+  ConsumerState<_AddActivityContent> createState() =>
+      _AddActivityContentState();
 }
 
-class _AddActivityContentState extends State<_AddActivityContent> {
-  String _selectedType = 'Exercise';
+class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
 
@@ -471,6 +474,7 @@ class _AddActivityContentState extends State<_AddActivityContent> {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final selectedType = ref.watch(selectedActivityTypeProvider);
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: responsive.space(24)),
@@ -499,9 +503,11 @@ class _AddActivityContentState extends State<_AddActivityContent> {
                   'Social',
                   'Other',
                 ].map((type) {
-                  final isSelected = _selectedType == type;
+                  final isSelected = selectedType == type;
                   return GestureDetector(
-                    onTap: () => setState(() => _selectedType = type),
+                    onTap: () =>
+                        ref.read(selectedActivityTypeProvider.notifier).state =
+                            type,
                     child: Container(
                       padding: EdgeInsets.symmetric(
                         horizontal: responsive.space(14),
@@ -569,7 +575,7 @@ class _AddActivityContentState extends State<_AddActivityContent> {
               onPressed: () {
                 if (_titleController.text.trim().isNotEmpty) {
                   widget.onAdd(
-                    _selectedType,
+                    selectedType,
                     _titleController.text.trim(),
                     _descController.text.trim().isNotEmpty
                         ? _descController.text.trim()

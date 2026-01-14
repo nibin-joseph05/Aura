@@ -24,16 +24,14 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(
             HttpServletRequest request,
             HttpServletResponse response,
-            FilterChain filterChain
-    ) throws ServletException, IOException {
+            FilterChain filterChain) throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
 
-            AuthenticatedUserContext authContext =
-                    firebaseAuthService.verifyTokenAndSyncUser(token);
+            AuthenticatedUserContext authContext = firebaseAuthService.verifyTokenAndSyncUser(token);
 
             request.setAttribute("AUTH_CONTEXT", authContext);
         }
@@ -50,6 +48,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
         }
 
         return path.startsWith("/api/health")
-                || path.startsWith("/api/auth");
+                || path.startsWith("/api/auth")
+                || path.startsWith("/api/admin");
     }
 }
