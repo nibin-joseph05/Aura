@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/widgets/screens/success_overlay_card.dart';
+import '../../../daily_activity/presentation/widgets/daily_activity_tracker_widget.dart';
 import '../providers/success_overlay_provider.dart';
 import '../widgets/home_footer.dart';
 import '../widgets/home_header.dart';
@@ -109,47 +110,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildMainContent(Responsive responsive) {
-    return Center(
-      child: Padding(
-        padding: responsive.horizontal(7),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(responsive.space(20)),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.explore_rounded,
-                    size: responsive.isTablet ? 64 : 52,
-                    color: AppColors.accent,
-                  ),
-                  SizedBox(height: responsive.h(2)),
-                  Text(
-                    'Welcome to Aura',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: responsive.isTablet ? 22 : 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: responsive.h(1)),
-                  const Text(
-                    'More features coming soon. Stay tuned!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+    return SingleChildScrollView(
+      padding: responsive.horizontal(5),
+      child: Column(
+        children: [
+          SizedBox(height: responsive.h(3)),
+          const DailyActivityTrackerWidget(),
+          SizedBox(height: responsive.h(3)),
+        ],
       ),
     );
   }
