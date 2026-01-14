@@ -56,99 +56,96 @@ class MyAccountScreen extends ConsumerWidget {
               Expanded(
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
-                  padding: responsive.horizontal(6),
+                  padding: responsive.horizontal(5),
                   child: Column(
                     children: [
-                      SizedBox(height: responsive.h(3)),
-                      Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            width: 3,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.3),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: ClipOval(
-                          child: SizedBox(
-                            width: responsive.isTablet ? 120 : 100,
-                            height: responsive.isTablet ? 120 : 100,
-                            child: profileImageUrl != null
-                                ? Image.network(
-                                    profileImageUrl,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder:
-                                        (context, child, loadingProgress) {
-                                          if (loadingProgress == null)
-                                            return child;
-                                          return Container(
-                                            color: Colors.white24,
-                                            child: const Center(
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2,
-                                                color: Colors.white54,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                    errorBuilder: (_, __, ___) => Container(
-                                      color: Colors.white24,
-                                      child: Icon(
-                                        Icons.person,
-                                        size: responsive.isTablet ? 60 : 50,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                : Container(
-                                    color: Colors.white24,
-                                    child: Icon(
-                                      Icons.person,
-                                      size: responsive.isTablet ? 60 : 50,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
                       SizedBox(height: responsive.h(2)),
-                      if (user != null) ...[
-                        Text(
-                          user.name ?? 'User',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: responsive.isTablet ? 26 : 22,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      _buildProfileHeader(responsive, user, profileImageUrl),
+                      SizedBox(height: responsive.h(3)),
+                      _buildMenuSection(responsive, 'Account', [
+                        _MenuItemData(
+                          icon: Icons.edit_outlined,
+                          title: 'Edit Profile',
+                          subtitle: 'Update your personal information',
+                          onTap: () {},
                         ),
-                        SizedBox(height: responsive.h(0.5)),
-                        if (user.username != null)
-                          Text(
-                            '@${user.username}',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: responsive.isTablet ? 16 : 14,
-                            ),
-                          ),
-                        SizedBox(height: responsive.h(0.5)),
-                        if (user.email != null)
-                          Text(
-                            user.email!,
-                            style: TextStyle(
-                              color: Colors.white60,
-                              fontSize: responsive.isTablet ? 14 : 12,
-                            ),
-                          ),
-                      ],
-                      SizedBox(height: responsive.h(4)),
-                      _buildInfoCard(responsive, user),
-                      SizedBox(height: responsive.h(4)),
+                        _MenuItemData(
+                          icon: Icons.lock_outline,
+                          title: 'Change Password',
+                          subtitle: 'Update your password',
+                          onTap: () {},
+                        ),
+                        _MenuItemData(
+                          icon: Icons.phone_outlined,
+                          title: 'Phone Number',
+                          subtitle: user?.phone ?? 'Not added',
+                          onTap: () {},
+                        ),
+                      ]),
+                      SizedBox(height: responsive.h(2)),
+                      _buildMenuSection(responsive, 'Preferences', [
+                        _MenuItemData(
+                          icon: Icons.notifications_outlined,
+                          title: 'Notifications',
+                          subtitle: 'Manage notification settings',
+                          onTap: () {},
+                        ),
+                        _MenuItemData(
+                          icon: Icons.language_outlined,
+                          title: 'Language',
+                          subtitle: 'English',
+                          onTap: () {},
+                        ),
+                        _MenuItemData(
+                          icon: Icons.dark_mode_outlined,
+                          title: 'Appearance',
+                          subtitle: 'Dark mode',
+                          onTap: () {},
+                        ),
+                      ]),
+                      SizedBox(height: responsive.h(2)),
+                      _buildMenuSection(responsive, 'Safety', [
+                        _MenuItemData(
+                          icon: Icons.emergency_outlined,
+                          title: 'Emergency Contacts',
+                          subtitle: 'Manage SOS contacts',
+                          onTap: () {},
+                        ),
+                        _MenuItemData(
+                          icon: Icons.location_on_outlined,
+                          title: 'Location Sharing',
+                          subtitle: 'Manage who can see your location',
+                          onTap: () {},
+                        ),
+                      ]),
+                      SizedBox(height: responsive.h(2)),
+                      _buildMenuSection(responsive, 'Support', [
+                        _MenuItemData(
+                          icon: Icons.help_outline,
+                          title: 'Help & FAQ',
+                          subtitle: 'Get help and find answers',
+                          onTap: () {},
+                        ),
+                        _MenuItemData(
+                          icon: Icons.privacy_tip_outlined,
+                          title: 'Privacy Policy',
+                          subtitle: 'Read our privacy policy',
+                          onTap: () {},
+                        ),
+                        _MenuItemData(
+                          icon: Icons.description_outlined,
+                          title: 'Terms of Service',
+                          subtitle: 'Read our terms',
+                          onTap: () {},
+                        ),
+                        _MenuItemData(
+                          icon: Icons.info_outline,
+                          title: 'About Aura',
+                          subtitle: 'Version 1.0.0',
+                          onTap: () {},
+                        ),
+                      ]),
+                      SizedBox(height: responsive.h(3)),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
@@ -186,88 +183,249 @@ class MyAccountScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildInfoCard(Responsive responsive, dynamic user) {
+  Widget _buildProfileHeader(
+    Responsive responsive,
+    dynamic user,
+    String? profileImageUrl,
+  ) {
     return Container(
       padding: EdgeInsets.all(responsive.space(20)),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
       ),
-      child: Column(
+      child: Row(
         children: [
-          if (user?.phone != null)
-            _buildInfoRow(
-              responsive,
-              Icons.phone_outlined,
-              'Phone',
-              user.phone!,
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: AppColors.accent.withValues(alpha: 0.5),
+                width: 2,
+              ),
             ),
-          if (user?.gender != null) ...[
-            SizedBox(height: responsive.h(1.5)),
-            _buildInfoRow(
-              responsive,
-              Icons.person_outline,
-              'Gender',
-              user.gender!,
+            child: ClipOval(
+              child: SizedBox(
+                width: responsive.isTablet ? 80 : 70,
+                height: responsive.isTablet ? 80 : 70,
+                child: profileImageUrl != null
+                    ? Image.network(
+                        profileImageUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Container(
+                            color: Colors.white24,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white54,
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => Container(
+                          color: Colors.white24,
+                          child: Icon(
+                            Icons.person,
+                            size: responsive.isTablet ? 40 : 35,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: Colors.white24,
+                        child: Icon(
+                          Icons.person,
+                          size: responsive.isTablet ? 40 : 35,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
             ),
-          ],
-          if (user?.dob != null) ...[
-            SizedBox(height: responsive.h(1.5)),
-            _buildInfoRow(
-              responsive,
-              Icons.cake_outlined,
-              'Date of Birth',
-              user.dob!,
+          ),
+          SizedBox(width: responsive.w(4)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user?.name ?? 'User',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: responsive.isTablet ? 22 : 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (user?.username != null) ...[
+                  SizedBox(height: responsive.h(0.3)),
+                  Text(
+                    '@${user.username}',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontSize: responsive.isTablet ? 14 : 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+                if (user?.email != null) ...[
+                  SizedBox(height: responsive.h(0.3)),
+                  Text(
+                    user.email!,
+                    style: TextStyle(
+                      color: Colors.white60,
+                      fontSize: responsive.isTablet ? 12 : 11,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
             ),
-          ],
+          ),
+          IconButton(
+            onPressed: () {},
+            icon: Icon(
+              Icons.edit_outlined,
+              color: AppColors.accent,
+              size: responsive.isTablet ? 24 : 20,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(
+  Widget _buildMenuSection(
     Responsive responsive,
-    IconData icon,
-    String label,
-    String value,
+    String title,
+    List<_MenuItemData> items,
   ) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          padding: EdgeInsets.all(responsive.space(10)),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
+        Padding(
+          padding: EdgeInsets.only(
+            left: responsive.w(2),
+            bottom: responsive.h(1),
           ),
-          child: Icon(
-            icon,
-            size: responsive.isTablet ? 22 : 18,
-            color: Colors.white70,
+          child: Text(
+            title,
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: responsive.isTablet ? 14 : 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+            ),
           ),
         ),
-        SizedBox(width: responsive.w(3)),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white54,
-                fontSize: responsive.isTablet ? 12 : 10,
-              ),
-            ),
-            Text(
-              value,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: responsive.isTablet ? 16 : 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            children: items.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+              final isLast = index == items.length - 1;
+              return _buildMenuItem(responsive, item, isLast);
+            }).toList(),
+          ),
         ),
       ],
     );
   }
+
+  Widget _buildMenuItem(
+    Responsive responsive,
+    _MenuItemData item,
+    bool isLast,
+  ) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: item.onTap,
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(isLast ? 0 : 0),
+          bottom: Radius.circular(isLast ? 16 : 0),
+        ),
+        child: Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: responsive.w(4),
+            vertical: responsive.h(1.6),
+          ),
+          decoration: BoxDecoration(
+            border: isLast
+                ? null
+                : Border(
+                    bottom: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
+                  ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(responsive.space(10)),
+                decoration: BoxDecoration(
+                  color: AppColors.accent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  item.icon,
+                  size: responsive.isTablet ? 22 : 18,
+                  color: AppColors.accent,
+                ),
+              ),
+              SizedBox(width: responsive.w(3)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: responsive.isTablet ? 16 : 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    SizedBox(height: responsive.h(0.2)),
+                    Text(
+                      item.subtitle,
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: responsive.isTablet ? 12 : 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: Colors.white38,
+                size: responsive.isTablet ? 24 : 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuItemData {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  _MenuItemData({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 }
