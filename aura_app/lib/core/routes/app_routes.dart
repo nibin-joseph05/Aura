@@ -11,4 +11,6 @@ class AppRoutes {
   static const String home = '/home';
   static const String sosTrigger = '/sos-trigger';
   static const String sosSettings = '/sos-settings';
+  static const String wellnessFeed = '/wellness-feed';
+  static const String wellnessCreate = '/wellness-create';
 }

@@ -39,4 +39,9 @@ class ApiEndpoints {
       "/api/user/sos/contacts/$contactId";
   static const sosTrigger = "/api/user/sos/trigger";
   static const sosEvents = "/api/user/sos/events";
+
+  static const wellnessFeed = "/api/user/wellness/feed";
+  static const wellnessMyUpdates = "/api/user/wellness/my-updates";
+  static const wellnessTrending = "/api/user/wellness/trending";
+  static const wellnessUpdates = "/api/user/wellness/updates";
 }

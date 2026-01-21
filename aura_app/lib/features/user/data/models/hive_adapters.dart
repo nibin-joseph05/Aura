@@ -5,6 +5,8 @@ import '../../../sos/data/models/trusted_contact.dart';
 import '../../../sos/data/models/sos_settings.dart';
 import '../../../sos/data/models/sos_event_status.dart';
 import '../../../sos/data/models/sos_event.dart';
+import '../../../wellness/data/models/wellness_category.dart';
+import '../../../wellness/data/models/wellness_update.dart';
 
 void registerHiveAdapters() {
   Hive.registerAdapter(UserModelAdapter());
@@ -13,4 +15,6 @@ void registerHiveAdapters() {
   Hive.registerAdapter(SOSSettingsAdapter());
   Hive.registerAdapter(SOSEventStatusAdapter());
   Hive.registerAdapter(SOSEventAdapter());
+  Hive.registerAdapter(WellnessCategoryAdapter());
+  Hive.registerAdapter(WellnessUpdateAdapter());
 }

@@ -32,4 +32,13 @@ export const API_ENDPOINTS = {
         RESOLVE: (id: string) => `/api/admin/sos/events/${id}/resolve`,
         STATS: "/api/admin/sos/stats",
     },
+    WELLNESS: {
+        PENDING: "/api/admin/wellness/pending",
+        ALL: "/api/admin/wellness/all",
+        STATS: "/api/admin/wellness/stats",
+        APPROVE: (id: string) => `/api/admin/wellness/${id}/approve`,
+        REJECT: (id: string) => `/api/admin/wellness/${id}/reject`,
+        DELETE: (id: string) => `/api/admin/wellness/${id}`,
+    },
 };
+

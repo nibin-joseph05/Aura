@@ -13,6 +13,8 @@ import '../../features/auth/presentation/screens/auth_screen/auth_screen.dart';
 import '../../features/auth/presentation/screens/phone_login/phone_login_screen.dart';
 import '../../features/sos/presentation/screens/sos_trigger_screen.dart';
 import '../../features/sos/presentation/screens/sos_settings_screen.dart';
+import '../../features/wellness/presentation/screens/wellness_feed_screen.dart';
+import '../../features/wellness/presentation/screens/create_wellness_update_screen.dart';
 
 import 'app_routes.dart';
 
@@ -45,6 +47,10 @@ class AppRouter {
         return _build(const SOSTriggerScreen(), settings);
       case AppRoutes.sosSettings:
         return _build(const SOSSettingsScreen(), settings);
+      case AppRoutes.wellnessFeed:
+        return _build(const WellnessFeedScreen(), settings);
+      case AppRoutes.wellnessCreate:
+        return _build(const CreateWellnessUpdateScreen(), settings);
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),
