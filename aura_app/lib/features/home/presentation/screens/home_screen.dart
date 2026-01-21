@@ -58,6 +58,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         MaterialPageRoute(builder: (_) => const MyAccountScreen()),
       );
     } else if (item == HomeNavItem.sos) {
+      Navigator.pushNamed(context, '/sos-trigger');
     } else {
       ref.read(selectedNavItemProvider.notifier).state = item;
     }

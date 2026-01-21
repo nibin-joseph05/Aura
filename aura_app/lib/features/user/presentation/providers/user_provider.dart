@@ -110,3 +110,7 @@ class UserNotifier extends StateNotifier<UserState> {
 final userProvider = StateNotifierProvider<UserNotifier, UserState>((ref) {
   return UserNotifier(UserRemoteDataSource());
 });
+
+final currentUserProvider = Provider<UserModel?>((ref) {
+  return ref.watch(userProvider).user;
+});

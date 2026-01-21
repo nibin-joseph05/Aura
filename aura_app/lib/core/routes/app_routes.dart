@@ -9,4 +9,6 @@ class AppRoutes {
   static const privacyPolicy = '/privacy-policy';
   static const profileComplete = '/profile-complete';
   static const String home = '/home';
+  static const String sosTrigger = '/sos-trigger';
+  static const String sosSettings = '/sos-settings';
 }

@@ -11,6 +11,8 @@ import '../../features/splash/presentation/screens/splash_screen.dart';
 import '../../features/onboarding/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/screens/auth_screen/auth_screen.dart';
 import '../../features/auth/presentation/screens/phone_login/phone_login_screen.dart';
+import '../../features/sos/presentation/screens/sos_trigger_screen.dart';
+import '../../features/sos/presentation/screens/sos_settings_screen.dart';
 
 import 'app_routes.dart';
 
@@ -39,6 +41,10 @@ class AppRouter {
         return _build(const ProfileCompleteScreen(), settings);
       case AppRoutes.home:
         return _build(const HomeScreen(), settings);
+      case AppRoutes.sosTrigger:
+        return _build(const SOSTriggerScreen(), settings);
+      case AppRoutes.sosSettings:
+        return _build(const SOSSettingsScreen(), settings);
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),

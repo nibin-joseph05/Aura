@@ -25,4 +25,11 @@ export const API_ENDPOINTS = {
         BY_MUSCLE: (muscle: string) => `/api/admin/gym-exercises/muscle/${muscle}`,
         TOGGLE: (id: string) => `/api/admin/gym-exercises/${id}/toggle-status`,
     },
+    SOS: {
+        EVENTS: "/api/admin/sos/events",
+        EVENT_BY_ID: (id: string) => `/api/admin/sos/events/${id}`,
+        ACKNOWLEDGE: (id: string) => `/api/admin/sos/events/${id}/acknowledge`,
+        RESOLVE: (id: string) => `/api/admin/sos/events/${id}/resolve`,
+        STATS: "/api/admin/sos/stats",
+    },
 };

@@ -39,6 +39,13 @@ dependencies:
   connectivity_plus: ^5.0.2
   dio: ^5.4.3
 
+  # --- SOS / Location / Permissions ---
+  geolocator: ^13.0.2
+  permission_handler: ^11.3.1
+  url_launcher: ^6.3.1
+  flutter_sms: ^2.3.3
+  contacts_service: ^0.6.3
+
 
 dev_dependencies:
   flutter_test:

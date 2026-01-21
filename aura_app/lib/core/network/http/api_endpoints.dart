@@ -31,4 +31,12 @@ class ApiEndpoints {
   static const reminders = "/api/user/reminders";
   static String remindersForUser(String userId) =>
       "/api/user/reminders/$userId";
+
+  static const sosSettings = "/api/user/sos";
+  static const sosMessage = "/api/user/sos/message";
+  static const sosContacts = "/api/user/sos/contacts";
+  static String sosContactById(String contactId) =>
+      "/api/user/sos/contacts/$contactId";
+  static const sosTrigger = "/api/user/sos/trigger";
+  static const sosEvents = "/api/user/sos/events";
 }
