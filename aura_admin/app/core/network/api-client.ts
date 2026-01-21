@@ -13,6 +13,7 @@ interface ApiResponse<T> {
     data: T | null;
     error: string | null;
     status: number;
+    success: boolean;
 }
 
 function getNetworkErrorMessage(error: unknown): string {
@@ -44,7 +45,7 @@ class ApiClient {
     }
 
     async request<T>(endpoint: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
-        const { method = "GET", body, headers = {}, requiresAuth = false } = options;
+        const { method = "GET", body, headers = {}, requiresAuth = true } = options;
 
         const requestHeaders: Record<string, string> = {
             "Content-Type": "application/json",
@@ -72,6 +73,7 @@ class ApiClient {
                     data: null,
                     error: data?.message || `Request failed with status ${response.status}`,
                     status: response.status,
+                    success: false,
                 };
             }
 
@@ -79,6 +81,7 @@ class ApiClient {
                 data: data as T,
                 error: null,
                 status: response.status,
+                success: true,
             };
         } catch (error) {
             console.error("API Request Error:", error);
@@ -86,23 +89,28 @@ class ApiClient {
                 data: null,
                 error: getNetworkErrorMessage(error),
                 status: 0,
+                success: false,
             };
         }
     }
 
-    get<T>(endpoint: string, requiresAuth = false): Promise<ApiResponse<T>> {
+    get<T>(endpoint: string, requiresAuth = true): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, { method: "GET", requiresAuth });
     }
 
-    post<T>(endpoint: string, body: unknown, requiresAuth = false): Promise<ApiResponse<T>> {
+    post<T>(endpoint: string, body: unknown, requiresAuth = true): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, { method: "POST", body, requiresAuth });
     }
 
-    put<T>(endpoint: string, body: unknown, requiresAuth = false): Promise<ApiResponse<T>> {
+    put<T>(endpoint: string, body: unknown, requiresAuth = true): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, { method: "PUT", body, requiresAuth });
     }
 
-    delete<T>(endpoint: string, requiresAuth = false): Promise<ApiResponse<T>> {
+    patch<T>(endpoint: string, body: unknown, requiresAuth = true): Promise<ApiResponse<T>> {
+        return this.request<T>(endpoint, { method: "PATCH", body, requiresAuth });
+    }
+
+    delete<T>(endpoint: string, requiresAuth = true): Promise<ApiResponse<T>> {
         return this.request<T>(endpoint, { method: "DELETE", requiresAuth });
     }
 }

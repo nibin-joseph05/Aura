@@ -1,5 +1,5 @@
 import { apiClient } from "@/app/core/network/api-client";
-import { apiEndpoints } from "@/app/core/network/api-endpoints";
+import { API_ENDPOINTS } from "@/app/core/network/api-endpoints";
 import {
     AdminLoginRequest,
     AdminLoginResponse,

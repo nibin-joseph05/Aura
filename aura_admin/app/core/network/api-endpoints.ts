@@ -1,10 +1,28 @@
-export const apiEndpoints = {
-    admin: {
-        login: "/api/admin/login",
-        current: "/api/admin/current",
+export const API_ENDPOINTS = {
+    AUTH: {
+        LOGIN: "/api/admin/login",
+        CURRENT: "/api/admin/current",
+        REGISTER: "/api/admin/register",
     },
-    user: {
-        me: "/api/user/me",
+    ACTIVITY_CATEGORIES: {
+        BASE: "/api/admin/activity-categories",
+        ACTIVE: "/api/admin/activity-categories/active",
+        BY_ID: (id: string) => `/api/admin/activity-categories/${id}`,
+        TOGGLE: (id: string) => `/api/admin/activity-categories/${id}/toggle-status`,
     },
-    health: "/api/health",
+    ACTIVITY_TYPES: {
+        BASE: "/api/admin/activity-types",
+        ACTIVE: "/api/admin/activity-types/active",
+        BY_ID: (id: string) => `/api/admin/activity-types/${id}`,
+        BY_CATEGORY: (categoryId: string) => `/api/admin/activity-types/category/${categoryId}`,
+        GYM: "/api/admin/activity-types/gym",
+        TOGGLE: (id: string) => `/api/admin/activity-types/${id}/toggle-status`,
+    },
+    GYM_EXERCISES: {
+        BASE: "/api/admin/gym-exercises",
+        ACTIVE: "/api/admin/gym-exercises/active",
+        BY_ID: (id: string) => `/api/admin/gym-exercises/${id}`,
+        BY_MUSCLE: (muscle: string) => `/api/admin/gym-exercises/muscle/${muscle}`,
+        TOGGLE: (id: string) => `/api/admin/gym-exercises/${id}/toggle-status`,
+    },
 };

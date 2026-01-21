@@ -10,9 +10,10 @@ import { authStorage } from "@/app/modules/auth/services/auth-storage";
 
 const menuItems = [
     { name: "Dashboard", icon: "📊", path: "/admin/dashboard" },
+    { name: "Categories", icon: "📂", path: "/admin/categories" },
     { name: "Activity Types", icon: "📋", path: "/admin/activities" },
+    { name: "Gym Exercises", icon: "🏋️", path: "/admin/gym-exercises" },
     { name: "Users", icon: "👥", path: "/admin/users" },
-    { name: "Reports", icon: "📈", path: "/admin/reports" },
     { name: "Settings", icon: "⚙️", path: "/admin/settings" },
 ];
 
