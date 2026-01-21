@@ -9,6 +9,7 @@ import com.backend.aura.modules.sos.model.enums.SOSEventStatus;
 import com.backend.aura.modules.user.repository.UserRepository;
 import com.backend.aura.modules.wellness.repository.WellnessUpdateRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class AdminService {
     private final UserRepository userRepository;
     private final SOSEventRepository sosEventRepository;
     private final WellnessUpdateRepository wellnessUpdateRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public AdminStatsDTO getDashboardStats() {
         LocalDateTime todayStart = LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0);
@@ -48,30 +50,50 @@ public class AdminService {
 
     public Optional<AdminProfileDTO> getProfile(String adminId) {
         return adminRepository.findById(UUID.fromString(adminId))
-                .map(admin -> AdminProfileDTO.builder()
-                        .id(admin.getId().toString())
-                        .name(admin.getName())
-                        .email(admin.getEmail())
-                        .createdAt(admin.getCreatedAt().toString())
-                        .build());
+                .map(this::toProfileDTO);
     }
 
-    public Optional<AdminProfileDTO> updateProfile(String adminId, String name, String email) {
+    public Optional<AdminProfileDTO> updateProfileName(String adminId, String name) {
         return adminRepository.findById(UUID.fromString(adminId))
                 .map(admin -> {
                     if (name != null && !name.isBlank()) {
                         admin.setName(name);
                     }
+                    Admin saved = adminRepository.save(admin);
+                    return toProfileDTO(saved);
+                });
+    }
+
+    public Optional<AdminProfileDTO> updateEmail(String adminId, String email) {
+        return adminRepository.findById(UUID.fromString(adminId))
+                .map(admin -> {
                     if (email != null && !email.isBlank()) {
                         admin.setEmail(email);
                     }
                     Admin saved = adminRepository.save(admin);
-                    return AdminProfileDTO.builder()
-                            .id(saved.getId().toString())
-                            .name(saved.getName())
-                            .email(saved.getEmail())
-                            .createdAt(saved.getCreatedAt().toString())
-                            .build();
+                    return toProfileDTO(saved);
                 });
+    }
+
+    public boolean changePassword(String adminId, String currentPassword, String newPassword) {
+        return adminRepository.findById(UUID.fromString(adminId))
+                .map(admin -> {
+                    if (passwordEncoder.matches(currentPassword, admin.getPassword())) {
+                        admin.setPassword(passwordEncoder.encode(newPassword));
+                        adminRepository.save(admin);
+                        return true;
+                    }
+                    return false;
+                })
+                .orElse(false);
+    }
+
+    private AdminProfileDTO toProfileDTO(Admin admin) {
+        return AdminProfileDTO.builder()
+                .id(admin.getId().toString())
+                .name(admin.getName())
+                .email(admin.getEmail())
+                .createdAt(admin.getCreatedAt().toString())
+                .build();
     }
 }

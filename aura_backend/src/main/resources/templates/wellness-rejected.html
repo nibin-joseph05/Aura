@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Update - Aura</title>
+</head>
+
+<body
+    style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0A1A2F;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse;">
+
+                    <tr>
+                        <td align="center" style="padding: 30px 0;">
+                            <div
+                                style="width: 80px; height: 80px; background: linear-gradient(135deg, #F59E0B, #D97706); border-radius: 50%; display: inline-block; line-height: 80px; text-align: center;">
+                                <span style="color: white; font-size: 36px;">📋</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td
+                            style="background: linear-gradient(135deg, #1E4D6B, #0F2A3D); border-radius: 20px; padding: 40px 30px;">
+
+                            <h1 style="color: #FCD34D; font-size: 28px; margin: 0 0 10px 0; text-align: center;">
+                                Update on Your Post
+                            </h1>
+
+                            <p
+                                style="color: #B0BEC5; font-size: 16px; line-height: 1.6; text-align: center; margin: 0 0 25px 0;">
+                                Hi <span th:text="${userName}" style="color: #FCD34D; font-weight: 600;">there</span>,
+                            </p>
+
+                            <p
+                                style="color: #ECEFF1; font-size: 16px; line-height: 1.8; text-align: center; margin: 0 0 25px 0;">
+                                We've reviewed your wellness post and unfortunately couldn't approve it at this time.
+                            </p>
+
+                            <table role="presentation"
+                                style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                                <tr>
+                                    <td
+                                        style="padding: 20px; background: rgba(245, 158, 11, 0.15); border-radius: 12px; border-left: 4px solid #F59E0B;">
+                                        <p style="color: #FCD34D; font-weight: bold; margin: 0 0 8px 0;">📝 Your Post:
+                                        </p>
+                                        <p th:text="${postTitle}"
+                                            style="color: #ECEFF1; margin: 0; font-style: italic;">"Post title"</p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table role="presentation"
+                                style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+                                <tr>
+                                    <td
+                                        style="padding: 20px; background: rgba(239, 68, 68, 0.1); border-radius: 12px; border-left: 4px solid #EF4444;">
+                                        <p style="color: #FCA5A5; font-weight: bold; margin: 0 0 8px 0;">Reason:</p>
+                                        <p th:text="${reason}" style="color: #ECEFF1; margin: 0;">Content did not meet
+                                            community guidelines.</p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p
+                                style="color: #B0BEC5; font-size: 14px; line-height: 1.6; text-align: center; margin: 0;">
+                                Feel free to edit your post and resubmit. We encourage you to continue sharing your
+                                wellness journey with our community!
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 30px 0; text-align: center;">
+                            <p style="color: #607D8B; font-size: 13px; margin: 0 0 10px 0;">
+                                Move safely. Live healthily. Stay connected.
+                            </p>
+                            <p style="color: #455A64; font-size: 12px; margin: 0;">
+                                © 2026 Aura. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

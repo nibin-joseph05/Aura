@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Alert - Aura</title>
+</head>
+
+<body
+    style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0A1A2F;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse;">
+
+                    <tr>
+                        <td align="center" style="padding: 30px 0;">
+                            <div
+                                style="width: 80px; height: 80px; background: linear-gradient(135deg, #EF4444, #DC2626); border-radius: 50%; display: inline-block; line-height: 80px; text-align: center;">
+                                <span style="color: white; font-size: 36px;">🆘</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td
+                            style="background: linear-gradient(135deg, #7F1D1D, #450A0A); border-radius: 20px; padding: 40px 30px;">
+
+                            <h1 style="color: #FCA5A5; font-size: 28px; margin: 0 0 10px 0; text-align: center;">
+                                🚨 EMERGENCY ALERT
+                            </h1>
+
+                            <p
+                                style="color: #FECACA; font-size: 16px; line-height: 1.6; text-align: center; margin: 0 0 25px 0;">
+                                Hi <span th:text="${contactName}"
+                                    style="color: #FCA5A5; font-weight: 600;">Contact</span>,
+                            </p>
+
+                            <p
+                                style="color: #FECACA; font-size: 18px; line-height: 1.6; text-align: center; margin: 0 0 25px 0;">
+                                <strong th:text="${userName}" style="color: #FCA5A5;">Someone</strong> has triggered an
+                                emergency SOS alert and listed you as an emergency contact.
+                            </p>
+
+                            <table role="presentation"
+                                style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+                                <tr>
+                                    <td
+                                        style="padding: 20px; background: rgba(239, 68, 68, 0.2); border-radius: 12px; border-left: 4px solid #EF4444;">
+                                        <table role="presentation" style="width: 100%;">
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <span style="color: #FCA5A5; font-weight: bold;">📍 Last Known
+                                                        Location:</span>
+                                                    <span th:text="${location}"
+                                                        style="color: #FECACA; margin-left: 10px;">Unknown</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <span style="color: #FCA5A5; font-weight: bold;">⏰ Alert
+                                                        Time:</span>
+                                                    <span th:text="${triggeredAt}"
+                                                        style="color: #FECACA; margin-left: 10px;">Just now</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p
+                                style="color: #FECACA; font-size: 16px; line-height: 1.6; text-align: center; margin: 0 0 15px 0;">
+                                <strong>Please try to contact them immediately.</strong>
+                            </p>
+
+                            <p
+                                style="color: #FCA5A5; font-size: 14px; line-height: 1.6; text-align: center; margin: 0;">
+                                If you cannot reach them and believe they may be in danger, please contact local
+                                emergency services.
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 30px 0; text-align: center;">
+                            <p style="color: #607D8B; font-size: 13px; margin: 0 0 10px 0;">
+                                This is an automated emergency notification from the Aura app.
+                            </p>
+                            <p style="color: #455A64; font-size: 12px; margin: 0;">
+                                © 2026 Aura. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

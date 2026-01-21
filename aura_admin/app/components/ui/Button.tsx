@@ -2,6 +2,7 @@
 
 import { ButtonHTMLAttributes, ReactNode } from "react";
 import { appColors } from "@/app/core/constants/colors";
+import { useTheme } from "@/app/core/providers/ThemeProvider";
 
 type ButtonVariant = "primary" | "secondary" | "outline" | "danger";
 
@@ -12,27 +13,6 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     children: ReactNode;
 }
 
-const variantStyles: Record<ButtonVariant, { bg: string; text: string; border?: string }> = {
-    primary: {
-        bg: `linear-gradient(to right, ${appColors.accent}, ${appColors.primary})`,
-        text: "white",
-    },
-    secondary: {
-        bg: appColors.cardBg,
-        text: "white",
-        border: appColors.cardBorder,
-    },
-    outline: {
-        bg: "transparent",
-        text: appColors.accent,
-        border: appColors.accent,
-    },
-    danger: {
-        bg: appColors.error,
-        text: "white",
-    },
-};
-
 export default function Button({
     variant = "primary",
     isLoading = false,
@@ -42,7 +22,44 @@ export default function Button({
     disabled,
     ...props
 }: ButtonProps) {
-    const styles = variantStyles[variant];
+    const { isDark } = useTheme();
+
+    const getStyles = () => {
+        switch (variant) {
+            case "primary":
+                return {
+                    background: `linear-gradient(to right, ${appColors.accent}, ${appColors.primary})`,
+                    color: "white",
+                    border: "none",
+                };
+            case "secondary":
+                return {
+                    background: isDark ? appColors.cardBg : "#f3f4f6",
+                    color: isDark ? "#f3f4f6" : "#374151",
+                    border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}`,
+                };
+            case "outline":
+                return {
+                    background: "transparent",
+                    color: appColors.accent,
+                    border: `1px solid ${appColors.accent}`,
+                };
+            case "danger":
+                return {
+                    background: appColors.error,
+                    color: "white",
+                    border: "none",
+                };
+            default:
+                return {
+                    background: appColors.primary,
+                    color: "white",
+                    border: "none",
+                };
+        }
+    };
+
+    const styles = getStyles();
 
     return (
         <button
@@ -51,9 +68,9 @@ export default function Button({
             className={`relative flex items-center justify-center py-3 px-6 text-sm font-medium rounded-lg transition-all duration-300 ease-in-out transform hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-offset-2 ${fullWidth ? "w-full" : ""
                 } ${disabled || isLoading ? "opacity-75 cursor-not-allowed" : "shadow-lg hover:shadow-xl"} ${className}`}
             style={{
-                background: styles.bg,
-                color: styles.text,
-                border: styles.border ? `1px solid ${styles.border}` : "none",
+                background: styles.background,
+                color: styles.color,
+                border: styles.border,
             }}
         >
             {isLoading ? (

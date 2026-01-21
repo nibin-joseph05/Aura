@@ -21,8 +21,11 @@ export default function SettingsPage() {
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
-    const [formData, setFormData] = useState({ name: "", email: "" });
+    const [formData, setFormData] = useState({ name: "" });
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+    const [emailChange, setEmailChange] = useState({ newEmail: "", otp: "", step: "idle" as "idle" | "otp" | "verifying" });
+    const [passwordChange, setPasswordChange] = useState({ current: "", new: "", confirm: "", changing: false });
 
     useEffect(() => {
         fetchProfile();
@@ -33,7 +36,7 @@ export default function SettingsPage() {
             const response = await apiClient.get<AdminProfile>("/api/admin/profile");
             if (response.success && response.data) {
                 setProfile(response.data);
-                setFormData({ name: response.data.name, email: response.data.email });
+                setFormData({ name: response.data.name });
             } else {
                 setProfile({
                     id: currentUser?.adminId || "",
@@ -41,39 +44,109 @@ export default function SettingsPage() {
                     email: currentUser?.email || "",
                     createdAt: new Date().toISOString(),
                 });
-                setFormData({ name: currentUser?.name || "", email: currentUser?.email || "" });
+                setFormData({ name: currentUser?.name || "" });
             }
         } catch (error) {
-            console.error("Failed to fetch profile:", error);
             setProfile({
                 id: currentUser?.adminId || "",
                 name: currentUser?.name || "Admin",
                 email: currentUser?.email || "",
                 createdAt: new Date().toISOString(),
             });
-            setFormData({ name: currentUser?.name || "", email: currentUser?.email || "" });
+            setFormData({ name: currentUser?.name || "" });
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSave = async () => {
+    const handleSaveName = async () => {
         setSaving(true);
         setMessage(null);
         try {
-            const response = await apiClient.put("/api/admin/profile", formData);
+            const response = await apiClient.put("/api/admin/profile", { name: formData.name });
             if (response.success) {
-                setMessage({ type: "success", text: "Profile updated successfully!" });
+                setMessage({ type: "success", text: "Name updated successfully!" });
                 setEditing(false);
                 await fetchProfile();
             } else {
-                setMessage({ type: "error", text: "Failed to update profile. Please try again." });
+                setMessage({ type: "error", text: "Failed to update name." });
             }
-        } catch (error) {
-            setMessage({ type: "error", text: "Failed to update profile. Please try again." });
+        } catch {
+            setMessage({ type: "error", text: "Failed to update name." });
         } finally {
             setSaving(false);
         }
+    };
+
+    const handleRequestOtp = async () => {
+        if (!emailChange.newEmail) return;
+        setEmailChange((prev) => ({ ...prev, step: "otp" }));
+        try {
+            await apiClient.post("/api/admin/request-otp", {
+                email: emailChange.newEmail,
+                purpose: "EMAIL_CHANGE",
+            });
+            setMessage({ type: "success", text: "OTP sent to your new email address." });
+        } catch {
+            setMessage({ type: "error", text: "Failed to send OTP." });
+            setEmailChange((prev) => ({ ...prev, step: "idle" }));
+        }
+    };
+
+    const handleVerifyAndChangeEmail = async () => {
+        if (!emailChange.otp) return;
+        setEmailChange((prev) => ({ ...prev, step: "verifying" }));
+        try {
+            const response = await apiClient.put("/api/admin/change-email", {
+                newEmail: emailChange.newEmail,
+                otp: emailChange.otp,
+            });
+            if (response.success) {
+                setMessage({ type: "success", text: "Email changed successfully!" });
+                setEmailChange({ newEmail: "", otp: "", step: "idle" });
+                await fetchProfile();
+            } else {
+                setMessage({ type: "error", text: response.message || "Invalid or expired OTP." });
+                setEmailChange((prev) => ({ ...prev, step: "otp" }));
+            }
+        } catch {
+            setMessage({ type: "error", text: "Failed to change email." });
+            setEmailChange((prev) => ({ ...prev, step: "otp" }));
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (passwordChange.new !== passwordChange.confirm) {
+            setMessage({ type: "error", text: "New passwords do not match." });
+            return;
+        }
+        if (passwordChange.new.length < 6) {
+            setMessage({ type: "error", text: "Password must be at least 6 characters." });
+            return;
+        }
+        setPasswordChange((prev) => ({ ...prev, changing: true }));
+        try {
+            const response = await apiClient.put("/api/admin/change-password", {
+                currentPassword: passwordChange.current,
+                newPassword: passwordChange.new,
+            });
+            if (response.success) {
+                setMessage({ type: "success", text: "Password changed successfully!" });
+                setPasswordChange({ current: "", new: "", confirm: "", changing: false });
+            } else {
+                setMessage({ type: "error", text: response.message || "Current password is incorrect." });
+            }
+        } catch {
+            setMessage({ type: "error", text: "Failed to change password." });
+        } finally {
+            setPasswordChange((prev) => ({ ...prev, changing: false }));
+        }
+    };
+
+    const inputStyle = {
+        backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f3f4f6",
+        color: isDark ? "#f3f4f6" : "#1f2937",
+        border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
     };
 
     return (
@@ -83,7 +156,7 @@ export default function SettingsPage() {
                     Admin Settings
                 </h2>
                 <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                    Manage your admin profile and preferences
+                    Manage your admin profile and security settings
                 </p>
             </div>
 
@@ -113,7 +186,7 @@ export default function SettingsPage() {
                     </h3>
                     {!editing && (
                         <Button variant="secondary" onClick={() => setEditing(true)}>
-                            Edit Profile
+                            Edit Name
                         </Button>
                     )}
                 </div>
@@ -132,63 +205,140 @@ export default function SettingsPage() {
                             <input
                                 type="text"
                                 value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                onChange={(e) => setFormData({ name: e.target.value })}
                                 className="w-full rounded-lg p-3"
-                                style={{
-                                    backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f3f4f6",
-                                    color: isDark ? "#f3f4f6" : "#1f2937",
-                                    border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
-                                }}
+                                style={inputStyle}
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm mb-2" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                                Email
-                            </label>
-                            <input
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                className="w-full rounded-lg p-3"
-                                style={{
-                                    backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f3f4f6",
-                                    color: isDark ? "#f3f4f6" : "#1f2937",
-                                    border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
-                                }}
-                            />
-                            <p className="text-xs mt-1" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>
-                                Email changes require verification
-                            </p>
-                        </div>
-                        <div className="flex gap-3 pt-4">
-                            <Button variant="primary" onClick={handleSave} disabled={saving}>
-                                {saving ? "Saving..." : "Save Changes"}
+                        <div className="flex gap-3 pt-2">
+                            <Button variant="primary" onClick={handleSaveName} disabled={saving}>
+                                {saving ? "Saving..." : "Save"}
                             </Button>
-                            <Button variant="secondary" onClick={() => { setEditing(false); setFormData({ name: profile?.name || "", email: profile?.email || "" }); }}>
+                            <Button variant="secondary" onClick={() => { setEditing(false); setFormData({ name: profile?.name || "" }); }}>
                                 Cancel
                             </Button>
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <div
-                                className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
-                                style={{ backgroundColor: appColors.accent }}
-                            >
-                                {(profile?.name || "A").charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                                <p className="text-lg font-semibold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
-                                    {profile?.name || "Admin"}
-                                </p>
-                                <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                                    {profile?.email || "-"}
-                                </p>
-                            </div>
+                    <div className="flex items-center gap-4">
+                        <div
+                            className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold text-white"
+                            style={{ backgroundColor: appColors.accent }}
+                        >
+                            {(profile?.name || "A").charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                            <p className="text-lg font-semibold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+                                {profile?.name || "Admin"}
+                            </p>
+                            <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                                {profile?.email || "-"}
+                            </p>
                         </div>
                     </div>
                 )}
+            </div>
+
+            <div
+                className="rounded-xl p-6"
+                style={{
+                    backgroundColor: isDark ? appColors.cardBg : "white",
+                    border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
+                }}
+            >
+                <h3 className="text-lg font-semibold mb-4" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+                    Change Email
+                </h3>
+                <p className="text-sm mb-4" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                    A verification code will be sent to your new email address.
+                </p>
+                <div className="space-y-3">
+                    <input
+                        type="email"
+                        placeholder="New email address"
+                        value={emailChange.newEmail}
+                        onChange={(e) => setEmailChange({ ...emailChange, newEmail: e.target.value })}
+                        disabled={emailChange.step !== "idle"}
+                        className="w-full rounded-lg p-3"
+                        style={inputStyle}
+                    />
+                    {emailChange.step === "otp" && (
+                        <input
+                            type="text"
+                            placeholder="Enter 6-digit OTP"
+                            value={emailChange.otp}
+                            onChange={(e) => setEmailChange({ ...emailChange, otp: e.target.value })}
+                            className="w-full rounded-lg p-3"
+                            style={inputStyle}
+                            maxLength={6}
+                        />
+                    )}
+                    <div className="flex gap-3">
+                        {emailChange.step === "idle" && (
+                            <Button variant="primary" onClick={handleRequestOtp} disabled={!emailChange.newEmail}>
+                                Send OTP
+                            </Button>
+                        )}
+                        {emailChange.step === "otp" && (
+                            <>
+                                <Button variant="primary" onClick={handleVerifyAndChangeEmail} disabled={emailChange.otp.length !== 6}>
+                                    Verify & Change
+                                </Button>
+                                <Button variant="secondary" onClick={() => setEmailChange({ newEmail: "", otp: "", step: "idle" })}>
+                                    Cancel
+                                </Button>
+                            </>
+                        )}
+                        {emailChange.step === "verifying" && (
+                            <Button variant="primary" disabled>Verifying...</Button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div
+                className="rounded-xl p-6"
+                style={{
+                    backgroundColor: isDark ? appColors.cardBg : "white",
+                    border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
+                }}
+            >
+                <h3 className="text-lg font-semibold mb-4" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+                    Change Password
+                </h3>
+                <div className="space-y-3">
+                    <input
+                        type="password"
+                        placeholder="Current password"
+                        value={passwordChange.current}
+                        onChange={(e) => setPasswordChange({ ...passwordChange, current: e.target.value })}
+                        className="w-full rounded-lg p-3"
+                        style={inputStyle}
+                    />
+                    <input
+                        type="password"
+                        placeholder="New password"
+                        value={passwordChange.new}
+                        onChange={(e) => setPasswordChange({ ...passwordChange, new: e.target.value })}
+                        className="w-full rounded-lg p-3"
+                        style={inputStyle}
+                    />
+                    <input
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={passwordChange.confirm}
+                        onChange={(e) => setPasswordChange({ ...passwordChange, confirm: e.target.value })}
+                        className="w-full rounded-lg p-3"
+                        style={inputStyle}
+                    />
+                    <Button
+                        variant="primary"
+                        onClick={handleChangePassword}
+                        disabled={passwordChange.changing || !passwordChange.current || !passwordChange.new || !passwordChange.confirm}
+                    >
+                        {passwordChange.changing ? "Changing..." : "Change Password"}
+                    </Button>
+                </div>
             </div>
 
             <div
@@ -227,36 +377,7 @@ export default function SettingsPage() {
                             Connected
                         </span>
                     </div>
-                    <div className="h-px" style={{ backgroundColor: isDark ? appColors.cardBorder : "#e5e7eb" }} />
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="font-medium" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>Environment</p>
-                            <p className="text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Current deployment</p>
-                        </div>
-                        <span
-                            className="px-3 py-1 rounded-lg text-sm"
-                            style={{ backgroundColor: "rgba(234,179,8,0.1)", color: "#eab308" }}
-                        >
-                            Development
-                        </span>
-                    </div>
                 </div>
-            </div>
-
-            <div
-                className="rounded-xl p-6"
-                style={{
-                    backgroundColor: isDark ? appColors.cardBg : "white",
-                    border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
-                }}
-            >
-                <h3 className="text-lg font-semibold mb-4" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
-                    About Aura Admin
-                </h3>
-                <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                    Aura Admin Panel is the management dashboard for the Aura wellness & safety application.
-                    Monitor SOS alerts, moderate wellness content, manage categories, and oversee user activity.
-                </p>
             </div>
         </div>
     );

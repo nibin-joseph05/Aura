@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Code - Aura</title>
+</head>
+
+<body
+    style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0A1A2F;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse;">
+
+                    <tr>
+                        <td align="center" style="padding: 30px 0;">
+                            <div
+                                style="width: 80px; height: 80px; background: linear-gradient(135deg, #2196F3, #00BCD4); border-radius: 50%; display: inline-block; line-height: 80px; text-align: center;">
+                                <span style="color: white; font-size: 36px; font-weight: bold;">A</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td
+                            style="background: linear-gradient(135deg, #1E4D6B, #0F2A3D); border-radius: 20px; padding: 40px 30px;">
+
+                            <h1 style="color: #64B5F6; font-size: 28px; margin: 0 0 10px 0; text-align: center;">
+                                Your Verification Code 🔐
+                            </h1>
+
+                            <p
+                                style="color: #ECEFF1; font-size: 16px; line-height: 1.8; text-align: center; margin: 0 0 25px 0;">
+                                Use this code to <span th:text="${purpose}" style="color: #00BCD4;">verify your
+                                    action</span>:
+                            </p>
+
+                            <table role="presentation"
+                                style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+                                <tr>
+                                    <td align="center"
+                                        style="padding: 30px; background: rgba(33, 150, 243, 0.15); border-radius: 12px;">
+                                        <span th:text="${otp}"
+                                            style="color: #64B5F6; font-size: 42px; font-weight: bold; letter-spacing: 12px; font-family: 'Courier New', monospace;">000000</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p
+                                style="color: #90A4AE; font-size: 14px; line-height: 1.6; text-align: center; margin: 0 0 15px 0;">
+                                This code will expire in <strong style="color: #64B5F6;">10 minutes</strong>.
+                            </p>
+
+                            <p
+                                style="color: #78909C; font-size: 13px; line-height: 1.6; text-align: center; margin: 0;">
+                                If you didn't request this code, please ignore this email or contact support if you have
+                                concerns.
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 30px 0; text-align: center;">
+                            <p style="color: #607D8B; font-size: 13px; margin: 0 0 10px 0;">
+                                Move safely. Live healthily. Stay connected.
+                            </p>
+                            <p style="color: #455A64; font-size: 12px; margin: 0;">
+                                © 2026 Aura. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

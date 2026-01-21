@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Approved - Aura</title>
+</head>
+
+<body
+    style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0A1A2F;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse;">
+
+                    <tr>
+                        <td align="center" style="padding: 30px 0;">
+                            <div
+                                style="width: 80px; height: 80px; background: linear-gradient(135deg, #22C55E, #16A34A); border-radius: 50%; display: inline-block; line-height: 80px; text-align: center;">
+                                <span style="color: white; font-size: 36px;">✅</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td
+                            style="background: linear-gradient(135deg, #1E4D6B, #0F2A3D); border-radius: 20px; padding: 40px 30px;">
+
+                            <h1 style="color: #4ADE80; font-size: 28px; margin: 0 0 10px 0; text-align: center;">
+                                Your Post is Live! 🎉
+                            </h1>
+
+                            <p
+                                style="color: #B0BEC5; font-size: 16px; line-height: 1.6; text-align: center; margin: 0 0 25px 0;">
+                                Hi <span th:text="${userName}" style="color: #4ADE80; font-weight: 600;">there</span>,
+                            </p>
+
+                            <p
+                                style="color: #ECEFF1; font-size: 16px; line-height: 1.8; text-align: center; margin: 0 0 25px 0;">
+                                Great news! Your wellness post has been reviewed and approved by our team.
+                            </p>
+
+                            <table role="presentation"
+                                style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+                                <tr>
+                                    <td
+                                        style="padding: 20px; background: rgba(34, 197, 94, 0.15); border-radius: 12px; border-left: 4px solid #22C55E;">
+                                        <p style="color: #4ADE80; font-weight: bold; margin: 0 0 8px 0;">📝 Your Post:
+                                        </p>
+                                        <p th:text="${postTitle}"
+                                            style="color: #ECEFF1; margin: 0; font-style: italic;">"Post title"</p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p
+                                style="color: #B0BEC5; font-size: 14px; line-height: 1.6; text-align: center; margin: 0;">
+                                Your post is now visible to the Aura community. Thank you for sharing and inspiring
+                                others on their wellness journey!
+                            </p>
+
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 30px 0; text-align: center;">
+                            <p style="color: #607D8B; font-size: 13px; margin: 0 0 10px 0;">
+                                Move safely. Live healthily. Stay connected.
+                            </p>
+                            <p style="color: #455A64; font-size: 12px; margin: 0;">
+                                © 2026 Aura. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>

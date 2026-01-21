@@ -67,6 +67,76 @@ public class EmailService {
         sendHtmlEmail(request.getToEmail(), request.getSubject(), htmlContent);
     }
 
+    @Async
+    public void sendSosAlertToAdmin(String adminEmail, String userName, String location, String triggeredAt) {
+        Context context = new Context();
+        context.setVariable("appName", appName);
+        context.setVariable("logoUrl", logoUrl);
+        context.setVariable("userName", userName);
+        context.setVariable("location", location);
+        context.setVariable("triggeredAt", triggeredAt);
+
+        String htmlContent = templateEngine.process("sos-alert-admin", context);
+
+        sendHtmlEmail(adminEmail, "🚨 URGENT: SOS Alert Triggered - " + userName, htmlContent);
+    }
+
+    @Async
+    public void sendSosAlertToContact(String contactEmail, String contactName, String userName, String location,
+            String triggeredAt) {
+        Context context = new Context();
+        context.setVariable("appName", appName);
+        context.setVariable("logoUrl", logoUrl);
+        context.setVariable("contactName", contactName);
+        context.setVariable("userName", userName);
+        context.setVariable("location", location);
+        context.setVariable("triggeredAt", triggeredAt);
+
+        String htmlContent = templateEngine.process("sos-alert-contact", context);
+
+        sendHtmlEmail(contactEmail, "🚨 EMERGENCY: " + userName + " needs help!", htmlContent);
+    }
+
+    @Async
+    public void sendWellnessApproved(String userEmail, String userName, String postTitle) {
+        Context context = new Context();
+        context.setVariable("appName", appName);
+        context.setVariable("logoUrl", logoUrl);
+        context.setVariable("userName", userName);
+        context.setVariable("postTitle", postTitle);
+
+        String htmlContent = templateEngine.process("wellness-approved", context);
+
+        sendHtmlEmail(userEmail, "Your wellness post has been approved!", htmlContent);
+    }
+
+    @Async
+    public void sendWellnessRejected(String userEmail, String userName, String postTitle, String reason) {
+        Context context = new Context();
+        context.setVariable("appName", appName);
+        context.setVariable("logoUrl", logoUrl);
+        context.setVariable("userName", userName);
+        context.setVariable("postTitle", postTitle);
+        context.setVariable("reason", reason);
+
+        String htmlContent = templateEngine.process("wellness-rejected", context);
+
+        sendHtmlEmail(userEmail, "Update on your wellness post", htmlContent);
+    }
+
+    @Async
+    public void sendOtpVerification(String email, String otp, String purpose) {
+        Context context = new Context();
+        context.setVariable("appName", appName);
+        context.setVariable("logoUrl", logoUrl);
+        context.setVariable("otp", otp);
+        context.setVariable("purpose", purpose);
+
+        String htmlContent = templateEngine.process("otp-verification", context);
+
+        sendHtmlEmail(email, "Your Aura Verification Code: " + otp, htmlContent);
+    }
+
     private void sendHtmlEmail(String toEmail, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
