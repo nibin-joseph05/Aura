@@ -1,9 +1,11 @@
 import 'package:hive/hive.dart';
 import 'models/wellness_update.dart';
+import 'models/pending_wellness_operation.dart';
 
 class WellnessLocalDataSource {
   static const String _feedBoxName = 'wellness_feed';
   static const String _myUpdatesBoxName = 'wellness_my_updates';
+  static const String _pendingOpsBoxName = 'wellness_pending_ops';
 
   Future<Box<WellnessUpdate>> _getFeedBox() async {
     return await Hive.openBox<WellnessUpdate>(_feedBoxName);
@@ -11,6 +13,10 @@ class WellnessLocalDataSource {
 
   Future<Box<WellnessUpdate>> _getMyUpdatesBox() async {
     return await Hive.openBox<WellnessUpdate>(_myUpdatesBoxName);
+  }
+
+  Future<Box<PendingWellnessOperation>> _getPendingOpsBox() async {
+    return await Hive.openBox<PendingWellnessOperation>(_pendingOpsBoxName);
   }
 
   Future<List<WellnessUpdate>> getFeed() async {
@@ -70,7 +76,29 @@ class WellnessLocalDataSource {
   Future<void> clearAll() async {
     final feedBox = await _getFeedBox();
     final myBox = await _getMyUpdatesBox();
+    final pendingBox = await _getPendingOpsBox();
     await feedBox.clear();
     await myBox.clear();
+    await pendingBox.clear();
+  }
+
+  Future<void> addPendingOperation(PendingWellnessOperation op) async {
+    final box = await _getPendingOpsBox();
+    await box.put(op.id, op);
+  }
+
+  Future<List<PendingWellnessOperation>> getPendingOperations() async {
+    final box = await _getPendingOpsBox();
+    return box.values.toList();
+  }
+
+  Future<void> removePendingOperation(String id) async {
+    final box = await _getPendingOpsBox();
+    await box.delete(id);
+  }
+
+  Future<int> getPendingCount() async {
+    final box = await _getPendingOpsBox();
+    return box.length;
   }
 }

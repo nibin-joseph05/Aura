@@ -7,6 +7,7 @@ import '../../../sos/data/models/sos_event_status.dart';
 import '../../../sos/data/models/sos_event.dart';
 import '../../../wellness/data/models/wellness_category.dart';
 import '../../../wellness/data/models/wellness_update.dart';
+import '../../../wellness/data/models/pending_wellness_operation.dart';
 
 void registerHiveAdapters() {
   Hive.registerAdapter(UserModelAdapter());
@@ -17,4 +18,5 @@ void registerHiveAdapters() {
   Hive.registerAdapter(SOSEventAdapter());
   Hive.registerAdapter(WellnessCategoryAdapter());
   Hive.registerAdapter(WellnessUpdateAdapter());
+  Hive.registerAdapter(PendingWellnessOperationAdapter());
 }

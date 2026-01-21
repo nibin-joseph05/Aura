@@ -1,6 +1,6 @@
 name: aura_app
 description: "Aura is an AI-powered safety, wellness, and social engagement Flutter application."
-publish_to: 'none'
+publish_to: "none"
 
 version: 1.0.0+1
 
@@ -43,9 +43,7 @@ dependencies:
   geolocator: ^13.0.2
   permission_handler: ^11.3.1
   url_launcher: ^6.3.1
-  flutter_sms: ^2.3.3
-  contacts_service: ^0.6.3
-
+  flutter_contacts: ^1.1.9+2
 
 dev_dependencies:
   flutter_test:

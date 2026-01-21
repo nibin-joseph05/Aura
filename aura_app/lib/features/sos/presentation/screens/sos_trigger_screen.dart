@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_sms/flutter_sms.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -101,27 +100,16 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
 
     for (final contact in contacts) {
       try {
-        if (Platform.isAndroid || Platform.isIOS) {
-          await sendSMS(
-            message: messageBody,
-            recipients: [contact.phone],
-            sendDirect: true,
-          );
+        final smsUri = Uri(
+          scheme: 'sms',
+          path: contact.phone,
+          queryParameters: {'body': messageBody},
+        );
+        if (await canLaunchUrl(smsUri)) {
+          await launchUrl(smsUri);
           smsCount++;
         }
-      } catch (_) {
-        try {
-          final smsUri = Uri(
-            scheme: 'sms',
-            path: contact.phone,
-            queryParameters: {'body': messageBody},
-          );
-          if (await canLaunchUrl(smsUri)) {
-            await launchUrl(smsUri);
-            smsCount++;
-          }
-        } catch (_) {}
-      }
+      } catch (_) {}
     }
 
     final notifier = ref.read(sosNotifierProvider.notifier);

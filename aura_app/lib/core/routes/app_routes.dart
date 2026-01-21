@@ -13,4 +13,7 @@ class AppRoutes {
   static const String sosSettings = '/sos-settings';
   static const String wellnessFeed = '/wellness-feed';
   static const String wellnessCreate = '/wellness-create';
+  static const String editProfile = '/edit-profile';
+  static const String helpFaq = '/help-faq';
+  static const String about = '/about';
 }

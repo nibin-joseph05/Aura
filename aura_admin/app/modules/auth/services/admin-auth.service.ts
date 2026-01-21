@@ -47,7 +47,7 @@ export const adminAuthService = {
         const loginData: AdminLoginRequest = { email, password };
 
         const loginResponse = await apiClient.post<AdminLoginResponse>(
-            apiEndpoints.admin.login,
+            API_ENDPOINTS.AUTH.LOGIN,
             loginData
         );
 
@@ -61,7 +61,7 @@ export const adminAuthService = {
         authStorage.setToken(loginResponse.data.token);
 
         const userResponse = await apiClient.get<AdminResponse>(
-            apiEndpoints.admin.current,
+            API_ENDPOINTS.AUTH.CURRENT,
             true
         );
 
@@ -108,7 +108,7 @@ export const adminAuthService = {
         }
 
         const response = await apiClient.get<AdminResponse>(
-            apiEndpoints.admin.current,
+            API_ENDPOINTS.AUTH.CURRENT,
             true
         );
 
@@ -129,3 +129,4 @@ export const adminAuthService = {
         return authStorage.isAuthenticated();
     },
 };
+

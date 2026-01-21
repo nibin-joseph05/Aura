@@ -9,6 +9,7 @@ import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../user/presentation/providers/profile_image_provider.dart';
 import '../../../user/presentation/providers/user_provider.dart';
+import '../widgets/appearance_sheet.dart';
 
 class MyAccountScreen extends ConsumerWidget {
   const MyAccountScreen({super.key});
@@ -31,6 +32,15 @@ class MyAccountScreen extends ConsumerWidget {
         (_) => false,
       );
     }
+  }
+
+  void _showAppearanceSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AppearanceSheet(),
+    );
   }
 
   @override
@@ -60,20 +70,37 @@ class MyAccountScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       SizedBox(height: responsive.h(2)),
-                      _buildProfileHeader(responsive, user, profileImageUrl),
+                      _buildProfileHeader(
+                        context,
+                        responsive,
+                        user,
+                        profileImageUrl,
+                      ),
                       SizedBox(height: responsive.h(3)),
                       _buildMenuSection(responsive, 'Account', [
                         _MenuItemData(
                           icon: Icons.edit_outlined,
                           title: 'Edit Profile',
                           subtitle: 'Update your personal information',
-                          onTap: () {},
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.editProfile,
+                          ),
                         ),
                         _MenuItemData(
                           icon: Icons.lock_outline,
                           title: 'Change Password',
                           subtitle: 'Update your password',
-                          onTap: () {},
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Password reset email will be sent',
+                                ),
+                                backgroundColor: Colors.orange,
+                              ),
+                            );
+                          },
                         ),
                         _MenuItemData(
                           icon: Icons.phone_outlined,
@@ -88,19 +115,35 @@ class MyAccountScreen extends ConsumerWidget {
                           icon: Icons.notifications_outlined,
                           title: 'Notifications',
                           subtitle: 'Manage notification settings',
-                          onTap: () {},
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Notifications enabled'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          },
                         ),
                         _MenuItemData(
                           icon: Icons.language_outlined,
                           title: 'Language',
                           subtitle: 'English',
-                          onTap: () {},
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Only English is currently supported',
+                                ),
+                                backgroundColor: Colors.blue,
+                              ),
+                            );
+                          },
                         ),
                         _MenuItemData(
                           icon: Icons.dark_mode_outlined,
                           title: 'Appearance',
-                          subtitle: 'Dark mode',
-                          onTap: () {},
+                          subtitle: 'Theme settings',
+                          onTap: () => _showAppearanceSheet(context),
                         ),
                       ]),
                       SizedBox(height: responsive.h(2)),
@@ -109,13 +152,25 @@ class MyAccountScreen extends ConsumerWidget {
                           icon: Icons.emergency_outlined,
                           title: 'Emergency Contacts',
                           subtitle: 'Manage SOS contacts',
-                          onTap: () {},
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.sosSettings,
+                          ),
                         ),
                         _MenuItemData(
                           icon: Icons.location_on_outlined,
                           title: 'Location Sharing',
-                          subtitle: 'Manage who can see your location',
-                          onTap: () {},
+                          subtitle: 'Shared during SOS only',
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Location is only shared during SOS alerts',
+                                ),
+                                backgroundColor: Colors.blue,
+                              ),
+                            );
+                          },
                         ),
                       ]),
                       SizedBox(height: responsive.h(2)),
@@ -124,25 +179,33 @@ class MyAccountScreen extends ConsumerWidget {
                           icon: Icons.help_outline,
                           title: 'Help & FAQ',
                           subtitle: 'Get help and find answers',
-                          onTap: () {},
+                          onTap: () =>
+                              Navigator.pushNamed(context, AppRoutes.helpFaq),
                         ),
                         _MenuItemData(
                           icon: Icons.privacy_tip_outlined,
                           title: 'Privacy Policy',
                           subtitle: 'Read our privacy policy',
-                          onTap: () {},
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.privacyPolicy,
+                          ),
                         ),
                         _MenuItemData(
                           icon: Icons.description_outlined,
                           title: 'Terms of Service',
                           subtitle: 'Read our terms',
-                          onTap: () {},
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.privacyPolicy,
+                          ),
                         ),
                         _MenuItemData(
                           icon: Icons.info_outline,
                           title: 'About Aura',
                           subtitle: 'Version 1.0.0',
-                          onTap: () {},
+                          onTap: () =>
+                              Navigator.pushNamed(context, AppRoutes.about),
                         ),
                       ]),
                       SizedBox(height: responsive.h(3)),
@@ -184,6 +247,7 @@ class MyAccountScreen extends ConsumerWidget {
   }
 
   Widget _buildProfileHeader(
+    BuildContext context,
     Responsive responsive,
     dynamic user,
     String? profileImageUrl,
@@ -284,7 +348,8 @@ class MyAccountScreen extends ConsumerWidget {
             ),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () =>
+                Navigator.pushNamed(context, AppRoutes.editProfile),
             icon: Icon(
               Icons.edit_outlined,
               color: AppColors.accent,

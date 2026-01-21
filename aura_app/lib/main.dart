@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'app.dart';
 import 'features/user/data/models/hive_adapters.dart';
+import 'core/network/sync/sync_manager.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +16,8 @@ Future<void> main() async {
 
   await Hive.initFlutter();
   registerHiveAdapters();
+
+  await SyncManager().initialize();
 
   runApp(const ProviderScope(child: AuraApp()));
 }

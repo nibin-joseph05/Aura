@@ -40,5 +40,8 @@ export const API_ENDPOINTS = {
         REJECT: (id: string) => `/api/admin/wellness/${id}/reject`,
         DELETE: (id: string) => `/api/admin/wellness/${id}`,
     },
+    USERS: {
+        BASE: "/api/users",
+        BY_ID: (id: string) => `/api/users/${id}`,
+    },
 };
-

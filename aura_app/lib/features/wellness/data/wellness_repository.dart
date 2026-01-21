@@ -1,16 +1,29 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import '../../../core/network/sync/sync_manager.dart';
 import 'wellness_local_datasource.dart';
 import 'wellness_remote_datasource.dart';
 import 'models/wellness_update.dart';
 import 'models/wellness_category.dart';
+import 'models/pending_wellness_operation.dart';
 
 class WellnessRepository {
   final WellnessLocalDataSource _localDataSource = WellnessLocalDataSource();
   final WellnessRemoteDataSource _remoteDataSource = WellnessRemoteDataSource();
+  final SyncManager _syncManager = SyncManager();
+
+  WellnessRepository() {
+    _syncManager.registerSyncFunction(syncPendingOperations);
+    _updatePendingCount();
+  }
 
   Future<bool> _isOnline() async {
     final result = await Connectivity().checkConnectivity();
     return result != ConnectivityResult.none;
+  }
+
+  Future<void> _updatePendingCount() async {
+    final count = await _localDataSource.getPendingCount();
+    _syncManager.updatePendingCount(wellness: count);
   }
 
   Future<List<WellnessUpdate>> getFeed({
@@ -63,34 +76,104 @@ class WellnessRepository {
     return [];
   }
 
-  Future<WellnessUpdate> createUpdate({
+  Future<WellnessUpdate?> createUpdate({
     required String content,
     required WellnessCategory category,
     String? imageUrl,
   }) async {
-    final update = await _remoteDataSource.createUpdate(
+    try {
+      if (await _isOnline()) {
+        final update = await _remoteDataSource.createUpdate(
+          content: content,
+          category: category,
+          imageUrl: imageUrl,
+        );
+        await _localDataSource.addUpdate(update);
+        return update;
+      }
+    } catch (_) {}
+
+    final pendingOp = PendingWellnessOperation.createUpdate(
       content: content,
-      category: category,
+      category: category.name.toUpperCase(),
       imageUrl: imageUrl,
     );
-    await _localDataSource.addUpdate(update);
-    return update;
+    await _localDataSource.addPendingOperation(pendingOp);
+    await _updatePendingCount();
+    return null;
   }
 
   Future<void> deleteUpdate(String id) async {
-    await _remoteDataSource.deleteUpdate(id);
+    if (await _isOnline()) {
+      await _remoteDataSource.deleteUpdate(id);
+    }
     await _localDataSource.removeUpdate(id);
   }
 
-  Future<WellnessUpdate> likeUpdate(String id) async {
-    final update = await _remoteDataSource.likeUpdate(id);
-    await _localDataSource.updateLikeStatus(id, true, update.likesCount);
-    return update;
+  Future<WellnessUpdate?> likeUpdate(String id) async {
+    try {
+      if (await _isOnline()) {
+        final update = await _remoteDataSource.likeUpdate(id);
+        await _localDataSource.updateLikeStatus(id, true, update.likesCount);
+        return update;
+      }
+    } catch (_) {}
+
+    final pendingOp = PendingWellnessOperation.like(id);
+    await _localDataSource.addPendingOperation(pendingOp);
+    await _updatePendingCount();
+    return null;
   }
 
-  Future<WellnessUpdate> unlikeUpdate(String id) async {
-    final update = await _remoteDataSource.unlikeUpdate(id);
-    await _localDataSource.updateLikeStatus(id, false, update.likesCount);
-    return update;
+  Future<WellnessUpdate?> unlikeUpdate(String id) async {
+    try {
+      if (await _isOnline()) {
+        final update = await _remoteDataSource.unlikeUpdate(id);
+        await _localDataSource.updateLikeStatus(id, false, update.likesCount);
+        return update;
+      }
+    } catch (_) {}
+
+    final pendingOp = PendingWellnessOperation.unlike(id);
+    await _localDataSource.addPendingOperation(pendingOp);
+    await _updatePendingCount();
+    return null;
+  }
+
+  Future<void> syncPendingOperations() async {
+    if (!await _isOnline()) return;
+
+    final pendingOps = await _localDataSource.getPendingOperations();
+    for (final op in pendingOps) {
+      try {
+        switch (op.operationType) {
+          case 'CREATE':
+            if (op.content != null && op.category != null) {
+              await _remoteDataSource.createUpdate(
+                content: op.content!,
+                category: WellnessCategory.fromString(op.category!),
+                imageUrl: op.imageUrl,
+              );
+            }
+            break;
+          case 'LIKE':
+            if (op.updateId != null) {
+              await _remoteDataSource.likeUpdate(op.updateId!);
+            }
+            break;
+          case 'UNLIKE':
+            if (op.updateId != null) {
+              await _remoteDataSource.unlikeUpdate(op.updateId!);
+            }
+            break;
+        }
+        await _localDataSource.removePendingOperation(op.id);
+      } catch (_) {}
+    }
+    await _updatePendingCount();
+  }
+
+  Future<int> getPendingCount() async {
+    return await _localDataSource.getPendingCount();
   }
 }

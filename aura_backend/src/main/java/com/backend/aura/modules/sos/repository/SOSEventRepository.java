@@ -24,6 +24,8 @@ public interface SOSEventRepository extends JpaRepository<SOSEvent, UUID> {
 
     List<SOSEvent> findByStatusIn(List<SOSEventStatus> statuses);
 
+    long countByStatusIn(List<SOSEventStatus> statuses);
+
     @Query("SELECT COUNT(e) FROM SOSEvent e WHERE e.status = :status")
     long countByStatus(@Param("status") SOSEventStatus status);
 

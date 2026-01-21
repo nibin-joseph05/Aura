@@ -26,4 +26,12 @@ public interface UserRepository extends JpaRepository<User, String> {
     boolean existsByPhoneAndUidNot(String phone, String uid);
 
     Optional<User> findByUid(String uid);
+
+    long countByLastLoginAtAfter(java.time.LocalDateTime since);
+
+    org.springframework.data.domain.Page<User> findByNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrUsernameContainingIgnoreCase(
+            String name, String email, String username,
+            org.springframework.data.domain.Pageable pageable);
+
+    org.springframework.data.domain.Page<User> findAll(org.springframework.data.domain.Pageable pageable);
 }

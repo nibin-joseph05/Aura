@@ -82,11 +82,11 @@ export default function WellnessPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
-                        ✨ Wellness Feed
-                    </h1>
+                    <h2 className="text-xl font-bold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+                        Moderate Wellness Feed
+                    </h2>
                     <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                        Moderate and manage wellness updates
+                        Review and manage wellness updates from users
                     </p>
                 </div>
             </div>
@@ -146,12 +146,14 @@ export default function WellnessPage() {
                 {loading ? (
                     <div className="p-8 text-center">
                         <div className="animate-spin text-4xl mb-2">⏳</div>
-                        <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Loading...</p>
+                        <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Loading posts...</p>
                     </div>
                 ) : updates.length === 0 ? (
                     <div className="p-8 text-center">
                         <div className="text-4xl mb-2">📭</div>
-                        <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>No updates found</p>
+                        <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                            {view === "pending" ? "No posts pending review" : "No posts found"}
+                        </p>
                     </div>
                 ) : (
                     <div className="divide-y" style={{ borderColor: isDark ? appColors.cardBorder : "#e5e7eb" }}>

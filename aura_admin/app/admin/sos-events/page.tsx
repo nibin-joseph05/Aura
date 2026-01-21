@@ -70,56 +70,26 @@ export default function SOSEventsPage() {
 
     return (
         <div className="space-y-6">
-            {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1
-                        className="text-2xl font-bold"
-                        style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
-                    >
-                        🚨 SOS Alerts
-                    </h1>
+                    <h2 className="text-xl font-bold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+                        Monitor SOS Alerts
+                    </h2>
                     <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                        Monitor and respond to emergency alerts
+                        Respond to emergency alerts from users
                     </p>
                 </div>
             </div>
 
-            {/* Stats Cards */}
             {stats && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <StatCard
-                        title="Active Alerts"
-                        value={stats.activeEvents}
-                        icon="🔴"
-                        color="red"
-                        isDark={isDark}
-                    />
-                    <StatCard
-                        title="Today"
-                        value={stats.eventsToday}
-                        icon="📅"
-                        color="blue"
-                        isDark={isDark}
-                    />
-                    <StatCard
-                        title="This Week"
-                        value={stats.eventsThisWeek}
-                        icon="📊"
-                        color="purple"
-                        isDark={isDark}
-                    />
-                    <StatCard
-                        title="Total Resolved"
-                        value={stats.resolvedEvents}
-                        icon="✅"
-                        color="green"
-                        isDark={isDark}
-                    />
+                    <StatCard title="Active Alerts" value={stats.activeEvents} icon="🔴" color="red" isDark={isDark} />
+                    <StatCard title="Today" value={stats.eventsToday} icon="📅" color="blue" isDark={isDark} />
+                    <StatCard title="This Week" value={stats.eventsThisWeek} icon="📊" color="purple" isDark={isDark} />
+                    <StatCard title="Total Resolved" value={stats.resolvedEvents} icon="✅" color="green" isDark={isDark} />
                 </div>
             )}
 
-            {/* Filter */}
             <div
                 className="p-4 rounded-xl"
                 style={{
@@ -131,24 +101,11 @@ export default function SOSEventsPage() {
                     {statusOptions.map((status) => (
                         <button
                             key={status}
-                            onClick={() => {
-                                setStatusFilter(status);
-                                setPage(0);
-                            }}
+                            onClick={() => { setStatusFilter(status); setPage(0); }}
                             className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
                             style={{
-                                backgroundColor:
-                                    statusFilter === status
-                                        ? appColors.accent
-                                        : isDark
-                                            ? "#374151"
-                                            : "#f3f4f6",
-                                color:
-                                    statusFilter === status
-                                        ? "white"
-                                        : isDark
-                                            ? "#f3f4f6"
-                                            : "#1f2937",
+                                backgroundColor: statusFilter === status ? appColors.accent : isDark ? "#374151" : "#f3f4f6",
+                                color: statusFilter === status ? "white" : isDark ? "#f3f4f6" : "#1f2937",
                             }}
                         >
                             {status}
@@ -157,7 +114,6 @@ export default function SOSEventsPage() {
                 </div>
             </div>
 
-            {/* Events List */}
             <div
                 className="rounded-xl overflow-hidden"
                 style={{
@@ -168,15 +124,16 @@ export default function SOSEventsPage() {
                 {loading ? (
                     <div className="p-8 text-center">
                         <div className="animate-spin text-4xl mb-2">⏳</div>
-                        <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                            Loading events...
-                        </p>
+                        <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Loading alerts...</p>
                     </div>
                 ) : events.length === 0 ? (
                     <div className="p-8 text-center">
-                        <div className="text-4xl mb-2">📭</div>
+                        <div className="text-4xl mb-2">✅</div>
                         <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                            No SOS events found
+                            No {statusFilter === "ALL" ? "" : statusFilter.toLowerCase()} alerts found
+                        </p>
+                        <p className="text-sm mt-1" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>
+                            Great news! Everything looks safe.
                         </p>
                     </div>
                 ) : (
@@ -191,9 +148,7 @@ export default function SOSEventsPage() {
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <span
-                                                className={`px-2 py-0.5 rounded-full text-xs font-medium ${sosService.getStatusBadgeColor(event.status)}`}
-                                            >
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${sosService.getStatusBadgeColor(event.status)}`}>
                                                 {event.status}
                                             </span>
                                             <span style={{ color: isDark ? "#9ca3af" : "#6b7280" }} className="text-sm">
@@ -205,16 +160,10 @@ export default function SOSEventsPage() {
                                                 </span>
                                             )}
                                         </div>
-                                        <p
-                                            className="font-medium"
-                                            style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
-                                        >
+                                        <p className="font-medium" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
                                             {event.userName || `User ${event.userId.slice(0, 8)}...`}
                                         </p>
-                                        <p
-                                            className="text-sm truncate max-w-md"
-                                            style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-                                        >
+                                        <p className="text-sm truncate max-w-md" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                                             {event.message}
                                         </p>
                                         <div className="flex items-center gap-4 mt-2 text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
@@ -225,10 +174,7 @@ export default function SOSEventsPage() {
                                     <div className="flex gap-2">
                                         {event.status === "TRIGGERED" && (
                                             <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleAcknowledge(event.id);
-                                                }}
+                                                onClick={(e) => { e.stopPropagation(); handleAcknowledge(event.id); }}
                                                 className="px-3 py-1.5 rounded-lg text-sm font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition-colors"
                                             >
                                                 Acknowledge
@@ -236,10 +182,7 @@ export default function SOSEventsPage() {
                                         )}
                                         {(event.status === "TRIGGERED" || event.status === "ACKNOWLEDGED") && (
                                             <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedEvent(event);
-                                                }}
+                                                onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); }}
                                                 className="px-3 py-1.5 rounded-lg text-sm font-medium bg-green-500 text-white hover:bg-green-600 transition-colors"
                                             >
                                                 Resolve
@@ -265,37 +208,24 @@ export default function SOSEventsPage() {
                     </div>
                 )}
 
-                {/* Pagination */}
                 {totalPages > 1 && (
-                    <div
-                        className="p-4 flex justify-center gap-2"
-                        style={{ borderTop: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}` }}
-                    >
+                    <div className="p-4 flex justify-center gap-2" style={{ borderTop: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}` }}>
                         <button
                             onClick={() => setPage((p) => Math.max(0, p - 1))}
                             disabled={page === 0}
                             className="px-4 py-2 rounded-lg disabled:opacity-50"
-                            style={{
-                                backgroundColor: isDark ? "#374151" : "#f3f4f6",
-                                color: isDark ? "#f3f4f6" : "#1f2937",
-                            }}
+                            style={{ backgroundColor: isDark ? "#374151" : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
                         >
                             Previous
                         </button>
-                        <span
-                            className="px-4 py-2"
-                            style={{ color: isDark ? "#9ca3af" : "#6b7280" }}
-                        >
+                        <span className="px-4 py-2" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                             Page {page + 1} of {totalPages}
                         </span>
                         <button
                             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                             disabled={page >= totalPages - 1}
                             className="px-4 py-2 rounded-lg disabled:opacity-50"
-                            style={{
-                                backgroundColor: isDark ? "#374151" : "#f3f4f6",
-                                color: isDark ? "#f3f4f6" : "#1f2937",
-                            }}
+                            style={{ backgroundColor: isDark ? "#374151" : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
                         >
                             Next
                         </button>
@@ -303,7 +233,6 @@ export default function SOSEventsPage() {
                 )}
             </div>
 
-            {/* Event Details Modal */}
             {selectedEvent && (
                 <SOSEventDetailsModal
                     event={selectedEvent}
@@ -316,19 +245,7 @@ export default function SOSEventsPage() {
     );
 }
 
-function StatCard({
-    title,
-    value,
-    icon,
-    color,
-    isDark,
-}: {
-    title: string;
-    value: number;
-    icon: string;
-    color: string;
-    isDark: boolean;
-}) {
+function StatCard({ title, value, icon, color, isDark }: { title: string; value: number; icon: string; color: string; isDark: boolean }) {
     const colorMap: Record<string, string> = {
         red: isDark ? "rgba(239, 68, 68, 0.2)" : "rgba(254, 226, 226, 1)",
         blue: isDark ? "rgba(59, 130, 246, 0.2)" : "rgba(219, 234, 254, 1)",
@@ -347,15 +264,8 @@ function StatCard({
             <div className="flex items-center gap-3">
                 <span className="text-2xl">{icon}</span>
                 <div>
-                    <p className="text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                        {title}
-                    </p>
-                    <p
-                        className="text-2xl font-bold"
-                        style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}
-                    >
-                        {value}
-                    </p>
+                    <p className="text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>{title}</p>
+                    <p className="text-2xl font-bold" style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>{value}</p>
                 </div>
             </div>
         </div>

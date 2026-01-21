@@ -1,12 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { adminAuthService } from "@/app/modules/auth/services/admin-auth.service";
+import { useEffect, useState, useCallback } from "react";
 import { useTheme } from "@/app/core/providers/ThemeProvider";
-import PageLoader from "@/app/components/loaders/PageLoader";
-import Sidebar from "@/app/components/layout/Sidebar";
-import AdminHeader from "@/app/components/layout/AdminHeader";
 import Button from "@/app/components/ui/Button";
 import { appColors } from "@/app/core/constants/colors";
 import { apiClient } from "@/app/core/network/api-client";
@@ -22,34 +17,32 @@ interface ActivityCategory {
 }
 
 export default function CategoriesPage() {
-    const router = useRouter();
     const { isDark } = useTheme();
-    const [isLoading, setIsLoading] = useState(true);
     const [categories, setCategories] = useState<ActivityCategory[]>([]);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [showAddModal, setShowAddModal] = useState(false);
     const [editingCategory, setEditingCategory] = useState<ActivityCategory | null>(null);
     const [formData, setFormData] = useState({ name: "", description: "" });
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        const init = async () => {
-            if (!adminAuthService.isAuthenticated()) {
-                router.push("/admin/login");
-                return;
+    const fetchCategories = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await apiClient.get<ActivityCategory[]>(API_ENDPOINTS.ACTIVITY_CATEGORIES.BASE);
+            if (response.success && response.data) {
+                setCategories(response.data);
             }
-            await fetchCategories();
-            setIsLoading(false);
-        };
-        init();
-    }, [router]);
-
-    const fetchCategories = async () => {
-        const response = await apiClient.get<ActivityCategory[]>(API_ENDPOINTS.ACTIVITY_CATEGORIES.BASE);
-        if (response.success && response.data) {
-            setCategories(response.data);
+        } catch (error) {
+            console.error("Failed to fetch categories:", error);
+        } finally {
+            setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
 
     const filteredCategories = categories.filter(cat =>
         cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -60,23 +53,28 @@ export default function CategoriesPage() {
         if (!formData.name.trim()) return;
         setSaving(true);
 
-        if (editingCategory) {
-            const response = await apiClient.put(
-                API_ENDPOINTS.ACTIVITY_CATEGORIES.BY_ID(editingCategory.id),
-                formData
-            );
-            if (response.success) {
-                await fetchCategories();
-                closeModal();
+        try {
+            if (editingCategory) {
+                const response = await apiClient.put(
+                    API_ENDPOINTS.ACTIVITY_CATEGORIES.BY_ID(editingCategory.id),
+                    formData
+                );
+                if (response.success) {
+                    await fetchCategories();
+                    closeModal();
+                }
+            } else {
+                const response = await apiClient.post(API_ENDPOINTS.ACTIVITY_CATEGORIES.BASE, formData);
+                if (response.success) {
+                    await fetchCategories();
+                    closeModal();
+                }
             }
-        } else {
-            const response = await apiClient.post(API_ENDPOINTS.ACTIVITY_CATEGORIES.BASE, formData);
-            if (response.success) {
-                await fetchCategories();
-                closeModal();
-            }
+        } catch (error) {
+            console.error("Failed to save category:", error);
+        } finally {
+            setSaving(false);
         }
-        setSaving(false);
     };
 
     const handleToggle = async (id: string) => {
@@ -102,115 +100,120 @@ export default function CategoriesPage() {
         setFormData({ name: "", description: "" });
     };
 
-    if (isLoading) {
-        return <PageLoader message="Loading categories..." />;
-    }
-
     return (
-        <div
-            className="min-h-screen transition-colors duration-500"
-            style={{ backgroundColor: isDark ? appColors.splashDark : "#f0f4f8" }}
-        >
-            <Sidebar />
-
-            <div className="ml-0 transition-all duration-300 md:ml-[80px] lg:ml-[260px]">
-                <div
-                    className="sticky top-0 z-30 p-4 md:p-6"
-                    style={{ backgroundColor: isDark ? appColors.splashDark : "#f0f4f8" }}
-                >
-                    <AdminHeader title="Activity Categories" onSearch={setSearchQuery} />
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 style={{ color: isDark ? "#f3f4f6" : "#1f2937" }} className="text-xl font-bold">
+                        Manage Categories
+                    </h2>
+                    <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                        Group activity types into categories
+                    </p>
                 </div>
-
-                <main className="p-4 pt-0 md:p-6 md:pt-0">
-                    <div className="mx-auto max-w-7xl">
-                        <div className="flex items-center justify-between mb-6">
-                            <div>
-                                <h2 style={{ color: isDark ? "white" : "#1f2937" }} className="text-xl font-bold">
-                                    Manage Categories
-                                </h2>
-                                <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                                    Group activity types into categories
-                                </p>
-                            </div>
-                            <Button variant="primary" onClick={() => setShowAddModal(true)}>
-                                + Add Category
-                            </Button>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {filteredCategories.map((category) => (
-                                <div
-                                    key={category.id}
-                                    className="rounded-xl p-5 shadow-lg transition-all duration-300 hover:-translate-y-1"
-                                    style={{
-                                        backgroundColor: isDark ? appColors.cardBg : "rgba(255,255,255,0.95)",
-                                        border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
-                                    }}
-                                >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div>
-                                            <h3 style={{ color: isDark ? "white" : "#1f2937" }} className="font-bold text-lg">
-                                                {category.name}
-                                            </h3>
-                                            <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }} className="text-sm mt-1">
-                                                {category.description || "No description"}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        className="flex items-center justify-between pt-3"
-                                        style={{ borderTop: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}` }}
-                                    >
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => handleToggle(category.id)}
-                                                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200"
-                                                style={{
-                                                    backgroundColor: category.isActive ? appColors.success : (isDark ? "#4b5563" : "#d1d5db"),
-                                                }}
-                                            >
-                                                <span
-                                                    className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200"
-                                                    style={{
-                                                        transform: category.isActive ? "translateX(1.375rem)" : "translateX(0.25rem)",
-                                                    }}
-                                                />
-                                            </button>
-                                            <span
-                                                className="text-sm"
-                                                style={{ color: category.isActive ? appColors.success : (isDark ? "#9ca3af" : "#6b7280") }}
-                                            >
-                                                {category.isActive ? "Active" : "Inactive"}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex gap-2">
-                                            <button onClick={() => openEdit(category)} className="p-2 rounded-lg hover:bg-white/10">
-                                                ✏️
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(category.id)}
-                                                className="p-2 rounded-lg hover:bg-white/10"
-                                                style={{ color: appColors.error }}
-                                            >
-                                                🗑️
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {filteredCategories.length === 0 && (
-                            <div className="text-center py-12" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>
-                                <span className="text-4xl block mb-4">📂</span>
-                                <p>No categories found. Create your first category!</p>
-                            </div>
-                        )}
-                    </div>
-                </main>
+                <div className="flex gap-3">
+                    <input
+                        type="text"
+                        placeholder="Search categories..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="px-4 py-2 rounded-lg text-sm"
+                        style={{
+                            backgroundColor: isDark ? appColors.cardBg : "#f3f4f6",
+                            color: isDark ? "#f3f4f6" : "#1f2937",
+                            border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
+                        }}
+                    />
+                    <Button variant="primary" onClick={() => setShowAddModal(true)}>
+                        + Add Category
+                    </Button>
+                </div>
             </div>
+
+            {loading ? (
+                <div className="p-8 text-center">
+                    <div className="animate-spin text-4xl mb-2">⏳</div>
+                    <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Loading categories...</p>
+                </div>
+            ) : filteredCategories.length === 0 ? (
+                <div
+                    className="text-center py-12 rounded-xl"
+                    style={{
+                        backgroundColor: isDark ? appColors.cardBg : "rgba(255,255,255,0.95)",
+                        border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
+                    }}
+                >
+                    <span className="text-4xl block mb-4">📂</span>
+                    <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                        No categories found. Create your first category!
+                    </p>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {filteredCategories.map((category) => (
+                        <div
+                            key={category.id}
+                            className="rounded-xl p-5 shadow-lg transition-all duration-300 hover:-translate-y-1"
+                            style={{
+                                backgroundColor: isDark ? appColors.cardBg : "rgba(255,255,255,0.95)",
+                                border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}`,
+                            }}
+                        >
+                            <div className="flex items-start justify-between mb-3">
+                                <div>
+                                    <h3 style={{ color: isDark ? "#f3f4f6" : "#1f2937" }} className="font-bold text-lg">
+                                        {category.name}
+                                    </h3>
+                                    <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }} className="text-sm mt-1">
+                                        {category.description || "No description"}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div
+                                className="flex items-center justify-between pt-3"
+                                style={{ borderTop: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}` }}
+                            >
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => handleToggle(category.id)}
+                                        className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200"
+                                        style={{
+                                            backgroundColor: category.isActive ? appColors.success : (isDark ? "#4b5563" : "#d1d5db"),
+                                        }}
+                                    >
+                                        <span
+                                            className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200"
+                                            style={{
+                                                transform: category.isActive ? "translateX(1.375rem)" : "translateX(0.25rem)",
+                                            }}
+                                        />
+                                    </button>
+                                    <span
+                                        className="text-sm"
+                                        style={{ color: category.isActive ? appColors.success : (isDark ? "#9ca3af" : "#6b7280") }}
+                                    >
+                                        {category.isActive ? "Active" : "Inactive"}
+                                    </span>
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <button onClick={() => openEdit(category)} className="p-2 rounded-lg hover:bg-white/10">
+                                        ✏️
+                                    </button>
+                                    <button
+                                        onClick={() => handleDelete(category.id)}
+                                        className="p-2 rounded-lg hover:bg-white/10"
+                                        style={{ color: appColors.error }}
+                                    >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {showAddModal && (
                 <div
@@ -225,7 +228,7 @@ export default function CategoriesPage() {
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h3 style={{ color: isDark ? "white" : "#1f2937" }} className="text-xl font-bold mb-4">
+                        <h3 style={{ color: isDark ? "#f3f4f6" : "#1f2937" }} className="text-xl font-bold mb-4">
                             {editingCategory ? "Edit Category" : "Add Category"}
                         </h3>
 
@@ -241,7 +244,7 @@ export default function CategoriesPage() {
                                     className="w-full rounded-lg p-3"
                                     style={{
                                         backgroundColor: isDark ? appColors.cardBg : "#f3f4f6",
-                                        color: isDark ? "white" : "#1f2937",
+                                        color: isDark ? "#f3f4f6" : "#1f2937",
                                         border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}`,
                                     }}
                                     placeholder="e.g., Physical Activities"
@@ -259,7 +262,7 @@ export default function CategoriesPage() {
                                     rows={3}
                                     style={{
                                         backgroundColor: isDark ? appColors.cardBg : "#f3f4f6",
-                                        color: isDark ? "white" : "#1f2937",
+                                        color: isDark ? "#f3f4f6" : "#1f2937",
                                         border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}`,
                                     }}
                                     placeholder="Brief description..."

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 import '../providers/sos_provider.dart';
@@ -28,6 +31,56 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
     _emailController.dispose();
     _relationshipController.dispose();
     super.dispose();
+  }
+
+  Future<void> _importFromContacts() async {
+    final status = await Permission.contacts.request();
+    if (!status.isGranted) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Contacts permission is required'),
+            backgroundColor: Colors.orange,
+            action: SnackBarAction(
+              label: 'Settings',
+              textColor: Colors.white,
+              onPressed: () => openAppSettings(),
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      final contact = await FlutterContacts.openExternalPick();
+      if (contact != null && mounted) {
+        final fullContact = await FlutterContacts.getContact(
+          contact.id,
+          withProperties: true,
+        );
+        if (fullContact != null) {
+          setState(() {
+            _nameController.text = fullContact.displayName;
+            if (fullContact.phones.isNotEmpty) {
+              _phoneController.text = fullContact.phones.first.number;
+            }
+            if (fullContact.emails.isNotEmpty) {
+              _emailController.text = fullContact.emails.first.address;
+            }
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to import contact'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _saveContact() async {
@@ -103,13 +156,30 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
                 ),
               ),
               SizedBox(height: responsive.h(2)),
-              const Text(
-                'Add Trusted Contact',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Add Trusted Contact',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: _importFromContacts,
+                    icon: Icon(
+                      Icons.contacts,
+                      color: AppColors.accent,
+                      size: 18,
+                    ),
+                    label: Text(
+                      'Import',
+                      style: TextStyle(color: AppColors.accent),
+                    ),
+                  ),
+                ],
               ),
               SizedBox(height: responsive.h(0.5)),
               Text(
@@ -141,7 +211,8 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
                   if (value == null || value.trim().isEmpty) {
                     return 'Please enter a phone number';
                   }
-                  if (!RegExp(r'^[+]?[0-9]{10,15}$').hasMatch(value.trim())) {
+                  final cleaned = value.replaceAll(RegExp(r'[\s\-\(\)]'), '');
+                  if (!RegExp(r'^[+]?[0-9]{10,15}$').hasMatch(cleaned)) {
                     return 'Please enter a valid phone number';
                   }
                   return null;
