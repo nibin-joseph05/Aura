@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/ui/responsive/responsive.dart';
 
-enum HomeNavItem { home, sos, account }
+enum HomeNavItem { home, feed, sos, walk, account }
 
 class HomeFooter extends StatelessWidget {
   final HomeNavItem selectedItem;
@@ -17,7 +17,7 @@ class HomeFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
-    final sosButtonSize = responsive.isTablet ? 70.0 : 60.0;
+    final sosButtonSize = responsive.isTablet ? 65.0 : 55.0;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -56,7 +56,21 @@ class HomeFooter extends StatelessWidget {
                 item: HomeNavItem.home,
                 responsive: responsive,
               ),
-              SizedBox(width: sosButtonSize + responsive.w(4)),
+              _buildNavItem(
+                context: context,
+                icon: Icons.article_rounded,
+                label: 'Feed',
+                item: HomeNavItem.feed,
+                responsive: responsive,
+              ),
+              SizedBox(width: sosButtonSize + responsive.w(2)),
+              _buildNavItem(
+                context: context,
+                icon: Icons.directions_walk_rounded,
+                label: 'Walk',
+                item: HomeNavItem.walk,
+                responsive: responsive,
+              ),
               _buildNavItem(
                 context: context,
                 icon: Icons.person_rounded,
@@ -72,7 +86,7 @@ class HomeFooter extends StatelessWidget {
   }
 
   Widget _buildSeparatorLine(Responsive responsive, double sosButtonSize) {
-    final gapWidth = sosButtonSize + responsive.w(6);
+    final gapWidth = sosButtonSize + responsive.w(4);
 
     return Container(
       height: 1,
@@ -122,7 +136,7 @@ class HomeFooter extends StatelessWidget {
       onTap: () => onItemSelected(item),
       child: Container(
         padding: EdgeInsets.symmetric(
-          horizontal: responsive.w(4),
+          horizontal: responsive.w(2),
           vertical: responsive.h(0.5),
         ),
         child: Column(
@@ -130,15 +144,15 @@ class HomeFooter extends StatelessWidget {
           children: [
             Icon(
               icon,
-              size: responsive.isTablet ? 28 : 24,
+              size: responsive.isTablet ? 26 : 22,
               color: isSelected ? Colors.white : Colors.white54,
             ),
-            SizedBox(height: responsive.h(0.3)),
+            SizedBox(height: responsive.h(0.2)),
             Text(
               label,
               style: TextStyle(
                 color: isSelected ? Colors.white : Colors.white54,
-                fontSize: responsive.isTablet ? 12 : 10,
+                fontSize: responsive.isTablet ? 11 : 9,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -188,14 +202,14 @@ class HomeFooter extends StatelessWidget {
             children: [
               Icon(
                 Icons.warning_rounded,
-                size: responsive.isTablet ? 26 : 22,
+                size: responsive.isTablet ? 22 : 18,
                 color: Colors.white,
               ),
               Text(
                 'SOS',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: responsive.isTablet ? 11 : 9,
+                  fontSize: responsive.isTablet ? 10 : 8,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
                 ),

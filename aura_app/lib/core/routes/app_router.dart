@@ -18,6 +18,7 @@ import '../../features/wellness/presentation/screens/wellness_feed_screen.dart';
 import '../../features/wellness/presentation/screens/create_wellness_update_screen.dart';
 import '../../features/home/presentation/screens/help_faq_screen.dart';
 import '../../features/home/presentation/screens/about_screen.dart';
+import '../../features/walking/presentation/screens/walking_screen.dart';
 
 import 'app_routes.dart';
 
@@ -60,6 +61,8 @@ class AppRouter {
         return _build(const HelpFaqScreen(), settings);
       case AppRoutes.about:
         return _build(const AboutScreen(), settings);
+      case AppRoutes.walking:
+        return _build(const WalkingScreen(), settings);
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),

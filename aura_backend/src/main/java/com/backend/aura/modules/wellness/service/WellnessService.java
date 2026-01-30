@@ -1,5 +1,6 @@
 package com.backend.aura.modules.wellness.service;
 
+import com.backend.aura.modules.translation.service.TranslationService;
 import com.backend.aura.modules.wellness.dto.*;
 import com.backend.aura.modules.wellness.model.WellnessLike;
 import com.backend.aura.modules.wellness.model.WellnessUpdate;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 public class WellnessService {
     private final WellnessUpdateRepository updateRepository;
     private final WellnessLikeRepository likeRepository;
+    private final TranslationService translationService;
 
     public Page<WellnessUpdateResponse> getFeed(String currentUserId, WellnessCategory category, Pageable pageable) {
         Page<WellnessUpdate> updates;
@@ -50,6 +52,19 @@ public class WellnessService {
                 .isApproved(false)
                 .isVisible(true)
                 .build();
+
+        translationService.translateToEnglish(request.getContent())
+                .ifPresentOrElse(
+                        result -> {
+                            update.setTranslatedContent(result.getTranslatedText());
+                            update.setDetectedLanguage(result.getDetectedLanguage());
+                            update.setTranslationFailed(false);
+                        },
+                        () -> {
+                            update.setTranslatedContent(request.getContent());
+                            update.setTranslationFailed(true);
+                        });
+
         WellnessUpdate saved = updateRepository.save(update);
         return WellnessUpdateResponse.from(saved);
     }

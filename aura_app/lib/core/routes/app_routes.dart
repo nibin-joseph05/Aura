@@ -16,4 +16,5 @@ class AppRoutes {
   static const String editProfile = '/edit-profile';
   static const String helpFaq = '/help-faq';
   static const String about = '/about';
+  static const String walking = '/walking';
 }

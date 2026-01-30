@@ -1,6 +1,5 @@
 package com.backend.aura.modules.wellness.model;
 
-import com.backend.aura.modules.wellness.model.enums.WellnessCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,36 +9,39 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "wellness_updates")
+@Table(name = "wellness_comments")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WellnessUpdate {
+public class WellnessComment {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
     @Column(nullable = false)
+    private String postId;
+
+    @Column(nullable = false)
     private String userId;
 
-    @Column(nullable = false, length = 500)
-    private String content;
+    @Column(nullable = false, length = 1000)
+    private String originalContent;
 
-    private String imageUrl;
+    @Column(length = 1000)
+    private String translatedContent;
 
+    private String detectedLanguage;
+
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private WellnessCategory category;
+    private TranslationStatus translationStatus = TranslationStatus.PENDING;
 
     @Builder.Default
-    private int likesCount = 0;
+    private boolean isApproved = true;
 
     @Builder.Default
-    private boolean isApproved = false;
-
-    @Builder.Default
-    private boolean isVisible = true;
+    private boolean isHidden = false;
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -50,18 +52,15 @@ public class WellnessUpdate {
 
     private LocalDateTime moderatedAt;
 
-    private String rejectionReason;
-
-    @Column(length = 500)
-    private String translatedContent;
-
-    private String detectedLanguage;
-
-    @Builder.Default
-    private boolean translationFailed = false;
-
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public enum TranslationStatus {
+        PENDING,
+        TRANSLATED,
+        FAILED,
+        NOT_NEEDED
     }
 }

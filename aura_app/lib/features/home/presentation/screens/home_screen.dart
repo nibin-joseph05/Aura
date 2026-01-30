@@ -62,6 +62,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     } else if (item == HomeNavItem.sos) {
       Navigator.pushNamed(context, '/sos-trigger');
+    } else if (item == HomeNavItem.feed) {
+      Navigator.pushNamed(context, '/wellness-feed');
+    } else if (item == HomeNavItem.walk) {
+      Navigator.pushNamed(context, '/walking');
     } else {
       ref.read(selectedNavItemProvider.notifier).state = item;
     }
