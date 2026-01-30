@@ -61,6 +61,12 @@ public class SOSEvent {
 
     private String deviceInfo;
 
+    private String blockHash;
+
+    private Long blockIndex;
+
+    private String mapsUrl;
+
     @PrePersist
     protected void onCreate() {
         if (triggeredAt == null) {

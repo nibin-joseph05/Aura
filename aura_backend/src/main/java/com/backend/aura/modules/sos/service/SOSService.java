@@ -1,5 +1,7 @@
 package com.backend.aura.modules.sos.service;
 
+import com.backend.aura.core.logging.AuraLogger;
+import com.backend.aura.modules.blockchain.service.BlockchainService;
 import com.backend.aura.modules.sos.dto.*;
 import com.backend.aura.modules.sos.model.SOSEvent;
 import com.backend.aura.modules.sos.model.SOSSettings;
@@ -30,6 +32,8 @@ public class SOSService {
     private final TrustedContactRepository trustedContactRepository;
     private final SOSEventRepository sosEventRepository;
     private final UserRepository userRepository;
+    private final BlockchainService blockchainService;
+    private final AuraLogger auraLogger;
 
     @Transactional
     public SOSSettingsResponse getOrCreateSOSSettings(String userId) {
@@ -133,6 +137,9 @@ public class SOSService {
             message = "I need help! This is an emergency.";
         }
 
+        String mapsUrl = String.format("https://maps.google.com/?q=%s,%s",
+                request.getLatitude(), request.getLongitude());
+
         SOSEvent event = new SOSEvent();
         event.setUserId(userId);
         event.setUserName(user != null ? user.getName() : null);
@@ -141,6 +148,7 @@ public class SOSService {
         event.setLongitude(request.getLongitude());
         event.setAddress(request.getAddress());
         event.setMessage(message);
+        event.setMapsUrl(mapsUrl);
         event.setContactsNotified(request.getContactsNotified() != null ? request.getContactsNotified() : 0);
         event.setStatus(SOSEventStatus.TRIGGERED);
         event.setTriggeredAt(request.getTriggeredAt() != null ? request.getTriggeredAt() : LocalDateTime.now());
@@ -148,6 +156,18 @@ public class SOSService {
         event.setDeviceInfo(request.getDeviceInfo());
 
         SOSEvent saved = sosEventRepository.save(event);
+        auraLogger.sosTriggered(userId, saved.getId().toString());
+
+        blockchainService.writeSosEvent(
+                saved.getId().toString(),
+                userId,
+                request.getLatitude(),
+                request.getLongitude()).ifPresent(result -> {
+                    saved.setBlockHash(result.blockHash());
+                    saved.setBlockIndex(result.blockIndex());
+                    sosEventRepository.save(saved);
+                });
+
         return mapToEventResponse(saved);
     }
 
