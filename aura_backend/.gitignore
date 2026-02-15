@@ -37,3 +37,18 @@ env.properties
 
 # Firebase Admin credentials
 src/main/resources/firebase/
+
+# ===== Maven compiled output =====
+target/
+**/target/
+**/classes/
+
+# ===== Firebase / cloud secrets =====
+firebase-service-account.json
+**/firebase/*.json
+src/main/resources/firebase/
+
+# ===== Environment files =====
+.env
+*.env
+env.properties
