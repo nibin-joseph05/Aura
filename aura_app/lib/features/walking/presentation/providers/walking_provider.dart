@@ -80,28 +80,53 @@ class WalkingNotifier extends StateNotifier<WalkingState> {
   Future<void> startWalking() async {
     state = state.copyWith(isLoading: true);
 
-    final permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      final requested = await Geolocator.requestPermission();
-      if (requested == LocationPermission.denied ||
-          requested == LocationPermission.deniedForever) {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
         state = state.copyWith(
           isLoading: false,
-          error: 'Location permission required',
+          error: 'Location services are disabled. Please enable them.',
         );
         return;
       }
-    }
 
-    final session = await _repository.startSession();
-    state = state.copyWith(
-      activeSession: session,
-      isTracking: true,
-      isLoading: false,
-      totalDistance: 0.0,
-      durationSeconds: 0,
-    );
-    _startTracking();
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          state = state.copyWith(
+            isLoading: false,
+            error: 'Location permission denied',
+          );
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        state = state.copyWith(
+          isLoading: false,
+          error:
+              'Location permission permanently denied. Please enable in app settings.',
+        );
+        await Geolocator.openAppSettings();
+        return;
+      }
+
+      final session = await _repository.startSession();
+      state = state.copyWith(
+        activeSession: session,
+        isTracking: true,
+        isLoading: false,
+        totalDistance: 0.0,
+        durationSeconds: 0,
+      );
+      _startTracking();
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: 'Failed to start walking: $e',
+      );
+    }
   }
 
   void _startTracking() {

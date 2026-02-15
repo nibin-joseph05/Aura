@@ -19,6 +19,13 @@ import '../../features/wellness/presentation/screens/create_wellness_update_scre
 import '../../features/home/presentation/screens/help_faq_screen.dart';
 import '../../features/home/presentation/screens/about_screen.dart';
 import '../../features/walking/presentation/screens/walking_screen.dart';
+import '../../features/alarm/presentation/screens/alarm_list_screen.dart';
+import '../../features/alarm/presentation/screens/create_alarm_screen.dart';
+import '../../features/alarm/presentation/screens/alarm_ring_screen.dart';
+import '../../features/user/presentation/screens/permissions_screen.dart';
+import '../../features/messaging/presentation/screens/chat_list_screen.dart';
+import '../../features/messaging/presentation/screens/chat_screen.dart';
+import '../../features/messaging/presentation/screens/follow_requests_screen.dart';
 
 import 'app_routes.dart';
 
@@ -63,6 +70,31 @@ class AppRouter {
         return _build(const AboutScreen(), settings);
       case AppRoutes.walking:
         return _build(const WalkingScreen(), settings);
+      case AppRoutes.alarmList:
+        return _build(const AlarmListScreen(), settings);
+      case AppRoutes.alarmCreate:
+        return _build(const CreateAlarmScreen(), settings);
+      case AppRoutes.alarmEdit:
+        final alarmId = settings.arguments as String;
+        return _build(CreateAlarmScreen(editAlarmId: alarmId), settings);
+      case AppRoutes.alarmRing:
+        final alarmId = settings.arguments as String;
+        return _build(AlarmRingScreen(alarmId: alarmId), settings);
+      case AppRoutes.permissions:
+        return _build(const PermissionsScreen(), settings);
+      case AppRoutes.chatList:
+        return _build(const ChatListScreen(), settings);
+      case AppRoutes.chatScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        return _build(
+          ChatScreen(
+            conversationId: args['conversationId'] as String,
+            otherUserId: args['otherUserId'] as String,
+          ),
+          settings,
+        );
+      case AppRoutes.followRequests:
+        return _build(const FollowRequestsScreen(), settings);
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),

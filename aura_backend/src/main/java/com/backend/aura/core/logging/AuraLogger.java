@@ -82,4 +82,72 @@ public class AuraLogger {
     public void profileUpdated(String userId, String field) {
         log.info("[PROFILE] User: {} updated: {}", userId, field);
     }
+
+    public void notificationCreated(String notificationId, String target) {
+        log.info("[NOTIFICATION] Created: {} target: {}", notificationId, target);
+    }
+
+    public void notificationSent(String notificationId) {
+        log.info("[NOTIFICATION] Sent: {}", notificationId);
+    }
+
+    public void notificationFailed(String notificationId, String error) {
+        log.error("[NOTIFICATION] Failed: {} error: {}", notificationId, error);
+    }
+
+    public void pushSent(String token, String type) {
+        log.info("[PUSH] Sent to: {} type: {}", token, type);
+    }
+
+    public void pushFailed(String token, String error) {
+        log.error("[PUSH] Failed for: {} error: {}", token, error);
+    }
+
+    public void alarmTriggered(String alarmId) {
+        log.info("[ALARM] Triggered: {}", alarmId);
+    }
+
+    public void alarmScheduled(String alarmId, String triggerTime) {
+        log.info("[ALARM] Scheduled: {} at: {}", alarmId, triggerTime);
+    }
+
+    public void permissionGranted(String userId, String permission) {
+        log.info("[PERMISSION] Granted: {} user: {}", permission, userId);
+    }
+
+    public void permissionDenied(String userId, String permission) {
+        log.warn("[PERMISSION] Denied: {} user: {}", permission, userId);
+    }
+
+    public void fcmTokenRegistered(String userId) {
+        log.info("[FCM] Token registered for user: {}", userId);
+    }
+
+    public void messageSent(String senderId, String conversationId) {
+        log.info("[MESSAGING] Message sent by: {} in: {}", senderId, conversationId);
+    }
+
+    public void messageDelivered(String messageId, String recipientId) {
+        log.info("[MESSAGING] Delivered: {} to: {}", messageId, recipientId);
+    }
+
+    public void websocketConnected(String userId) {
+        log.info("[WEBSOCKET] Connected: {}", userId);
+    }
+
+    public void websocketDisconnected(String userId) {
+        log.info("[WEBSOCKET] Disconnected: {}", userId);
+    }
+
+    public void websocketError(String userId, String error) {
+        log.error("[WEBSOCKET] Error for: {} error: {}", userId, error);
+    }
+
+    public void followRequestSent(String fromUser, String toUser) {
+        log.info("[MESSAGING] Follow request from: {} to: {}", fromUser, toUser);
+    }
+
+    public void followRequestAccepted(String fromUser, String toUser) {
+        log.info("[MESSAGING] Follow accepted: {} by: {}", fromUser, toUser);
+    }
 }

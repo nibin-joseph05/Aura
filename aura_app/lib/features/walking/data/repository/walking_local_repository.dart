@@ -5,9 +5,21 @@ import '../model/walking_session_model.dart';
 class WalkingLocalRepository {
   static const String _boxName = 'walking_sessions';
 
-  late Box<WalkingSessionModel> _box;
+  Box<WalkingSessionModel>? _box;
+
+  bool get isInitialized => _box != null && _box!.isOpen;
+
+  Box<WalkingSessionModel> get box {
+    if (_box == null || !_box!.isOpen) {
+      throw StateError(
+        'WalkingLocalRepository not initialized. Call init() first.',
+      );
+    }
+    return _box!;
+  }
 
   Future<void> init() async {
+    if (isInitialized) return;
     _box = await Hive.openBox<WalkingSessionModel>(_boxName);
   }
 
@@ -17,12 +29,12 @@ class WalkingLocalRepository {
       startTime: DateTime.now(),
       isActive: true,
     );
-    await _box.put(session.id, session);
+    await box.put(session.id, session);
     return session;
   }
 
   Future<void> addRoutePoint(String sessionId, RoutePoint point) async {
-    final session = _box.get(sessionId);
+    final session = box.get(sessionId);
     if (session != null && session.isActive) {
       session.routePoints.add(point);
       await session.save();
@@ -34,7 +46,7 @@ class WalkingLocalRepository {
     double? distance,
     int? steps,
   }) async {
-    final session = _box.get(sessionId);
+    final session = box.get(sessionId);
     if (session != null) {
       session.endTime = DateTime.now();
       session.isActive = false;
@@ -52,23 +64,23 @@ class WalkingLocalRepository {
 
   WalkingSessionModel? getActiveSession() {
     try {
-      return _box.values.firstWhere((s) => s.isActive);
+      return box.values.firstWhere((s) => s.isActive);
     } catch (_) {
       return null;
     }
   }
 
   List<WalkingSessionModel> getCompletedSessions() {
-    return _box.values.where((s) => !s.isActive).toList()
+    return box.values.where((s) => !s.isActive).toList()
       ..sort((a, b) => b.startTime.compareTo(a.startTime));
   }
 
   List<WalkingSessionModel> getUnsyncedSessions() {
-    return _box.values.where((s) => !s.isActive && !s.isSynced).toList();
+    return box.values.where((s) => !s.isActive && !s.isSynced).toList();
   }
 
   Future<void> markAsSynced(String sessionId, String remoteId) async {
-    final session = _box.get(sessionId);
+    final session = box.get(sessionId);
     if (session != null) {
       session.isSynced = true;
       session.remoteId = remoteId;
@@ -77,6 +89,6 @@ class WalkingLocalRepository {
   }
 
   Future<void> clearAll() async {
-    await _box.clear();
+    await box.clear();
   }
 }

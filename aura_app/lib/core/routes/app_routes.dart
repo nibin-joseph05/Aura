@@ -17,4 +17,12 @@ class AppRoutes {
   static const String helpFaq = '/help-faq';
   static const String about = '/about';
   static const String walking = '/walking';
+  static const String alarmList = '/alarm';
+  static const String alarmCreate = '/alarm/create';
+  static const String alarmEdit = '/alarm/edit';
+  static const String alarmRing = '/alarm/ring';
+  static const String permissions = '/permissions';
+  static const String chatList = '/chat';
+  static const String chatScreen = '/chat/conversation';
+  static const String followRequests = '/follow-requests';
 }

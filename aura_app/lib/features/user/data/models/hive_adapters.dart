@@ -8,6 +8,8 @@ import '../../../sos/data/models/sos_event.dart';
 import '../../../wellness/data/models/wellness_category.dart';
 import '../../../wellness/data/models/wellness_update.dart';
 import '../../../wellness/data/models/pending_wellness_operation.dart';
+import '../../../walking/data/model/walking_session_model.dart';
+import '../../../alarm/data/model/alarm_model.dart';
 
 void registerHiveAdapters() {
   Hive.registerAdapter(UserModelAdapter());
@@ -19,4 +21,7 @@ void registerHiveAdapters() {
   Hive.registerAdapter(WellnessCategoryAdapter());
   Hive.registerAdapter(WellnessUpdateAdapter());
   Hive.registerAdapter(PendingWellnessOperationAdapter());
+  Hive.registerAdapter(WalkingSessionModelAdapter());
+  Hive.registerAdapter(RoutePointAdapter());
+  Hive.registerAdapter(AlarmModelAdapter());
 }
