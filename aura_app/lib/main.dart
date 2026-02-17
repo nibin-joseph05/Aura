@@ -7,12 +7,16 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'app.dart';
 import 'features/user/data/models/hive_adapters.dart';
 import 'core/network/sync/sync_manager.dart';
+import 'core/network/push/fcm_handler.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp();
+
+  // Initialize push notification handler
+  await FcmHandler.instance.initialize();
 
   await Hive.initFlutter();
   registerHiveAdapters();

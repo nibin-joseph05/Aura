@@ -1,6 +1,6 @@
 import { apiClient } from "@/app/core/network/api-client";
 import { API_ENDPOINTS } from "@/app/core/network/api-endpoints";
-import { SOSEvent, SOSEventsResponse, SOSStats, ResolveSOSRequest, SOSEventStatus } from "../models/sos.model";
+import { SOSEvent, SOSEventsResponse, SOSStats, ResolveSOSRequest, SOSEventStatus, LiveLocationSession } from "../models/sos.model";
 
 class SOSService {
     async getEvents(page: number = 0, size: number = 20, status?: SOSEventStatus): Promise<SOSEventsResponse> {
@@ -108,6 +108,27 @@ class SOSService {
         if (diffHours < 24) return `${diffHours}h ago`;
         if (diffDays < 7) return `${diffDays}d ago`;
         return this.formatDateTime(dateString);
+    }
+
+    async getLiveSessions(): Promise<LiveLocationSession[]> {
+        try {
+            const response = await apiClient.get(API_ENDPOINTS.SOS.LIVE_SESSIONS);
+            const data = response.data as any;
+            if (Array.isArray(data)) {
+                return data;
+            }
+            if (data?.data) {
+                return Array.isArray(data.data) ? data.data : [data.data];
+            }
+            return data ? [data] : [];
+        } catch {
+            return [];
+        }
+    }
+
+    async getLiveSessionById(sessionId: string): Promise<LiveLocationSession> {
+        const response = await apiClient.get(API_ENDPOINTS.SOS.LIVE_SESSION_BY_ID(sessionId));
+        return response.data as LiveLocationSession;
     }
 }
 

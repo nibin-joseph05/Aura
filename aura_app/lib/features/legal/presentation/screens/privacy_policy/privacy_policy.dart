@@ -248,7 +248,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
           vertical: responsive.h(0.6),
         ),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(
             responsive.radius(AppDimensions.radiusM),
           ),
@@ -257,7 +257,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         child: Text(
           "Last updated: February 2025",
           style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withValues(alpha: 0.7),
             fontSize: textSize,
             fontStyle: FontStyle.italic,
           ),

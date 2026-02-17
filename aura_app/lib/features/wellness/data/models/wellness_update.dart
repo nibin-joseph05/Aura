@@ -38,6 +38,9 @@ class WellnessUpdate extends HiveObject {
   @HiveField(10)
   final DateTime createdAt;
 
+  @HiveField(11)
+  final int commentsCount;
+
   WellnessUpdate({
     required this.id,
     required this.userId,
@@ -49,6 +52,7 @@ class WellnessUpdate extends HiveObject {
     this.likesCount = 0,
     this.likedByCurrentUser = false,
     this.isApproved = false,
+    this.commentsCount = 0,
     required this.createdAt,
   });
 
@@ -64,6 +68,7 @@ class WellnessUpdate extends HiveObject {
       likesCount: json['likesCount'] ?? 0,
       likedByCurrentUser: json['likedByCurrentUser'] ?? false,
       isApproved: json['isApproved'] ?? false,
+      commentsCount: json['commentsCount'] ?? 0,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
@@ -82,6 +87,7 @@ class WellnessUpdate extends HiveObject {
       'likesCount': likesCount,
       'likedByCurrentUser': likedByCurrentUser,
       'isApproved': isApproved,
+      'commentsCount': commentsCount,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -97,6 +103,7 @@ class WellnessUpdate extends HiveObject {
     int? likesCount,
     bool? likedByCurrentUser,
     bool? isApproved,
+    int? commentsCount,
     DateTime? createdAt,
   }) {
     return WellnessUpdate(
@@ -110,6 +117,7 @@ class WellnessUpdate extends HiveObject {
       likesCount: likesCount ?? this.likesCount,
       likedByCurrentUser: likedByCurrentUser ?? this.likedByCurrentUser,
       isApproved: isApproved ?? this.isApproved,
+      commentsCount: commentsCount ?? this.commentsCount,
       createdAt: createdAt ?? this.createdAt,
     );
   }

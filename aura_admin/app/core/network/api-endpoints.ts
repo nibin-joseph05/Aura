@@ -31,6 +31,8 @@ export const API_ENDPOINTS = {
         ACKNOWLEDGE: (id: string) => `/api/admin/sos/events/${id}/acknowledge`,
         RESOLVE: (id: string) => `/api/admin/sos/events/${id}/resolve`,
         STATS: "/api/admin/sos/stats",
+        LIVE_SESSIONS: "/api/user/sos/live/active",
+        LIVE_SESSION_BY_ID: (id: string) => `/api/user/sos/live/${id}`,
     },
     WELLNESS: {
         PENDING: "/api/admin/wellness/pending",

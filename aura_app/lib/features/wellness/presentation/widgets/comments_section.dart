@@ -99,7 +99,7 @@ class _CommentsSectionState extends ConsumerState<CommentsSection> {
                   ? EmptyStateWidget(
                       icon: Icons.chat_bubble_outline,
                       title: 'No comments yet',
-                      subtitle: 'Be the first to comment',
+                      message: 'Be the first to comment',
                     )
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 16),

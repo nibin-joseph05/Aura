@@ -9,6 +9,8 @@ import com.backend.aura.modules.user.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -66,5 +68,11 @@ public class UserController {
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         }
+    }
+
+    @PostMapping("/fcm-token")
+    public ResponseEntity<Void> updateFcmToken(@RequestBody Map<String, String> body) {
+        userService.updateFcmToken(body.get("uid"), body.get("token"));
+        return ResponseEntity.ok().build();
     }
 }

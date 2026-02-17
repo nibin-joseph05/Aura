@@ -12,6 +12,7 @@ import { appColors } from "@/app/core/constants/colors";
 const pageTitles: Record<string, string> = {
     "/admin/dashboard": "Dashboard",
     "/admin/sos-events": "SOS Alerts",
+    "/admin/live-sessions": "Live Tracking",
     "/admin/wellness": "Wellness Feed",
     "/admin/categories": "Activity Categories",
     "/admin/activities": "Activity Types",

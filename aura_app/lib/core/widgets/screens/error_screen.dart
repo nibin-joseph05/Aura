@@ -27,7 +27,7 @@ class ErrorScreen extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.error.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -51,7 +51,7 @@ class ErrorScreen extends StatelessWidget {
               message,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),

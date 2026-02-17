@@ -43,7 +43,7 @@ class OtpInputField extends StatelessWidget {
           counterText: "",
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
               width: 1.2,
             ),
             borderRadius: BorderRadius.circular(
@@ -57,7 +57,7 @@ class OtpInputField extends StatelessWidget {
             ),
           ),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.05),
+          fillColor: Colors.white.withValues(alpha: 0.05),
         ),
         onChanged: onChanged,
       ),

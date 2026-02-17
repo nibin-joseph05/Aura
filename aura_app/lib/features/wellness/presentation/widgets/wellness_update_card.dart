@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../data/models/wellness_update.dart';
@@ -69,47 +70,61 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
         children: [
           Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.3),
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  AppRoutes.userProfile,
+                  arguments: _update.userId,
                 ),
-                child: Center(
-                  child: Text(
-                    _update.userName?.isNotEmpty == true
-                        ? _update.userName![0].toUpperCase()
-                        : '?',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _update.userName?.isNotEmpty == true
+                          ? _update.userName![0].toUpperCase()
+                          : '?',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
               ),
               SizedBox(width: responsive.w(3)),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _update.userName ?? 'Anonymous',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                child: GestureDetector(
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    AppRoutes.userProfile,
+                    arguments: _update.userId,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _update.userName ?? 'Anonymous',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                    Text(
-                      _formatTime(_update.createdAt),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        fontSize: 12,
+                      Text(
+                        _formatTime(_update.createdAt),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               Container(
@@ -176,6 +191,24 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
                     ),
                   ],
                 ),
+              ),
+              SizedBox(width: responsive.w(5)),
+              Row(
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    color: Colors.white.withValues(alpha: 0.7),
+                    size: 20,
+                  ),
+                  SizedBox(width: responsive.w(1)),
+                  Text(
+                    '${_update.commentsCount}',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

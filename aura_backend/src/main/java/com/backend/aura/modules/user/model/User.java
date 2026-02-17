@@ -46,6 +46,14 @@ public class User {
 
     private boolean profileCompleted;
 
+    @Column(length = 200)
+    private String bio;
+
+    private boolean isPrivate;
+
+    @Column(length = 512)
+    private String fcmToken;
+
     private String password;
 
     @Enumerated(EnumType.STRING)

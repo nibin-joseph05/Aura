@@ -12,17 +12,22 @@ import java.util.Optional;
 @Repository
 public interface FollowRelationshipRepository extends JpaRepository<FollowRelationship, String> {
 
-    Optional<FollowRelationship> findByFollowerIdAndFollowingId(String followerId, String followingId);
+        Optional<FollowRelationship> findByFollowerIdAndFollowingId(String followerId, String followingId);
 
-    List<FollowRelationship> findByFollowingIdAndStatus(String followingId, FollowRelationship.FollowStatus status);
+        List<FollowRelationship> findByFollowingIdAndStatus(String followingId, FollowRelationship.FollowStatus status);
 
-    Page<FollowRelationship> findByFollowingIdAndStatus(
-            String followingId, FollowRelationship.FollowStatus status, Pageable pageable);
+        Page<FollowRelationship> findByFollowingIdAndStatus(
+                        String followingId, FollowRelationship.FollowStatus status, Pageable pageable);
 
-    List<FollowRelationship> findByFollowerIdAndStatus(String followerId, FollowRelationship.FollowStatus status);
+        List<FollowRelationship> findByFollowerIdAndStatus(String followerId, FollowRelationship.FollowStatus status);
 
-    boolean existsByFollowerIdAndFollowingIdAndStatus(
-            String followerId, String followingId, FollowRelationship.FollowStatus status);
+        Page<FollowRelationship> findByFollowerIdAndStatus(
+                        String followerId, FollowRelationship.FollowStatus status, Pageable pageable);
 
-    long countByFollowingIdAndStatus(String followingId, FollowRelationship.FollowStatus status);
+        boolean existsByFollowerIdAndFollowingIdAndStatus(
+                        String followerId, String followingId, FollowRelationship.FollowStatus status);
+
+        long countByFollowingIdAndStatus(String followingId, FollowRelationship.FollowStatus status);
+
+        long countByFollowerIdAndStatus(String followerId, FollowRelationship.FollowStatus status);
 }

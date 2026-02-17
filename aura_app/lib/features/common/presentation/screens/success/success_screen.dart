@@ -174,7 +174,7 @@ class _SuccessScreenState extends ConsumerState<SuccessScreen> {
                     height: 96,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.greenAccent.withOpacity(0.14),
+                      color: Colors.greenAccent.withValues(alpha: 0.14),
                       border: Border.all(color: Colors.greenAccent, width: 2),
                     ),
                     child: const Icon(

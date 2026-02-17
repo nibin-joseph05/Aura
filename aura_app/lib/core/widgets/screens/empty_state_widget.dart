@@ -4,6 +4,7 @@ import '../../theme/app_colors.dart';
 class EmptyStateWidget extends StatelessWidget {
   final String title;
   final String? description;
+  final String? message;
   final IconData? icon;
   final String? actionLabel;
   final VoidCallback? onAction;
@@ -12,6 +13,7 @@ class EmptyStateWidget extends StatelessWidget {
     super.key,
     required this.title,
     this.description,
+    this.message,
     this.icon,
     this.actionLabel,
     this.onAction,
@@ -19,6 +21,8 @@ class EmptyStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayMessage = message ?? description;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -29,13 +33,13 @@ class EmptyStateWidget extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: AppColors.accent.withOpacity(0.1),
+                color: AppColors.accent.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon ?? Icons.inbox_rounded,
                 size: 40,
-                color: AppColors.accent.withOpacity(0.5),
+                color: AppColors.accent.withValues(alpha: 0.5),
               ),
             ),
             const SizedBox(height: 24),
@@ -48,13 +52,13 @@ class EmptyStateWidget extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            if (description != null) ...[
+            if (displayMessage != null) ...[
               const SizedBox(height: 8),
               Text(
-                description!,
+                displayMessage,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -65,7 +69,9 @@ class EmptyStateWidget extends StatelessWidget {
                 onPressed: onAction,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.accent,
-                  side: BorderSide(color: AppColors.accent.withOpacity(0.5)),
+                  side: BorderSide(
+                    color: AppColors.accent.withValues(alpha: 0.5),
+                  ),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 24,
                     vertical: 12,

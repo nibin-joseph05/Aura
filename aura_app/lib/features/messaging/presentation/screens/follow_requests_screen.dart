@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
+import '../../../../core/widgets/screens/empty_state_widget.dart';
 import '../providers/messaging_provider.dart';
 
 class FollowRequestsScreen extends ConsumerStatefulWidget {
@@ -27,69 +29,45 @@ class _FollowRequestsScreenState extends ConsumerState<FollowRequestsScreen> {
     final state = ref.watch(messagingProvider);
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        title: const Text('Follow Requests'),
-        backgroundColor: isDark
-            ? AppColors.backgroundDark
-            : AppColors.background,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: state.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : state.followRequests.isEmpty
-            ? _buildEmptyState(isDark)
-            : ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: state.followRequests.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  return _buildRequestTile(state.followRequests[index], isDark);
-                },
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const AppHeader(title: 'Follow Requests'),
+              Expanded(
+                child: state.isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                    : state.followRequests.isEmpty
+                    ? const EmptyStateWidget(
+                        icon: Icons.person_add_disabled_rounded,
+                        title: 'No pending requests',
+                        description:
+                            'Follow requests from other users will appear here',
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: state.followRequests.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          return _buildRequestTile(
+                            state.followRequests[index],
+                            isDark,
+                          );
+                        },
+                      ),
               ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.person_add_disabled_rounded,
-              size: 40,
-              color: AppColors.accent.withValues(alpha: 0.5),
-            ),
+            ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            'No pending requests',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Follow requests from other users will appear here',
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.6)
-                  : AppColors.textSecondary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

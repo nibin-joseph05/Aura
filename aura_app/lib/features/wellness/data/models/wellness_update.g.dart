@@ -28,13 +28,14 @@ class WellnessUpdateAdapter extends TypeAdapter<WellnessUpdate> {
       likedByCurrentUser: fields[8] as bool,
       isApproved: fields[9] as bool,
       createdAt: fields[10] as DateTime,
+      commentsCount: (fields[11] as int?) ?? 0,
     );
   }
 
   @override
   void write(BinaryWriter writer, WellnessUpdate obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(12)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +57,9 @@ class WellnessUpdateAdapter extends TypeAdapter<WellnessUpdate> {
       ..writeByte(9)
       ..write(obj.isApproved)
       ..writeByte(10)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(11)
+      ..write(obj.commentsCount);
   }
 
   @override

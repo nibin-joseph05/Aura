@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 import '../providers/sos_provider.dart';
 import '../widgets/add_contact_bottom_sheet.dart';
@@ -70,32 +71,7 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
   }
 
   Widget _buildHeader(BuildContext context, Responsive responsive) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: responsive.w(4),
-        vertical: responsive.h(2),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Expanded(
-            child: Text(
-              'SOS Settings',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(width: 48),
-        ],
-      ),
-    );
+    return const AppHeader(title: 'SOS Settings');
   }
 
   Widget _buildContent(Responsive responsive, String oderId) {

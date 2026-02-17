@@ -1,11 +1,14 @@
 package com.backend.aura.modules.user.service;
 
 import com.backend.aura.modules.mail.service.EmailService;
+import com.backend.aura.modules.messaging.model.FollowRelationship;
+import com.backend.aura.modules.messaging.repository.FollowRelationshipRepository;
 import com.backend.aura.modules.user.dto.request.UpdateProfileRequest;
 import com.backend.aura.modules.user.dto.response.UserResponse;
 import com.backend.aura.modules.user.model.User;
 import com.backend.aura.modules.user.model.enums.AccountStatus;
 import com.backend.aura.modules.user.repository.UserRepository;
+import com.backend.aura.modules.wellness.repository.WellnessUpdateRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,12 +20,17 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final FollowRelationshipRepository followRepo;
+    private final WellnessUpdateRepository wellnessRepo;
 
     public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder,
-            EmailService emailService) {
+            EmailService emailService, FollowRelationshipRepository followRepo,
+            WellnessUpdateRepository wellnessRepo) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
+        this.followRepo = followRepo;
+        this.wellnessRepo = wellnessRepo;
     }
 
     public User saveUser(User user) {
@@ -156,6 +164,14 @@ public class UserService {
             user.setEmailPasswordLinked(true);
         }
 
+        if (dto.getBio() != null) {
+            user.setBio(dto.getBio());
+        }
+
+        if (dto.getIsPrivate() != null) {
+            user.setPrivate(dto.getIsPrivate());
+        }
+
         boolean wasProfileComplete = user.isProfileCompleted();
 
         boolean isProfileComplete = user.getName() != null && !user.getName().isEmpty() &&
@@ -173,6 +189,15 @@ public class UserService {
         }
 
         return mapToUserResponse(savedUser);
+    }
+
+    public void updateFcmToken(String uid, String token) {
+        User user = getUserByUid(uid);
+        if (user != null) {
+            user.setFcmToken(token);
+            user.setUpdatedAt(new Date());
+            userRepository.save(user);
+        }
     }
 
     public boolean isAccountActive(String uid) {
@@ -228,21 +253,33 @@ public class UserService {
     }
 
     private UserResponse mapToUserResponse(User user) {
-        return new UserResponse(
-                user.getUid(),
-                user.getPhone(),
-                user.getEmail(),
-                user.isPhoneVerified(),
-                user.isEmailVerified(),
-                user.getSignupMethod(),
-                user.getName(),
-                user.getUsername(),
-                user.getProfileImageUrl(),
-                user.getGender(),
-                user.getDob(),
-                user.isProfileCompleted(),
-                user.getAccountStatus(),
-                user.getCreatedAt(),
-                user.getLastLoginAt());
+        long followersCount = followRepo.countByFollowingIdAndStatus(
+                user.getUid(), FollowRelationship.FollowStatus.ACCEPTED);
+        long followingCount = followRepo.countByFollowerIdAndStatus(
+                user.getUid(), FollowRelationship.FollowStatus.ACCEPTED);
+        long postsCount = wellnessRepo.countByUserId(user.getUid());
+
+        return UserResponse.builder()
+                .uid(user.getUid())
+                .phone(user.getPhone())
+                .email(user.getEmail())
+                .phoneVerified(user.isPhoneVerified())
+                .emailVerified(user.isEmailVerified())
+                .signupMethod(user.getSignupMethod())
+                .name(user.getName())
+                .username(user.getUsername())
+                .profileImageUrl(user.getProfileImageUrl())
+                .gender(user.getGender())
+                .dob(user.getDob())
+                .bio(user.getBio())
+                .profileCompleted(user.isProfileCompleted())
+                .isPrivate(user.isPrivate())
+                .accountStatus(user.getAccountStatus())
+                .createdAt(user.getCreatedAt())
+                .lastLoginAt(user.getLastLoginAt())
+                .followersCount(followersCount)
+                .followingCount(followingCount)
+                .postsCount(postsCount)
+                .build();
     }
 }

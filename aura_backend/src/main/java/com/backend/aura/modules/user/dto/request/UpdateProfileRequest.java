@@ -12,6 +12,8 @@ public class UpdateProfileRequest {
     private String phone;
     private String gender;
     private String dob;
+    private String bio;
     private String profileImageUrl;
     private String password;
+    private Boolean isPrivate;
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
 import '../providers/alarm_provider.dart';
 import '../widgets/time_picker_widget.dart';
 
@@ -65,125 +66,163 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Alarm' : 'New Alarm'),
-        backgroundColor: isDark
-            ? AppColors.backgroundDark
-            : AppColors.background,
-        elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: _saveAlarm,
-            child: Text(
-              'Save',
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+        ),
+        child: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              TimePickerWidget(
-                hour: _hour,
-                minute: _minute,
-                onHourChanged: (h) => setState(() => _hour = h),
-                onMinuteChanged: (m) => setState(() => _minute = m),
-              ),
-              const SizedBox(height: 32),
-              _buildSection('Label', isDark),
-              TextField(
-                controller: _labelController,
-                onChanged: (v) => _label = v,
-                decoration: InputDecoration(
-                  hintText: 'Alarm label (optional)',
-                  filled: true,
-                  fillColor: isDark ? AppColors.surfaceDark : AppColors.surface,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              AppHeader(
+                title: _isEditing ? 'Edit Alarm' : 'New Alarm',
+                actions: [
+                  TextButton(
+                    onPressed: _saveAlarm,
+                    child: const Text(
+                      'Save',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 24),
-              _buildSection('Repeat', isDark),
-              Wrap(
-                spacing: 8,
-                children: List.generate(7, (index) {
-                  final isSelected = _repeatDays.contains(index);
-                  return FilterChip(
-                    label: Text(_days[index]),
-                    selected: isSelected,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _repeatDays.add(index);
-                        } else {
-                          _repeatDays.remove(index);
-                        }
-                      });
-                    },
-                    selectedColor: AppColors.primary.withValues(alpha: 0.2),
-                    checkmarkColor: AppColors.primary,
-                  );
-                }),
-              ),
-              const SizedBox(height: 24),
-              _buildSection('Dismiss Type', isDark),
-              _buildDismissOption(
-                'button',
-                'Button',
-                'Simple dismiss button',
-                isDark,
-              ),
-              _buildDismissOption(
-                'math',
-                'Math Problem',
-                'Solve to dismiss',
-                isDark,
-              ),
-              if (_dismissType == 'math') ...[
-                const SizedBox(height: 16),
-                _buildSection('Math Difficulty', isDark),
-                Slider(
-                  value: _mathDifficulty.toDouble(),
-                  min: 1,
-                  max: 3,
-                  divisions: 2,
-                  label: _mathDifficulty == 1
-                      ? 'Easy'
-                      : _mathDifficulty == 2
-                      ? 'Medium'
-                      : 'Hard',
-                  onChanged: (v) => setState(() => _mathDifficulty = v.round()),
-                ),
-              ],
-              const SizedBox(height: 24),
-              _buildSection('Options', isDark),
-              SwitchListTile(
-                title: const Text('Vibrate'),
-                value: _vibrate,
-                onChanged: (v) => setState(() => _vibrate = v),
-                activeColor: AppColors.primary,
-              ),
-              ListTile(
-                title: const Text('Snooze duration'),
-                trailing: DropdownButton<int>(
-                  value: _snoozeMinutes,
-                  items: [5, 10, 15, 20, 30].map((m) {
-                    return DropdownMenuItem(value: m, child: Text('$m min'));
-                  }).toList(),
-                  onChanged: (v) => setState(() => _snoozeMinutes = v ?? 5),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TimePickerWidget(
+                        hour: _hour,
+                        minute: _minute,
+                        onHourChanged: (h) => setState(() => _hour = h),
+                        onMinuteChanged: (m) => setState(() => _minute = m),
+                      ),
+                      const SizedBox(height: 32),
+                      _buildSection('Label'),
+                      TextField(
+                        controller: _labelController,
+                        onChanged: (v) => _label = v,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Alarm label (optional)',
+                          hintStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.5),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.1),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSection('Repeat'),
+                      Wrap(
+                        spacing: 8,
+                        children: List.generate(7, (index) {
+                          final isSelected = _repeatDays.contains(index);
+                          return FilterChip(
+                            label: Text(
+                              _days[index],
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.white70,
+                              ),
+                            ),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                if (selected) {
+                                  _repeatDays.add(index);
+                                } else {
+                                  _repeatDays.remove(index);
+                                }
+                              });
+                            },
+                            selectedColor: AppColors.accent.withValues(
+                              alpha: 0.3,
+                            ),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.1,
+                            ),
+                            checkmarkColor: Colors.white,
+                            side: BorderSide.none,
+                          );
+                        }),
+                      ),
+                      const SizedBox(height: 24),
+                      _buildSection('Dismiss Type'),
+                      _buildDismissOption(
+                        'button',
+                        'Button',
+                        'Simple dismiss button',
+                      ),
+                      _buildDismissOption(
+                        'math',
+                        'Math Problem',
+                        'Solve to dismiss',
+                      ),
+                      if (_dismissType == 'math') ...[
+                        const SizedBox(height: 16),
+                        _buildSection('Math Difficulty'),
+                        Slider(
+                          value: _mathDifficulty.toDouble(),
+                          min: 1,
+                          max: 3,
+                          divisions: 2,
+                          label: _mathDifficulty == 1
+                              ? 'Easy'
+                              : _mathDifficulty == 2
+                              ? 'Medium'
+                              : 'Hard',
+                          activeColor: AppColors.accent,
+                          inactiveColor: Colors.white.withValues(alpha: 0.2),
+                          onChanged: (v) =>
+                              setState(() => _mathDifficulty = v.round()),
+                        ),
+                      ],
+                      const SizedBox(height: 24),
+                      _buildSection('Options'),
+                      SwitchListTile(
+                        title: const Text(
+                          'Vibrate',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        value: _vibrate,
+                        onChanged: (v) => setState(() => _vibrate = v),
+                        activeColor: AppColors.accent,
+                      ),
+                      ListTile(
+                        title: const Text(
+                          'Snooze duration',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        trailing: DropdownButton<int>(
+                          value: _snoozeMinutes,
+                          dropdownColor: AppColors.surfaceDark,
+                          style: const TextStyle(color: Colors.white),
+                          items: [5, 10, 15, 20, 30].map((m) {
+                            return DropdownMenuItem(
+                              value: m,
+                              child: Text('$m min'),
+                            );
+                          }).toList(),
+                          onChanged: (v) =>
+                              setState(() => _snoozeMinutes = v ?? 5),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -193,7 +232,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     );
   }
 
-  Widget _buildSection(String title, bool isDark) {
+  Widget _buildSection(String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
@@ -201,25 +240,23 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
         style: TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.bold,
-          color: isDark ? Colors.grey : AppColors.textSecondary,
+          color: Colors.white.withValues(alpha: 0.7),
         ),
       ),
     );
   }
 
-  Widget _buildDismissOption(
-    String value,
-    String title,
-    String subtitle,
-    bool isDark,
-  ) {
+  Widget _buildDismissOption(String value, String title, String subtitle) {
     return RadioListTile<String>(
       value: value,
       groupValue: _dismissType,
       onChanged: (v) => setState(() => _dismissType = v ?? 'button'),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      activeColor: AppColors.primary,
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      subtitle: Text(
+        subtitle,
+        style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+      ),
+      activeColor: AppColors.accent,
       contentPadding: EdgeInsets.zero,
     );
   }

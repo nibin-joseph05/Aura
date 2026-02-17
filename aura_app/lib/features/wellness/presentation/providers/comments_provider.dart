@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/api/api_client.dart';
-import '../model/comment_model.dart';
+import '../../data/model/comment_model.dart';
 
 final commentsProvider =
     StateNotifierProvider.family<CommentsNotifier, CommentsState, String>(

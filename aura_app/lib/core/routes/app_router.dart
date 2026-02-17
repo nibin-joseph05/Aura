@@ -6,6 +6,8 @@ import '../../features/auth/presentation/screens/otp/otp_screen.dart';
 import '../../features/auth/presentation/screens/email_login/email_login_screen.dart';
 import '../../features/user/presentation/screens/profile_complete/profile_complete_screen.dart';
 import '../../features/user/presentation/screens/edit_profile_screen.dart';
+import '../../features/user/presentation/screens/user_profile_screen.dart';
+import '../../features/user/presentation/screens/follow_list_screen.dart';
 import '../../features/common/presentation/screens/success/success_screen.dart';
 import '../../features/legal/presentation/screens/privacy_policy/privacy_policy.dart';
 import '../../features/splash/presentation/screens/splash_screen.dart';
@@ -26,6 +28,8 @@ import '../../features/user/presentation/screens/permissions_screen.dart';
 import '../../features/messaging/presentation/screens/chat_list_screen.dart';
 import '../../features/messaging/presentation/screens/chat_screen.dart';
 import '../../features/messaging/presentation/screens/follow_requests_screen.dart';
+import '../../features/notification/presentation/screens/notification_screen.dart';
+import '../../features/sos/live/live_location_screen.dart';
 
 import 'app_routes.dart';
 
@@ -95,6 +99,25 @@ class AppRouter {
         );
       case AppRoutes.followRequests:
         return _build(const FollowRequestsScreen(), settings);
+      case AppRoutes.notifications:
+        return _build(const NotificationScreen(), settings);
+      case AppRoutes.userProfile:
+        final userId = settings.arguments as String;
+        return _build(UserProfileScreen(userId: userId), settings);
+      case AppRoutes.followers:
+        final userId = settings.arguments as String;
+        return _build(
+          FollowListScreen(userId: userId, isFollowers: true),
+          settings,
+        );
+      case AppRoutes.following:
+        final userId = settings.arguments as String;
+        return _build(
+          FollowListScreen(userId: userId, isFollowers: false),
+          settings,
+        );
+      case AppRoutes.liveLocation:
+        return _build(const LiveLocationScreen(), settings);
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),

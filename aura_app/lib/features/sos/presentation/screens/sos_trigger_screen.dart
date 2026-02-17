@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 import '../providers/sos_provider.dart';
 import '../../data/models/sos_event.dart';
@@ -162,39 +164,22 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
   }
 
   Widget _buildHeader(BuildContext context, Responsive responsive) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: responsive.w(4),
-        vertical: responsive.h(2),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white, size: 28),
-            onPressed: () {
-              if (_isTriggering) {
-                _cancelCountdown();
-              }
-              Navigator.pop(context);
-            },
-          ),
-          const Expanded(
-            child: Text(
-              'Emergency SOS',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.white),
-            onPressed: () => Navigator.pushNamed(context, '/sos-settings'),
-          ),
-        ],
-      ),
+    return AppHeader(
+      title: 'Emergency SOS',
+      onBack: () {
+        if (_isTriggering) _cancelCountdown();
+        Navigator.pop(context);
+      },
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.share_location, color: Colors.white),
+          onPressed: () => Navigator.pushNamed(context, AppRoutes.liveLocation),
+        ),
+        IconButton(
+          icon: const Icon(Icons.settings, color: Colors.white),
+          onPressed: () => Navigator.pushNamed(context, '/sos-settings'),
+        ),
+      ],
     );
   }
 

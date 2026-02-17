@@ -24,6 +24,13 @@ class MessagingApiService {
     await _dio.post('/api/messaging/follow/reject/$requestId');
   }
 
+  Future<void> unfollow(String fromUserId, String toUserId) async {
+    await _dio.post(
+      '/api/messaging/follow/unfollow',
+      data: {'fromUserId': fromUserId, 'toUserId': toUserId},
+    );
+  }
+
   Future<Map<String, dynamic>> getPendingFollowRequests(
     String userId, {
     int page = 0,
@@ -39,6 +46,41 @@ class MessagingApiService {
   Future<int> getPendingFollowCount(String userId) async {
     final response = await _dio.get('/api/messaging/follow/count/$userId');
     return response.data['count'] ?? 0;
+  }
+
+  Future<Map<String, dynamic>> getFollowers(
+    String userId, {
+    int page = 0,
+    int size = 20,
+  }) async {
+    final response = await _dio.get(
+      '/api/messaging/follow/followers/$userId',
+      queryParameters: {'page': page, 'size': size},
+    );
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> getFollowing(
+    String userId, {
+    int page = 0,
+    int size = 20,
+  }) async {
+    final response = await _dio.get(
+      '/api/messaging/follow/following/$userId',
+      queryParameters: {'page': page, 'size': size},
+    );
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> getFollowStatus(
+    String fromUserId,
+    String toUserId,
+  ) async {
+    final response = await _dio.get(
+      '/api/messaging/follow/status',
+      queryParameters: {'fromUserId': fromUserId, 'toUserId': toUserId},
+    );
+    return response.data;
   }
 
   Future<Map<String, dynamic>> getOrCreateConversation(

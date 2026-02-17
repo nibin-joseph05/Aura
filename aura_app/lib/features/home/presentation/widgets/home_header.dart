@@ -64,6 +64,18 @@ class HomeHeader extends ConsumerWidget {
                   ],
                 ),
               ),
+              _buildHeaderIcon(
+                icon: Icons.chat_bubble_outline_rounded,
+                onTap: () => Navigator.pushNamed(context, '/chat'),
+                responsive: responsive,
+              ),
+              SizedBox(width: responsive.w(1.5)),
+              _buildHeaderIcon(
+                icon: Icons.notifications_outlined,
+                onTap: () => Navigator.pushNamed(context, '/notifications'),
+                responsive: responsive,
+              ),
+              SizedBox(width: responsive.w(2)),
               GestureDetector(
                 onTap: () {},
                 child: Container(
@@ -139,6 +151,30 @@ class HomeHeader extends ConsumerWidget {
         Icons.person,
         size: responsive.isTablet ? 24 : 20,
         color: Colors.white,
+      ),
+    );
+  }
+
+  Widget _buildHeaderIcon({
+    required IconData icon,
+    required VoidCallback onTap,
+    required Responsive responsive,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: responsive.isTablet ? 40 : 34,
+        height: responsive.isTablet ? 40 : 34,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.white.withValues(alpha: 0.08),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+        ),
+        child: Icon(
+          icon,
+          color: Colors.white,
+          size: responsive.isTablet ? 20 : 17,
+        ),
       ),
     );
   }

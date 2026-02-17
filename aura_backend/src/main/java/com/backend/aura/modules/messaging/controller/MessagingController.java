@@ -35,6 +35,12 @@ public class MessagingController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/follow/unfollow")
+    public ResponseEntity<Void> unfollow(@RequestBody Map<String, String> body) {
+        messagingService.unfollow(body.get("fromUserId"), body.get("toUserId"));
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/follow/pending/{userId}")
     public ResponseEntity<Page<FollowRelationship>> getPendingRequests(
             @PathVariable String userId,
@@ -46,6 +52,29 @@ public class MessagingController {
     @GetMapping("/follow/count/{userId}")
     public ResponseEntity<Map<String, Long>> getPendingCount(@PathVariable String userId) {
         return ResponseEntity.ok(Map.of("count", messagingService.getPendingFollowCount(userId)));
+    }
+
+    @GetMapping("/follow/followers/{userId}")
+    public ResponseEntity<Page<FollowRelationship>> getFollowers(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(messagingService.getFollowers(userId, page, size));
+    }
+
+    @GetMapping("/follow/following/{userId}")
+    public ResponseEntity<Page<FollowRelationship>> getFollowing(
+            @PathVariable String userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(messagingService.getFollowing(userId, page, size));
+    }
+
+    @GetMapping("/follow/status")
+    public ResponseEntity<Map<String, Object>> getFollowStatus(
+            @RequestParam String fromUserId,
+            @RequestParam String toUserId) {
+        return ResponseEntity.ok(messagingService.getFollowStatus(fromUserId, toUserId));
     }
 
     @PostMapping("/conversations")

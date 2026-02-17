@@ -25,4 +25,9 @@ class AppRoutes {
   static const String chatList = '/chat';
   static const String chatScreen = '/chat/conversation';
   static const String followRequests = '/follow-requests';
+  static const String notifications = '/notifications';
+  static const String userProfile = '/user-profile';
+  static const String followers = '/followers';
+  static const String following = '/following';
+  static const String liveLocation = '/live-location';
 }

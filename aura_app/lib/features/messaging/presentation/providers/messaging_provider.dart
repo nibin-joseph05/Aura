@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:collection';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import '../../../../core/config/app_config.dart';
@@ -101,6 +103,18 @@ class FollowRequestModel {
   }
 }
 
+class _QueuedMessage {
+  final String conversationId;
+  final String content;
+  final DateTime queuedAt;
+
+  _QueuedMessage({
+    required this.conversationId,
+    required this.content,
+    DateTime? queuedAt,
+  }) : queuedAt = queuedAt ?? DateTime.now();
+}
+
 class MessagingState {
   final List<ConversationModel> conversations;
   final List<MessageModel> messages;
@@ -109,6 +123,7 @@ class MessagingState {
   final bool isLoading;
   final String? error;
   final String? activeConversationId;
+  final bool isConnected;
 
   MessagingState({
     this.conversations = const [],
@@ -118,6 +133,7 @@ class MessagingState {
     this.isLoading = false,
     this.error,
     this.activeConversationId,
+    this.isConnected = false,
   });
 
   MessagingState copyWith({
@@ -128,6 +144,7 @@ class MessagingState {
     bool? isLoading,
     String? error,
     String? activeConversationId,
+    bool? isConnected,
   }) {
     return MessagingState(
       conversations: conversations ?? this.conversations,
@@ -137,28 +154,73 @@ class MessagingState {
       isLoading: isLoading ?? this.isLoading,
       error: error,
       activeConversationId: activeConversationId ?? this.activeConversationId,
+      isConnected: isConnected ?? this.isConnected,
     );
   }
 }
 
-class MessagingNotifier extends StateNotifier<MessagingState> {
-  MessagingNotifier() : super(MessagingState());
+class MessagingNotifier extends StateNotifier<MessagingState>
+    with WidgetsBindingObserver {
+  MessagingNotifier() : super(MessagingState()) {
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   final _api = MessagingApiService();
   StompClient? _stompClient;
   String? _currentUserId;
 
+  Timer? _reconnectTimer;
+  int _reconnectAttempts = 0;
+  static const int _maxReconnectAttempts = 10;
+  static const Duration _baseReconnectDelay = Duration(seconds: 2);
+
+  final Queue<_QueuedMessage> _offlineQueue = Queue<_QueuedMessage>();
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (_currentUserId == null) return;
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _reconnect();
+        break;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+        break;
+    }
+  }
+
   void connectWebSocket(String userId) {
     _currentUserId = userId;
+    _reconnectAttempts = 0;
+    _cancelReconnectTimer();
+    _doConnect();
+  }
+
+  void _doConnect() {
+    if (_currentUserId == null) return;
+
+    try {
+      _stompClient?.deactivate();
+    } catch (_) {}
 
     _stompClient = StompClient(
       config: StompConfig.sockJS(
         url: '${AppConfig.baseUrl}/ws',
         onConnect: _onConnect,
         onWebSocketError: (error) {
-          state = state.copyWith(error: 'WebSocket error: $error');
+          state = state.copyWith(
+            error: 'WebSocket error: $error',
+            isConnected: false,
+          );
+          _scheduleReconnect();
         },
-        onDisconnect: (frame) {},
+        onDisconnect: (frame) {
+          state = state.copyWith(isConnected: false);
+          _scheduleReconnect();
+        },
       ),
     );
 
@@ -166,6 +228,9 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
   }
 
   void _onConnect(StompFrame frame) {
+    _reconnectAttempts = 0;
+    state = state.copyWith(isConnected: true);
+
     _stompClient!.subscribe(
       destination: '/user/$_currentUserId/queue/messages',
       callback: (frame) {
@@ -175,6 +240,7 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
 
         if (state.activeConversationId == msg.conversationId) {
           state = state.copyWith(messages: [msg, ...state.messages]);
+          markAsRead(msg.conversationId);
         }
         loadConversations(_currentUserId!);
       },
@@ -189,11 +255,52 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
         );
       },
     );
+
+    _flushOfflineQueue();
   }
 
   void disconnect() {
-    _stompClient?.deactivate();
+    _cancelReconnectTimer();
+    _currentUserId = null;
+    try {
+      _stompClient?.deactivate();
+    } catch (_) {}
     _stompClient = null;
+    state = state.copyWith(isConnected: false);
+  }
+
+  void _scheduleReconnect() {
+    if (_currentUserId == null) return;
+    if (_reconnectAttempts >= _maxReconnectAttempts) return;
+
+    _cancelReconnectTimer();
+    final delay = _baseReconnectDelay * (1 << _reconnectAttempts);
+    _reconnectAttempts++;
+
+    _reconnectTimer = Timer(delay, _reconnect);
+  }
+
+  void _reconnect() {
+    if (_currentUserId == null) return;
+    if (state.isConnected) return;
+    _doConnect();
+  }
+
+  void _cancelReconnectTimer() {
+    _reconnectTimer?.cancel();
+    _reconnectTimer = null;
+  }
+
+  Future<void> _flushOfflineQueue() async {
+    while (_offlineQueue.isNotEmpty) {
+      final queued = _offlineQueue.removeFirst();
+      try {
+        await _sendMessageInternal(queued.conversationId, queued.content);
+      } catch (_) {
+        _offlineQueue.addFirst(queued);
+        break;
+      }
+    }
   }
 
   Future<void> loadConversations(String userId) async {
@@ -225,6 +332,8 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
           .map((m) => MessageModel.fromJson(m as Map<String, dynamic>))
           .toList();
       state = state.copyWith(messages: msgs, isLoading: false);
+
+      markAsRead(conversationId);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -232,6 +341,35 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
 
   Future<void> sendMessage(String conversationId, String content) async {
     if (_currentUserId == null) return;
+
+    if (!state.isConnected) {
+      _offlineQueue.add(
+        _QueuedMessage(conversationId: conversationId, content: content),
+      );
+      state = state.copyWith(
+        messages: [
+          MessageModel(
+            id: 'pending_${DateTime.now().millisecondsSinceEpoch}',
+            conversationId: conversationId,
+            senderId: _currentUserId!,
+            content: content,
+            type: 'TEXT',
+            status: 'PENDING',
+            sentAt: DateTime.now(),
+          ),
+          ...state.messages,
+        ],
+      );
+      return;
+    }
+
+    await _sendMessageInternal(conversationId, content);
+  }
+
+  Future<void> _sendMessageInternal(
+    String conversationId,
+    String content,
+  ) async {
     try {
       final data = await _api.sendMessage(
         _currentUserId!,
@@ -239,9 +377,13 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
         content,
       );
       final msg = MessageModel.fromJson(data);
-      state = state.copyWith(messages: [msg, ...state.messages]);
+      final updated = state.messages
+          .where((m) => !m.id.startsWith('pending_') || m.content != content)
+          .toList();
+      state = state.copyWith(messages: [msg, ...updated]);
     } catch (e) {
       state = state.copyWith(error: e.toString());
+      rethrow;
     }
   }
 
@@ -249,6 +391,19 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
     if (_currentUserId == null) return;
     try {
       await _api.markAsRead(conversationId, _currentUserId!);
+      final updatedConvs = state.conversations.map((c) {
+        if (c.id == conversationId) {
+          return ConversationModel(
+            id: c.id,
+            otherUserId: c.otherUserId,
+            lastMessagePreview: c.lastMessagePreview,
+            lastMessageAt: c.lastMessageAt,
+            unreadCount: 0,
+          );
+        }
+        return c;
+      }).toList();
+      state = state.copyWith(conversations: updatedConvs);
     } catch (_) {}
   }
 
@@ -312,6 +467,8 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
 
   @override
   void dispose() {
+    _cancelReconnectTimer();
+    WidgetsBinding.instance.removeObserver(this);
     disconnect();
     super.dispose();
   }

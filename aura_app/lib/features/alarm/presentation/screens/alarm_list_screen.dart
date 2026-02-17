@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../../core/widgets/screens/empty_state_widget.dart';
+import '../../../../core/widgets/loading/ghost_running.dart';
 import '../providers/alarm_provider.dart';
 import '../widgets/alarm_card.dart';
 
@@ -25,65 +27,76 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(alarmProvider);
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        title: const Text('Alarms'),
-        backgroundColor: isDark
-            ? AppColors.backgroundDark
-            : AppColors.background,
-        elevation: 0,
-        actions: [
-          if (!state.hasPermission)
-            IconButton(
-              icon: const Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.orange,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppHeader(
+                title: 'Alarms',
+                actions: [
+                  if (!state.hasPermission)
+                    IconButton(
+                      icon: const Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.orange,
+                      ),
+                      onPressed: () => _showPermissionDialog(context),
+                    ),
+                ],
               ),
-              onPressed: () => _showPermissionDialog(context),
-            ),
-        ],
-      ),
-      body: SafeArea(
-        child: state.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : state.alarms.isEmpty
-            ? EmptyStateWidget(
-                icon: Icons.alarm_off,
-                title: 'No alarms set',
-                description: 'Tap + to create your first alarm',
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: state.alarms.length,
-                itemBuilder: (context, index) {
-                  final alarm = state.alarms[index];
-                  return AlarmCard(
-                    alarm: alarm,
-                    onToggle: (enabled) {
-                      ref
-                          .read(alarmProvider.notifier)
-                          .toggleAlarm(alarm.id, enabled);
-                    },
-                    onTap: () {
-                      Navigator.pushNamed(
-                        context,
-                        AppRoutes.alarmEdit,
-                        arguments: alarm.id,
-                      );
-                    },
-                    onDelete: () {
-                      ref.read(alarmProvider.notifier).deleteAlarm(alarm.id);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Alarm deleted')),
-                      );
-                    },
-                  );
-                },
+              Expanded(
+                child: state.isLoading
+                    ? const GhostRunning(primaryMessage: 'Loading alarms...')
+                    : state.alarms.isEmpty
+                    ? const EmptyStateWidget(
+                        icon: Icons.alarm_off,
+                        title: 'No alarms set',
+                        description: 'Tap + to create your first alarm',
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: state.alarms.length,
+                        itemBuilder: (context, index) {
+                          final alarm = state.alarms[index];
+                          return AlarmCard(
+                            alarm: alarm,
+                            onToggle: (enabled) {
+                              ref
+                                  .read(alarmProvider.notifier)
+                                  .toggleAlarm(alarm.id, enabled);
+                            },
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                AppRoutes.alarmEdit,
+                                arguments: alarm.id,
+                              );
+                            },
+                            onDelete: () {
+                              ref
+                                  .read(alarmProvider.notifier)
+                                  .deleteAlarm(alarm.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Alarm deleted')),
+                              );
+                            },
+                          );
+                        },
+                      ),
               ),
+            ],
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: AppColors.primary,

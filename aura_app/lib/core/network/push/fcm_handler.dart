@@ -1,0 +1,144 @@
+import 'dart:convert';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+ 
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  debugPrint('[FCM] Background message: ${message.messageId}');
+}
+
+ 
+ 
+class FcmHandler {
+  FcmHandler._();
+  static final FcmHandler instance = FcmHandler._();
+
+  final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
+
+   
+   
+  void Function(String route, Map<String, dynamic>? arguments)? onNavigate;
+
+   
+  static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
+    'aura_high_importance',
+    'Aura Notifications',
+    description: 'Important notifications from Aura',
+    importance: Importance.high,
+  );
+
+   
+  Future<void> initialize() async {
+     
+    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+
+     
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+     
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(_channel);
+
+     
+    await _localNotifications.initialize(
+      const InitializationSettings(
+        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        iOS: DarwinInitializationSettings(),
+      ),
+      onDidReceiveNotificationResponse: _onNotificationTapped,
+    );
+
+     
+    FirebaseMessaging.onMessage.listen(_showForegroundNotification);
+
+     
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpen);
+
+     
+    final initial = await _messaging.getInitialMessage();
+    if (initial != null) {
+      _handleMessageOpen(initial);
+    }
+
+     
+    final token = await _messaging.getToken();
+    debugPrint('[FCM] Token: $token');
+  }
+
+   
+  Future<String?> getToken() => _messaging.getToken();
+
+   
+   
+   
+
+  void _showForegroundNotification(RemoteMessage message) {
+    final notification = message.notification;
+    if (notification == null) return;
+
+    _localNotifications.show(
+      notification.hashCode,
+      notification.title ?? 'Aura',
+      notification.body ?? '',
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          _channel.id,
+          _channel.name,
+          channelDescription: _channel.description,
+          importance: Importance.high,
+          priority: Priority.high,
+          icon: '@mipmap/ic_launcher',
+        ),
+        iOS: const DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        ),
+      ),
+      payload: json.encode(message.data),
+    );
+  }
+
+   
+   
+   
+
+  void _handleMessageOpen(RemoteMessage message) {
+    final route = message.data['route'] as String?;
+    if (route != null && onNavigate != null) {
+      final argsString = message.data['arguments'] as String?;
+      Map<String, dynamic>? arguments;
+      if (argsString != null) {
+        try {
+          arguments = json.decode(argsString) as Map<String, dynamic>;
+        } catch (_) {}
+      }
+      onNavigate!(route, arguments);
+    }
+  }
+
+  void _onNotificationTapped(NotificationResponse response) {
+    if (response.payload == null) return;
+    try {
+      final data = json.decode(response.payload!) as Map<String, dynamic>;
+      final route = data['route'] as String?;
+      if (route != null && onNavigate != null) {
+        final argsString = data['arguments'] as String?;
+        Map<String, dynamic>? arguments;
+        if (argsString != null) {
+          try {
+            arguments = json.decode(argsString) as Map<String, dynamic>;
+          } catch (_) {}
+        }
+        onNavigate!(route, arguments);
+      }
+    } catch (_) {}
+  }
+}

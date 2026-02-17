@@ -37,7 +37,7 @@ class PrimaryButton extends StatelessWidget {
           padding: EdgeInsets.symmetric(vertical: buttonPadding),
           backgroundColor: AppColors.primary,
           elevation: AppDimensions.elevationL,
-          shadowColor: AppColors.primary.withOpacity(0.35),
+          shadowColor: AppColors.primary.withValues(alpha: 0.35),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(
               responsive.radius(AppDimensions.radiusL),

@@ -12,16 +12,41 @@ import '../../../walking/data/model/walking_session_model.dart';
 import '../../../alarm/data/model/alarm_model.dart';
 
 void registerHiveAdapters() {
-  Hive.registerAdapter(UserModelAdapter());
-  Hive.registerAdapter(DailyActivityModelAdapter());
-  Hive.registerAdapter(TrustedContactAdapter());
-  Hive.registerAdapter(SOSSettingsAdapter());
-  Hive.registerAdapter(SOSEventStatusAdapter());
-  Hive.registerAdapter(SOSEventAdapter());
-  Hive.registerAdapter(WellnessCategoryAdapter());
-  Hive.registerAdapter(WellnessUpdateAdapter());
-  Hive.registerAdapter(PendingWellnessOperationAdapter());
-  Hive.registerAdapter(WalkingSessionModelAdapter());
-  Hive.registerAdapter(RoutePointAdapter());
-  Hive.registerAdapter(AlarmModelAdapter());
+  if (!Hive.isAdapterRegistered(UserModelAdapter().typeId)) {
+    Hive.registerAdapter(UserModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(DailyActivityModelAdapter().typeId)) {
+    Hive.registerAdapter(DailyActivityModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(TrustedContactAdapter().typeId)) {
+    Hive.registerAdapter(TrustedContactAdapter());
+  }
+  if (!Hive.isAdapterRegistered(SOSSettingsAdapter().typeId)) {
+    Hive.registerAdapter(SOSSettingsAdapter());
+  }
+  if (!Hive.isAdapterRegistered(SOSEventStatusAdapter().typeId)) {
+    Hive.registerAdapter(SOSEventStatusAdapter());
+  }
+  if (!Hive.isAdapterRegistered(SOSEventAdapter().typeId)) {
+    Hive.registerAdapter(SOSEventAdapter());
+  }
+  if (!Hive.isAdapterRegistered(WellnessCategoryAdapter().typeId)) {
+    Hive.registerAdapter(WellnessCategoryAdapter());
+  }
+  if (!Hive.isAdapterRegistered(WellnessUpdateAdapter().typeId)) {
+    Hive.registerAdapter(WellnessUpdateAdapter());
+  }
+  if (!Hive.isAdapterRegistered(PendingWellnessOperationAdapter().typeId)) {
+    Hive.registerAdapter(PendingWellnessOperationAdapter());
+  }
+  if (!Hive.isAdapterRegistered(WalkingSessionModelAdapter().typeId)) {
+    Hive.registerAdapter(WalkingSessionModelAdapter());
+  }
+  if (!Hive.isAdapterRegistered(RoutePointAdapter().typeId)) {
+    Hive.registerAdapter(RoutePointAdapter());
+  }
+  if (!Hive.isAdapterRegistered(AlarmModelAdapter().typeId)) {
+    Hive.registerAdapter(AlarmModelAdapter());
+  }
 }
+

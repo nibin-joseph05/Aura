@@ -186,12 +186,12 @@ class _WelcomeScreenState extends State<WelcomeScreen>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withOpacity(0.4),
+                    color: Colors.blue.withValues(alpha: 0.4),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
                   BoxShadow(
-                    color: Colors.cyan.withOpacity(0.2),
+                    color: Colors.cyan.withValues(alpha: 0.2),
                     blurRadius: 50,
                     spreadRadius: 8,
                   ),

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
+import '../../../../core/widgets/screens/empty_state_widget.dart';
 import '../../data/models/wellness_category.dart';
 import '../providers/wellness_provider.dart';
 import '../widgets/wellness_update_card.dart';
@@ -34,7 +36,11 @@ class WellnessFeedScreen extends ConsumerWidget {
                 child: feedAsync.when(
                   data: (updates) {
                     if (updates.isEmpty) {
-                      return _buildEmptyState(responsive);
+                      return const EmptyStateWidget(
+                        icon: Icons.spa_outlined,
+                        title: 'No wellness updates yet',
+                        description: 'Be the first to share!',
+                      );
                     }
                     return RefreshIndicator(
                       onRefresh: () async {
@@ -98,32 +104,7 @@ class WellnessFeedScreen extends ConsumerWidget {
   }
 
   Widget _buildHeader(BuildContext context, Responsive responsive) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: responsive.w(4),
-        vertical: responsive.h(2),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-          ),
-          const Expanded(
-            child: Text(
-              'Wellness Feed',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          const SizedBox(width: 48),
-        ],
-      ),
-    );
+    return const AppHeader(title: 'Wellness Feed');
   }
 
   Widget _buildCategoryFilter(
@@ -178,37 +159,6 @@ class WellnessFeedScreen extends ConsumerWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(Responsive responsive) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.spa_outlined,
-            size: responsive.w(20),
-            color: Colors.white.withValues(alpha: 0.5),
-          ),
-          SizedBox(height: responsive.h(2)),
-          Text(
-            'No wellness updates yet',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: 18,
-            ),
-          ),
-          SizedBox(height: responsive.h(1)),
-          Text(
-            'Be the first to share!',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 14,
-            ),
-          ),
-        ],
       ),
     );
   }

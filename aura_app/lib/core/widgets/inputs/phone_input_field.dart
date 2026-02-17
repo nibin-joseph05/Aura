@@ -62,7 +62,7 @@ class PhoneInputField extends StatelessWidget {
             ),
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                color: Colors.white.withOpacity(0.35),
+                color: Colors.white.withValues(alpha: 0.35),
                 width: 1.2,
               ),
               borderRadius: BorderRadius.circular(
@@ -76,7 +76,7 @@ class PhoneInputField extends StatelessWidget {
               ),
             ),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.05),
+            fillColor: Colors.white.withValues(alpha: 0.05),
             contentPadding: EdgeInsets.symmetric(
               horizontal: responsive.space(AppDimensions.paddingM),
               vertical: responsive.space(AppDimensions.paddingM),

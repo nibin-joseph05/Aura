@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
 import '../providers/walking_provider.dart';
 import '../widgets/walking_stats_card.dart';
 import '../widgets/walking_history_list.dart';
@@ -58,26 +59,7 @@ class _WalkingScreenState extends ConsumerState<WalkingScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.all(responsive.space(4)),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Walking Session',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const AppHeader(title: 'Walking Session'),
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(

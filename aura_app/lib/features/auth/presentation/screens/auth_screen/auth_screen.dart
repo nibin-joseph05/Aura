@@ -267,12 +267,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withOpacity(0.3),
+                    color: Colors.blue.withValues(alpha: 0.3),
                     blurRadius: 20,
                     spreadRadius: 3,
                   ),
                   BoxShadow(
-                    color: Colors.cyan.withOpacity(0.2),
+                    color: Colors.cyan.withValues(alpha: 0.2),
                     blurRadius: 40,
                     spreadRadius: 5,
                   ),
@@ -494,7 +494,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen>
           responsive.radius(AppDimensions.radiusXL),
         ),
         elevation: AppDimensions.elevationM,
-        shadowColor: Colors.black.withOpacity(0.3),
+        shadowColor: Colors.black.withValues(alpha: 0.3),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(

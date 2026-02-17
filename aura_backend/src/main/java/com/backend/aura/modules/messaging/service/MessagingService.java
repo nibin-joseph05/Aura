@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -75,9 +76,38 @@ public class MessagingService {
         followRepo.save(follow);
     }
 
+    @Transactional
+    public void unfollow(String fromUserId, String toUserId) {
+        followRepo.findByFollowerIdAndFollowingId(fromUserId, toUserId)
+                .ifPresent(followRepo::delete);
+    }
+
     public Page<FollowRelationship> getPendingFollowRequests(String userId, int page, int size) {
         return followRepo.findByFollowingIdAndStatus(userId, FollowRelationship.FollowStatus.PENDING,
                 PageRequest.of(page, size));
+    }
+
+    public Page<FollowRelationship> getFollowers(String userId, int page, int size) {
+        return followRepo.findByFollowingIdAndStatus(userId, FollowRelationship.FollowStatus.ACCEPTED,
+                PageRequest.of(page, size));
+    }
+
+    public Page<FollowRelationship> getFollowing(String userId, int page, int size) {
+        return followRepo.findByFollowerIdAndStatus(userId, FollowRelationship.FollowStatus.ACCEPTED,
+                PageRequest.of(page, size));
+    }
+
+    public Map<String, Object> getFollowStatus(String fromUserId, String toUserId) {
+        Map<String, Object> status = new HashMap<>();
+        Optional<FollowRelationship> rel = followRepo.findByFollowerIdAndFollowingId(fromUserId, toUserId);
+        if (rel.isPresent()) {
+            status.put("status", rel.get().getStatus().name());
+            status.put("requestId", rel.get().getId());
+        } else {
+            status.put("status", "NONE");
+        }
+        status.put("isMutual", areMutualFollowers(fromUserId, toUserId));
+        return status;
     }
 
     public boolean areMutualFollowers(String userA, String userB) {

@@ -40,3 +40,25 @@ export interface SOSEventsResponse {
 export interface ResolveSOSRequest {
     resolutionNotes?: string;
 }
+
+export interface LiveLocationPoint {
+    id: string;
+    latitude: number;
+    longitude: number;
+    timestamp: string;
+    altitude: number | null;
+    speed: number | null;
+}
+
+export interface LiveLocationSession {
+    id: string;
+    userId: string;
+    active: boolean;
+    startedAt: string;
+    endedAt: string | null;
+    durationMinutes: number | null;
+    allowedContactIds: string[];
+    blockHash: string | null;
+    blockIndex: number | null;
+    points: LiveLocationPoint[];
+}

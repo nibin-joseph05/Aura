@@ -48,7 +48,7 @@ class ConfirmExitWrapper extends StatelessWidget {
                   height: 46,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                   ),
                   child: const Icon(
                     Icons.info_outline_rounded,

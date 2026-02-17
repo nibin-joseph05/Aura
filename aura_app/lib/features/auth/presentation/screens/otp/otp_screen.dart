@@ -300,18 +300,6 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
         ? 13.0
         : 12.0;
 
-    final buttonFontSize = responsive.isLargeTablet
-        ? 22.0
-        : responsive.isTablet
-        ? 20.0
-        : 18.0;
-
-    final buttonPadding = responsive.isLargeTablet
-        ? 20.0
-        : responsive.isTablet
-        ? 18.0
-        : 16.0;
-
     return Scaffold(
       resizeToAvoidBottomInset: true,
       body: Container(
@@ -351,15 +339,15 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                                       shape: BoxShape.circle,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: AppColors.primary.withOpacity(
-                                            0.4,
+                                          color: AppColors.primary.withValues(
+                                            alpha: 0.4,
                                           ),
                                           blurRadius: 25,
                                           spreadRadius: 4,
                                         ),
                                         BoxShadow(
-                                          color: AppColors.accent.withOpacity(
-                                            0.25,
+                                          color: AppColors.accent.withValues(
+                                            alpha: 0.25,
                                           ),
                                           blurRadius: 40,
                                           spreadRadius: 6,

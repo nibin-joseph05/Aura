@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../data/model/walking_session_model.dart';
+import 'route_visualization.dart';
 
 class WalkingHistoryList extends StatelessWidget {
   final List<WalkingSessionModel> sessions;
@@ -92,43 +93,59 @@ class WalkingHistoryList extends StatelessWidget {
     Responsive responsive,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: responsive.space(4),
-        vertical: responsive.space(2),
-      ),
-      leading: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: AppColors.success.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
-        ),
-        child: const Icon(Icons.directions_walk, color: AppColors.success),
-      ),
-      title: Text(
-        _formatDate(session.startTime),
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: isDark ? Colors.white : AppColors.textPrimary,
-        ),
-      ),
-      subtitle: Text(
-        '${_formatDistance(session.distanceMeters)} • ${_formatDuration(session.durationSeconds)}',
-        style: TextStyle(color: isDark ? Colors.grey : AppColors.textSecondary),
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            '${session.caloriesBurned.toInt()} cal',
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: responsive.space(4),
+            vertical: responsive.space(2),
+          ),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.directions_walk, color: AppColors.success),
+          ),
+          title: Text(
+            _formatDate(session.startTime),
             style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: AppColors.warning,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : AppColors.textPrimary,
             ),
           ),
-        ],
-      ),
+          subtitle: Text(
+            '${_formatDistance(session.distanceMeters)} • ${_formatDuration(session.durationSeconds)}',
+            style: TextStyle(
+              color: isDark ? Colors.grey : AppColors.textSecondary,
+            ),
+          ),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${session.caloriesBurned.toInt()} cal',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.warning,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (session.routePoints.length >= 2)
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: responsive.space(4),
+            ).copyWith(bottom: responsive.space(3)),
+            child: RouteVisualization(
+              routePoints: session.routePoints,
+              height: 120,
+            ),
+          ),
+      ],
     );
   }
 

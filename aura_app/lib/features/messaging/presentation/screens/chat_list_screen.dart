@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
+import '../../../../core/widgets/screens/empty_state_widget.dart';
 import '../providers/messaging_provider.dart';
 
 class ChatListScreen extends ConsumerStatefulWidget {
@@ -31,109 +33,89 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
     final state = ref.watch(messagingProvider);
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        title: const Text('Messages'),
-        backgroundColor: isDark
-            ? AppColors.backgroundDark
-            : AppColors.background,
-        elevation: 0,
-        actions: [
-          Stack(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
             children: [
-              IconButton(
-                icon: const Icon(Icons.person_add_rounded),
-                onPressed: () {
-                  Navigator.pushNamed(context, AppRoutes.followRequests);
-                },
-              ),
-              if (state.pendingFollowCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: AppColors.error,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 18,
-                      minHeight: 18,
-                    ),
-                    child: Text(
-                      '${state.pendingFollowCount}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+              AppHeader(
+                title: 'Messages',
+                actions: [
+                  Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.person_add_rounded,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.followRequests,
+                          );
+                        },
                       ),
-                      textAlign: TextAlign.center,
-                    ),
+                      if (state.pendingFollowCount > 0)
+                        Positioned(
+                          right: 8,
+                          top: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: AppColors.error,
+                              shape: BoxShape.circle,
+                            ),
+                            constraints: const BoxConstraints(
+                              minWidth: 18,
+                              minHeight: 18,
+                            ),
+                            child: Text(
+                              '${state.pendingFollowCount}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                ),
+                ],
+              ),
+              Expanded(
+                child: state.isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      )
+                    : state.conversations.isEmpty
+                    ? const EmptyStateWidget(
+                        icon: Icons.chat_bubble_outline_rounded,
+                        title: 'No conversations yet',
+                        description: 'Follow other users to start messaging',
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: state.conversations.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 4),
+                        itemBuilder: (context, index) {
+                          return _buildConversationTile(
+                            state.conversations[index],
+                            isDark,
+                          );
+                        },
+                      ),
+              ),
             ],
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: state.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : state.conversations.isEmpty
-            ? _buildEmptyState(isDark)
-            : ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: state.conversations.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 4),
-                itemBuilder: (context, index) {
-                  return _buildConversationTile(
-                    state.conversations[index],
-                    isDark,
-                  );
-                },
-              ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(bool isDark) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: AppColors.accent.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.chat_bubble_outline_rounded,
-              size: 40,
-              color: AppColors.accent.withValues(alpha: 0.5),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'No conversations yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Follow other users to start messaging',
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.6)
-                  : AppColors.textSecondary,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

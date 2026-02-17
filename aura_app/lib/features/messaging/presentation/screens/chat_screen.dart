@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
+import '../../../../core/widgets/loading/ghost_running.dart';
 import '../providers/messaging_provider.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
@@ -54,44 +56,49 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final state = ref.watch(messagingProvider);
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          widget.otherUserId.length > 12
-              ? '${widget.otherUserId.substring(0, 12)}...'
-              : widget.otherUserId,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
         ),
-        backgroundColor: isDark
-            ? AppColors.backgroundDark
-            : AppColors.background,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: state.isLoading && state.messages.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : state.messages.isEmpty
-                  ? _buildEmptyChat(isDark)
-                  : ListView.builder(
-                      controller: _scrollController,
-                      reverse: true,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
+        child: SafeArea(
+          child: Column(
+            children: [
+              AppHeader(
+                title: widget.otherUserId.length > 12
+                    ? '${widget.otherUserId.substring(0, 12)}...'
+                    : widget.otherUserId,
+              ),
+              Expanded(
+                child: state.isLoading && state.messages.isEmpty
+                    ? const GhostRunning(
+                        primaryMessage: 'Loading messages...',
+                        secondaryMessage: 'Just a moment',
+                      )
+                    : state.messages.isEmpty
+                    ? _buildEmptyChat(isDark)
+                    : ListView.builder(
+                        controller: _scrollController,
+                        reverse: true,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        itemCount: state.messages.length,
+                        itemBuilder: (context, index) {
+                          return _buildMessageBubble(
+                            state.messages[index],
+                            isDark,
+                          );
+                        },
                       ),
-                      itemCount: state.messages.length,
-                      itemBuilder: (context, index) {
-                        return _buildMessageBubble(
-                          state.messages[index],
-                          isDark,
-                        );
-                      },
-                    ),
-            ),
-            _buildInputBar(isDark),
-          ],
+              ),
+              _buildInputBar(isDark),
+            ],
+          ),
         ),
       ),
     );

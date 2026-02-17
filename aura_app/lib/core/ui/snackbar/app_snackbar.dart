@@ -69,15 +69,15 @@ class AppSnackbar {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.42),
+                color: Colors.black.withValues(alpha: 0.42),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.12),
+                  color: Colors.white.withValues(alpha: 0.12),
                   width: 1.1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.22),
+                    color: Colors.black.withValues(alpha: 0.22),
                     blurRadius: 18,
                     offset: const Offset(0, 6),
                   ),

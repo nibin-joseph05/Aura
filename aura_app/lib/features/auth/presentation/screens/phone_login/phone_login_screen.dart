@@ -264,14 +264,15 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
                                         shape: BoxShape.circle,
                                         boxShadow: [
                                           BoxShadow(
-                                            color: AppColors.primary
-                                                .withOpacity(0.4),
+                                            color: AppColors.primary.withValues(
+                                              alpha: 0.4,
+                                            ),
                                             blurRadius: 25,
                                             spreadRadius: 4,
                                           ),
                                           BoxShadow(
-                                            color: AppColors.accent.withOpacity(
-                                              0.25,
+                                            color: AppColors.accent.withValues(
+                                              alpha: 0.25,
                                             ),
                                             blurRadius: 40,
                                             spreadRadius: 6,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/navigation/app_header.dart';
 import '../providers/permissions_provider.dart';
 
 class PermissionsScreen extends ConsumerStatefulWidget {
@@ -41,62 +42,66 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen>
     final state = ref.watch(permissionsProvider);
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      appBar: AppBar(
-        title: const Text('Permissions'),
-        backgroundColor: isDark
-            ? AppColors.backgroundDark
-            : AppColors.background,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: state.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  _buildHeader(isDark, state),
-                  Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: state.permissions.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 8),
-                      itemBuilder: (context, index) {
-                        return _buildPermissionTile(
-                          state.permissions[index],
-                          index,
-                          isDark,
-                        );
-                      },
-                    ),
-                  ),
-                  if (!state.allGranted)
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          await ref
-                              .read(permissionsProvider.notifier)
-                              .requestAll();
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: state.isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
+              : Column(
+                  children: [
+                    const AppHeader(title: 'Permissions'),
+                    _buildHeader(isDark, state),
+                    Expanded(
+                      child: ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: state.permissions.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 8),
+                        itemBuilder: (context, index) {
+                          return _buildPermissionTile(
+                            state.permissions[index],
+                            index,
+                            isDark,
+                          );
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          minimumSize: const Size(double.infinity, 52),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    if (!state.allGranted)
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            await ref
+                                .read(permissionsProvider.notifier)
+                                .requestAll();
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 52),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          'Grant All Permissions',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                          child: const Text(
+                            'Grant All Permissions',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
+                  ],
+                ),
+        ),
       ),
     );
   }

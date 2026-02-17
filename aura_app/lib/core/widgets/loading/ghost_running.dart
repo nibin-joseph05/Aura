@@ -145,7 +145,7 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.6),
+            color: AppColors.primary.withValues(alpha: 0.6),
             blurRadius: responsive.space(15),
             spreadRadius: responsive.space(3),
           ),
@@ -163,8 +163,8 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
                 ),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.textLight.withOpacity(
-                    0.2 * _controller.value,
+                  color: AppColors.textLight.withValues(
+                    alpha: 0.2 * _controller.value,
                   ),
                 ),
               );
@@ -194,12 +194,12 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.4),
+              color: AppColors.primary.withValues(alpha: 0.4),
               blurRadius: responsive.space(15),
               spreadRadius: responsive.space(3),
             ),
             BoxShadow(
-              color: AppColors.accent.withOpacity(0.3),
+              color: AppColors.accent.withValues(alpha: 0.3),
               blurRadius: responsive.space(25),
               spreadRadius: responsive.space(5),
             ),
@@ -289,7 +289,7 @@ class _GhostRunningState extends ConsumerState<GhostRunning>
                       child: Text(
                         secondaryMsg,
                         style: AppTextStyles.textTheme.bodyMedium!.copyWith(
-                          color: AppColors.textLight.withOpacity(0.7),
+                          color: AppColors.textLight.withValues(alpha: 0.7),
                           fontWeight: FontWeight.w400,
                         ),
                         textAlign: TextAlign.center,
