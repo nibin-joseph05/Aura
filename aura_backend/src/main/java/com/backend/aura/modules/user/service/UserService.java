@@ -9,6 +9,8 @@ import com.backend.aura.modules.user.model.User;
 import com.backend.aura.modules.user.model.enums.AccountStatus;
 import com.backend.aura.modules.user.repository.UserRepository;
 import com.backend.aura.modules.wellness.repository.WellnessUpdateRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ import java.util.Date;
 
 @Service
 public class UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
@@ -54,6 +58,8 @@ public class UserService {
     }
 
     public User createOrUpdateUser(User user) {
+        log.debug("USER_SVC - createOrUpdateUser | uid: {} | email: {} | phone: {}", user.getUid(), user.getEmail(),
+                user.getPhone());
         User existingUser = userRepository.findById(user.getUid()).orElse(null);
 
         if (existingUser == null) {
@@ -66,6 +72,7 @@ public class UserService {
         }
 
         if (existingUser == null) {
+            log.debug("USER_SVC - Creating NEW user | uid: {}", user.getUid());
             user.setCreatedAt(new Date());
             user.setAccountStatus(AccountStatus.ACTIVE);
             user.setProfileCompleted(false);
@@ -95,18 +102,26 @@ public class UserService {
         existingUser.setLastLoginAt(new Date());
         existingUser.setUpdatedAt(new Date());
 
+        log.debug("USER_SVC - Updating EXISTING user | uid: {} | profileCompleted: {}", existingUser.getUid(),
+                existingUser.isProfileCompleted());
         return userRepository.save(existingUser);
     }
 
     public boolean isUsernameAvailable(String username, String uid) {
-        return !userRepository.existsByUsernameAndUidNot(username, uid);
+        boolean exists = userRepository.existsByUsernameAndUidNot(username, uid);
+        log.debug("USER_SVC - isUsernameAvailable | username: {} | uid: {} | existsByOther: {} | available: {}",
+                username, uid, exists, !exists);
+        return !exists;
     }
 
     public UserResponse updateProfile(UpdateProfileRequest dto) {
+        log.debug("USER_SVC - updateProfile | uid: {} | username: {} | name: {}", dto.getUid(), dto.getUsername(),
+                dto.getName());
 
         User user = getUserByUid(dto.getUid());
 
         if (user == null) {
+            log.debug("USER_SVC - updateProfile FAILED | User not found for uid: {}", dto.getUid());
             throw new RuntimeException("User not found");
         }
 
@@ -117,7 +132,7 @@ public class UserService {
                 throw new RuntimeException("Username can only contain letters and underscores");
             }
 
-            if (userRepository.existsByUsername(dto.getUsername())) {
+            if (userRepository.existsByUsernameAndUidNot(dto.getUsername(), dto.getUid())) {
                 throw new RuntimeException("Username already taken");
             }
 
@@ -252,7 +267,7 @@ public class UserService {
         return mapToUserResponse(user);
     }
 
-    private UserResponse mapToUserResponse(User user) {
+    public UserResponse mapToUserResponse(User user) {
         long followersCount = followRepo.countByFollowingIdAndStatus(
                 user.getUid(), FollowRelationship.FollowStatus.ACCEPTED);
         long followingCount = followRepo.countByFollowerIdAndStatus(

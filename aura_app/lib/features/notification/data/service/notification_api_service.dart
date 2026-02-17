@@ -10,7 +10,7 @@ class NotificationApiService {
     int size = 20,
   }) async {
     final response = await _dio.get(
-      '/api/notifications/user/$userId',
+      '/api/users/$userId/notifications',
       queryParameters: {'page': page, 'size': size},
     );
     return response.data;

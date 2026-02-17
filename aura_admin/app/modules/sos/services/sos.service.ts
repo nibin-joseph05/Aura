@@ -2,6 +2,12 @@ import { apiClient } from "@/app/core/network/api-client";
 import { API_ENDPOINTS } from "@/app/core/network/api-endpoints";
 import { SOSEvent, SOSEventsResponse, SOSStats, ResolveSOSRequest, SOSEventStatus, LiveLocationSession } from "../models/sos.model";
 
+interface BackendResponse<T> {
+    success: boolean;
+    data: T;
+    error?: string;
+}
+
 class SOSService {
     async getEvents(page: number = 0, size: number = 20, status?: SOSEventStatus): Promise<SOSEventsResponse> {
         const params = new URLSearchParams();
@@ -11,43 +17,43 @@ class SOSService {
             params.append('status', status);
         }
 
-        const response = await apiClient.get(`${API_ENDPOINTS.SOS.EVENTS}?${params.toString()}`);
-        if (response.data.success) {
+        const response = await apiClient.get<BackendResponse<SOSEventsResponse>>(`${API_ENDPOINTS.SOS.EVENTS}?${params.toString()}`);
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to fetch SOS events');
+        throw new Error(response.data?.error || 'Failed to fetch SOS events');
     }
 
     async getEventById(eventId: string): Promise<SOSEvent> {
-        const response = await apiClient.get(API_ENDPOINTS.SOS.EVENT_BY_ID(eventId));
-        if (response.data.success) {
+        const response = await apiClient.get<BackendResponse<SOSEvent>>(API_ENDPOINTS.SOS.EVENT_BY_ID(eventId));
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to fetch SOS event');
+        throw new Error(response.data?.error || 'Failed to fetch SOS event');
     }
 
     async acknowledgeEvent(eventId: string): Promise<SOSEvent> {
-        const response = await apiClient.put(API_ENDPOINTS.SOS.ACKNOWLEDGE(eventId));
-        if (response.data.success) {
+        const response = await apiClient.put<BackendResponse<SOSEvent>>(API_ENDPOINTS.SOS.ACKNOWLEDGE(eventId), {});
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to acknowledge event');
+        throw new Error(response.data?.error || 'Failed to acknowledge event');
     }
 
     async resolveEvent(eventId: string, request?: ResolveSOSRequest): Promise<SOSEvent> {
-        const response = await apiClient.put(API_ENDPOINTS.SOS.RESOLVE(eventId), request || {});
-        if (response.data.success) {
+        const response = await apiClient.put<BackendResponse<SOSEvent>>(API_ENDPOINTS.SOS.RESOLVE(eventId), request || {});
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to resolve event');
+        throw new Error(response.data?.error || 'Failed to resolve event');
     }
 
     async getStats(): Promise<SOSStats> {
-        const response = await apiClient.get(API_ENDPOINTS.SOS.STATS);
-        if (response.data.success) {
+        const response = await apiClient.get<BackendResponse<SOSStats>>(API_ENDPOINTS.SOS.STATS);
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to fetch SOS stats');
+        throw new Error(response.data?.error || 'Failed to fetch SOS stats');
     }
 
     getStatusColor(status: SOSEventStatus): string {
@@ -112,23 +118,27 @@ class SOSService {
 
     async getLiveSessions(): Promise<LiveLocationSession[]> {
         try {
-            const response = await apiClient.get(API_ENDPOINTS.SOS.LIVE_SESSIONS);
-            const data = response.data as any;
+            const response = await apiClient.get<BackendResponse<LiveLocationSession[]>>(API_ENDPOINTS.SOS.LIVE_SESSIONS);
+            const data = response.data as BackendResponse<LiveLocationSession[]> | null;
+            if (!data) return [];
             if (Array.isArray(data)) {
                 return data;
             }
             if (data?.data) {
-                return Array.isArray(data.data) ? data.data : [data.data];
+                return Array.isArray(data.data) ? data.data : [data.data as unknown as LiveLocationSession];
             }
-            return data ? [data] : [];
+            return [];
         } catch {
             return [];
         }
     }
 
     async getLiveSessionById(sessionId: string): Promise<LiveLocationSession> {
-        const response = await apiClient.get(API_ENDPOINTS.SOS.LIVE_SESSION_BY_ID(sessionId));
-        return response.data as LiveLocationSession;
+        const response = await apiClient.get<BackendResponse<LiveLocationSession>>(API_ENDPOINTS.SOS.LIVE_SESSION_BY_ID(sessionId));
+        if (response.data?.success) {
+            return response.data.data;
+        }
+        throw new Error('Failed to fetch live session');
     }
 }
 

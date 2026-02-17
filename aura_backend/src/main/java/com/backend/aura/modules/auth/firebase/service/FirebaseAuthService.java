@@ -6,6 +6,8 @@ import com.backend.aura.modules.user.model.enums.SignupMethod;
 import com.backend.aura.modules.user.service.UserService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseToken;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -13,6 +15,8 @@ import java.util.Map;
 
 @Service
 public class FirebaseAuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(FirebaseAuthService.class);
 
     private final UserService userService;
 
@@ -22,8 +26,9 @@ public class FirebaseAuthService {
 
     public AuthenticatedUserContext verifyTokenAndSyncUser(String idToken) {
         try {
-            FirebaseToken decodedToken =
-                    FirebaseAuth.getInstance().verifyIdToken(idToken);
+            log.debug("AUTH_SERVICE - Verifying Firebase ID token...");
+
+            FirebaseToken decodedToken = FirebaseAuth.getInstance().verifyIdToken(idToken);
 
             String uid = decodedToken.getUid();
             String email = decodedToken.getEmail();
@@ -31,13 +36,15 @@ public class FirebaseAuthService {
             String phone = (String) decodedToken.getClaims()
                     .get("phone_number");
 
-            Map<String, Object> firebaseClaims =
-                    (Map<String, Object>) decodedToken.getClaims()
-                            .get("firebase");
+            Map<String, Object> firebaseClaims = (Map<String, Object>) decodedToken.getClaims()
+                    .get("firebase");
 
             String provider = firebaseClaims != null
                     ? (String) firebaseClaims.get("sign_in_provider")
                     : null;
+
+            log.debug("AUTH_SERVICE - Token decoded | uid: {} | email: {} | phone: {} | provider: {}",
+                    uid, email, phone, provider);
 
             SignupMethod signupMethod = mapSignupMethod(provider);
 
@@ -52,11 +59,14 @@ public class FirebaseAuthService {
 
             setProviderLinks(user, provider);
 
-            userService.createOrUpdateUser(user);
+            User savedUser = userService.createOrUpdateUser(user);
+            log.debug("AUTH_SERVICE - User synced | uid: {} | profileCompleted: {} | username: {}",
+                    savedUser.getUid(), savedUser.isProfileCompleted(), savedUser.getUsername());
 
             return new AuthenticatedUserContext(uid, email, phone, provider);
 
         } catch (Exception e) {
+            log.debug("AUTH_SERVICE - Token verification FAILED: {}", e.getMessage());
             throw new RuntimeException("Invalid Firebase token", e);
         }
     }
@@ -81,7 +91,8 @@ public class FirebaseAuthService {
     }
 
     private SignupMethod mapSignupMethod(String provider) {
-        if (provider == null) return SignupMethod.EMAIL;
+        if (provider == null)
+            return SignupMethod.EMAIL;
 
         return switch (provider) {
             case "google.com" -> SignupMethod.GOOGLE;

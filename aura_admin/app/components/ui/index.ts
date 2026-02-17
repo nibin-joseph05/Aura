@@ -3,7 +3,7 @@ export { default as BackButton } from './BackButton';
 export { default as IconButton } from './IconButton';
 export { default as InputField } from './InputField';
 export { default as SearchBar } from './SearchBar';
-export { default as Toast } from './Toast';
+export { useToast, ToastProvider } from './Toast';
 export { default as LogoWithEffects } from './LogoWithEffects';
 export { default as ErrorMessage } from './ErrorMessage';
 export { default as EmptyState } from './EmptyState';

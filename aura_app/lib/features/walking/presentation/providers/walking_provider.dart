@@ -18,6 +18,7 @@ final walkingProvider = StateNotifierProvider<WalkingNotifier, WalkingState>((
 class WalkingState {
   final WalkingSessionModel? activeSession;
   final bool isTracking;
+  final bool isInitialized;
   final Position? currentPosition;
   final double totalDistance;
   final int durationSeconds;
@@ -27,6 +28,7 @@ class WalkingState {
   WalkingState({
     this.activeSession,
     this.isTracking = false,
+    this.isInitialized = false,
     this.currentPosition,
     this.totalDistance = 0.0,
     this.durationSeconds = 0,
@@ -37,6 +39,7 @@ class WalkingState {
   WalkingState copyWith({
     WalkingSessionModel? activeSession,
     bool? isTracking,
+    bool? isInitialized,
     Position? currentPosition,
     double? totalDistance,
     int? durationSeconds,
@@ -46,6 +49,7 @@ class WalkingState {
     return WalkingState(
       activeSession: activeSession ?? this.activeSession,
       isTracking: isTracking ?? this.isTracking,
+      isInitialized: isInitialized ?? this.isInitialized,
       currentPosition: currentPosition ?? this.currentPosition,
       totalDistance: totalDistance ?? this.totalDistance,
       durationSeconds: durationSeconds ?? this.durationSeconds,
@@ -70,10 +74,13 @@ class WalkingNotifier extends StateNotifier<WalkingState> {
       state = state.copyWith(
         activeSession: active,
         isTracking: true,
+        isInitialized: true,
         totalDistance: active.distanceMeters,
         durationSeconds: DateTime.now().difference(active.startTime).inSeconds,
       );
       _startTracking();
+    } else {
+      state = state.copyWith(isInitialized: true);
     }
   }
 
@@ -196,6 +203,7 @@ class WalkingNotifier extends StateNotifier<WalkingState> {
   }
 
   List<WalkingSessionModel> getHistory() {
+    if (!_repository.isInitialized) return [];
     return _repository.getCompletedSessions();
   }
 

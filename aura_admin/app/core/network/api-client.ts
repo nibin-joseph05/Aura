@@ -59,6 +59,13 @@ class ApiClient {
             }
         }
 
+        console.log(`============================================================`);
+        console.log(`>>> ADMIN REQUEST  - ${method} ${endpoint}`);
+        console.log(`>>> Auth           - ${requestHeaders["Authorization"] ? "Bearer ***" : "none"}`);
+        if (body) {
+            console.log(`>>> Body           -`, body);
+        }
+
         try {
             const response = await fetch(`${this.baseUrl}${endpoint}`, {
                 method,
@@ -69,6 +76,9 @@ class ApiClient {
             const data = await response.json().catch(() => null);
 
             if (!response.ok) {
+                console.log(`<<< ADMIN RESPONSE - ${method} ${endpoint} | status=${response.status} | ERROR`);
+                console.log(`<<< Error          -`, data?.message || `Request failed with status ${response.status}`);
+                console.log(`============================================================`);
                 return {
                     data: null,
                     error: data?.message || `Request failed with status ${response.status}`,
@@ -77,6 +87,8 @@ class ApiClient {
                 };
             }
 
+            console.log(`<<< ADMIN RESPONSE - ${method} ${endpoint} | status=${response.status} | OK`);
+            console.log(`============================================================`);
             return {
                 data: data as T,
                 error: null,
@@ -84,7 +96,8 @@ class ApiClient {
                 success: true,
             };
         } catch (error) {
-            console.error("API Request Error:", error);
+            console.error(`<<< ADMIN ERROR    - ${method} ${endpoint} |`, error);
+            console.log(`============================================================`);
             return {
                 data: null,
                 error: getNetworkErrorMessage(error),

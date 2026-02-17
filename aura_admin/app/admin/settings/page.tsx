@@ -39,7 +39,7 @@ export default function SettingsPage() {
                 setFormData({ name: response.data.name });
             } else {
                 setProfile({
-                    id: currentUser?.adminId || "",
+                    id: currentUser?.id || "",
                     name: currentUser?.name || "Admin",
                     email: currentUser?.email || "",
                     createdAt: new Date().toISOString(),
@@ -48,7 +48,7 @@ export default function SettingsPage() {
             }
         } catch (error) {
             setProfile({
-                id: currentUser?.adminId || "",
+                id: currentUser?.id || "",
                 name: currentUser?.name || "Admin",
                 email: currentUser?.email || "",
                 createdAt: new Date().toISOString(),
@@ -106,7 +106,7 @@ export default function SettingsPage() {
                 setEmailChange({ newEmail: "", otp: "", step: "idle" });
                 await fetchProfile();
             } else {
-                setMessage({ type: "error", text: response.message || "Invalid or expired OTP." });
+                setMessage({ type: "error", text: response.error || "Invalid or expired OTP." });
                 setEmailChange((prev) => ({ ...prev, step: "otp" }));
             }
         } catch {
@@ -134,7 +134,7 @@ export default function SettingsPage() {
                 setMessage({ type: "success", text: "Password changed successfully!" });
                 setPasswordChange({ current: "", new: "", confirm: "", changing: false });
             } else {
-                setMessage({ type: "error", text: response.message || "Current password is incorrect." });
+                setMessage({ type: "error", text: response.error || "Current password is incorrect." });
             }
         } catch {
             setMessage({ type: "error", text: "Failed to change password." });

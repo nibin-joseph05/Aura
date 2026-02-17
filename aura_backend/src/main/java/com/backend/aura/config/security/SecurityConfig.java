@@ -38,6 +38,10 @@ public class SecurityConfig {
                                                                 "/api/admin/**",
                                                                 "/api/user/**",
                                                                 "/api/upload/**",
+                                                                "/api/daily-activities/**",
+                                                                "/api/messaging/**",
+                                                                "/api/notifications/**",
+                                                                "/api/users/**",
                                                                 "/uploads/**")
                                                 .permitAll()
                                                 .anyRequest().authenticated())

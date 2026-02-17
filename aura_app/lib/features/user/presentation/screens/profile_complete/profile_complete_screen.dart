@@ -163,12 +163,18 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
 
     if (!isValid) return;
 
-    if (!profileState.isUsernameAvailable && username.length >= 3) {
-      AppSnackbar.showError(
-        context: context,
-        message: "Username is already taken",
-      );
-      return;
+    if (username.length >= 3) {
+      if (!profileState.isUsernameAvailable) {
+        await notifier.checkUsernameAvailability(username);
+        final recheckedState = ref.read(profileCompleteProvider);
+        if (!recheckedState.isUsernameAvailable) {
+          AppSnackbar.showError(
+            context: context,
+            message: "Username is already taken",
+          );
+          return;
+        }
+      }
     }
 
     notifier.setLoading(true);

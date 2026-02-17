@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -61,6 +62,31 @@ func (s *Server) routes() {
 	s.router.HandleFunc("/latest", s.latestBlockHandler).Methods("GET")
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		log.Printf("============================================================")
+		log.Printf(">>> CHAIN REQUEST  - %s %s", r.Method, r.URL.String())
+
+		lrw := &loggingResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+		next.ServeHTTP(lrw, r)
+
+		duration := time.Since(start)
+		log.Printf("<<< CHAIN RESPONSE - %s %s | status=%d | %v", r.Method, r.URL.String(), lrw.statusCode, duration)
+		log.Printf("============================================================")
+	})
+}
+
+type loggingResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+	lrw.statusCode = code
+	lrw.ResponseWriter.WriteHeader(code)
+}
+
 func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 }
@@ -68,9 +94,12 @@ func (s *Server) healthHandler(w http.ResponseWriter, r *http.Request) {
 func (s *Server) addBlockHandler(w http.ResponseWriter, r *http.Request) {
 	var req AddBlockRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		log.Printf("[BLOCKCHAIN] Invalid request body: %v", err)
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
+
+	log.Printf("[BLOCKCHAIN] Adding block | eventId=%s | userId=%s | lat=%f | lng=%f", req.EventID, req.UserID, req.Latitude, req.Longitude)
 
 	tx := transaction.NewSOSTransaction(req.EventID, req.UserID, req.Latitude, req.Longitude)
 	block, err := s.chain.AddBlock(tx.ToJSON())
@@ -92,16 +121,19 @@ func (s *Server) getBlockHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	index, err := strconv.ParseInt(vars["index"], 10, 64)
 	if err != nil {
+		log.Printf("[BLOCKCHAIN] Invalid block index: %s", vars["index"])
 		http.Error(w, "Invalid index", http.StatusBadRequest)
 		return
 	}
 
 	block, err := s.chain.GetBlock(index)
 	if err != nil {
+		log.Printf("[BLOCKCHAIN] Block not found: index=%d error=%v", index, err)
 		http.Error(w, "Block not found", http.StatusNotFound)
 		return
 	}
 
+	log.Printf("[BLOCKCHAIN] Fetched block: index=%d hash=%s", block.Index, block.Hash)
 	json.NewEncoder(w).Encode(BlockResponse{
 		Index:        block.Index,
 		Timestamp:    block.Timestamp,
@@ -112,14 +144,18 @@ func (s *Server) getBlockHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) validateHandler(w http.ResponseWriter, r *http.Request) {
+	valid := s.chain.IsValid()
+	length := s.chain.Length()
+	log.Printf("[BLOCKCHAIN] Chain validation: valid=%v length=%d", valid, length)
 	json.NewEncoder(w).Encode(ValidateResponse{
-		Valid:  s.chain.IsValid(),
-		Length: s.chain.Length(),
+		Valid:  valid,
+		Length: length,
 	})
 }
 
 func (s *Server) latestBlockHandler(w http.ResponseWriter, r *http.Request) {
 	block := s.chain.GetLatestBlock()
+	log.Printf("[BLOCKCHAIN] Latest block: index=%d hash=%s", block.Index, block.Hash)
 	json.NewEncoder(w).Encode(BlockResponse{
 		Index:        block.Index,
 		Timestamp:    block.Timestamp,
@@ -131,5 +167,5 @@ func (s *Server) latestBlockHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) Start(port string) error {
 	log.Printf("[SERVER] Starting on port %s", port)
-	return http.ListenAndServe(":"+port, s.router)
+	return http.ListenAndServe(":"+port, loggingMiddleware(s.router))
 }

@@ -17,6 +17,7 @@ const menuItems = [
     { name: "Activity Types", icon: "📋", path: "/admin/activities" },
     { name: "Gym Exercises", icon: "🏋️", path: "/admin/gym-exercises" },
     { name: "Users", icon: "👥", path: "/admin/users" },
+    { name: "Notifications", icon: "🔔", path: "/admin/notifications" },
     { name: "Settings", icon: "⚙️", path: "/admin/settings" },
 ];
 

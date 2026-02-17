@@ -18,6 +18,7 @@ const pageTitles: Record<string, string> = {
     "/admin/activities": "Activity Types",
     "/admin/gym-exercises": "Gym Exercises",
     "/admin/users": "Users",
+    "/admin/notifications": "Notifications",
     "/admin/settings": "Settings",
 };
 

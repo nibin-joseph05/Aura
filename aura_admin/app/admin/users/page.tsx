@@ -31,19 +31,27 @@ export default function UsersPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [page, setPage] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
+    const [totalElements, setTotalElements] = useState(0);
 
     const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await apiClient.get<PaginatedResponse<User>>(
+            const response = await apiClient.get<{ success: boolean; data: PaginatedResponse<User> }>(
                 `${API_ENDPOINTS.USERS.BASE}?page=${page}&size=20&search=${encodeURIComponent(searchTerm)}`
             );
+
             if (response.success && response.data) {
-                setUsers(response.data.content);
-                setTotalPages(response.data.totalPages);
+                const payload = response.data;
+                const pageData = payload.data || payload;
+                setUsers(Array.isArray(pageData.content) ? pageData.content : []);
+                setTotalPages(pageData.totalPages || 0);
+                setTotalElements(pageData.totalElements || 0);
+            } else {
+                setUsers([]);
             }
         } catch (error) {
             console.error("Failed to fetch users:", error);
+            setUsers([]);
         } finally {
             setLoading(false);
         }
@@ -70,7 +78,7 @@ export default function UsersPage() {
                         Manage Users
                     </h2>
                     <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
-                        View and manage registered users
+                        {totalElements > 0 ? `${totalElements} registered users` : "View and manage registered users"}
                     </p>
                 </div>
 
@@ -79,7 +87,7 @@ export default function UsersPage() {
                     placeholder="Search by name, email, username..."
                     value={searchTerm}
                     onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
-                    className="px-4 py-2 rounded-xl outline-none transition-all w-full sm:w-72"
+                    className="px-4 py-2.5 rounded-xl outline-none transition-all w-full sm:w-72"
                     style={{
                         backgroundColor: isDark ? appColors.cardBg : "#f3f4f6",
                         color: isDark ? "#f3f4f6" : "#1f2937",
@@ -96,42 +104,38 @@ export default function UsersPage() {
                 }}
             >
                 {loading ? (
-                    <div className="p-8 text-center">
-                        <div className="animate-spin text-4xl mb-2">⏳</div>
+                    <div className="p-12 text-center">
+                        <div className="animate-spin text-4xl mb-3">⏳</div>
                         <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Loading users...</p>
                     </div>
                 ) : users.length === 0 ? (
-                    <div className="p-8 text-center">
-                        <span className="text-4xl mb-4 block">👥</span>
-                        <p style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                    <div className="p-12 text-center">
+                        <span className="text-5xl mb-4 block">👥</span>
+                        <p className="text-lg font-medium mb-1" style={{ color: isDark ? "#d1d5db" : "#374151" }}>
                             {searchTerm ? `No users matching "${searchTerm}"` : "No users registered yet"}
                         </p>
-                        <p className="text-sm mt-1" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>
+                        <p className="text-sm" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>
                             Users will appear here once they sign up.
                         </p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
-                            <thead
-                                style={{
-                                    backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "#f9fafb",
-                                }}
-                            >
-                                <tr>
-                                    <th className="text-left px-4 py-3 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                            <thead>
+                                <tr style={{ backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "#f9fafb" }}>
+                                    <th className="text-left px-5 py-3.5 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                                         User
                                     </th>
-                                    <th className="text-left px-4 py-3 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                                    <th className="text-left px-5 py-3.5 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                                         Username
                                     </th>
-                                    <th className="text-left px-4 py-3 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                                    <th className="text-left px-5 py-3.5 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                                         Phone
                                     </th>
-                                    <th className="text-left px-4 py-3 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                                    <th className="text-left px-5 py-3.5 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                                         Status
                                     </th>
-                                    <th className="text-left px-4 py-3 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                                    <th className="text-left px-5 py-3.5 font-medium text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                                         Joined
                                     </th>
                                 </tr>
@@ -140,14 +144,17 @@ export default function UsersPage() {
                                 {users.map((user, index) => (
                                     <tr
                                         key={user.uid}
+                                        className="transition-colors"
                                         style={{
                                             borderTop: index > 0 ? `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}` : undefined,
                                         }}
+                                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = isDark ? appColors.cardBgHover : "#f9fafb")}
+                                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                                     >
-                                        <td className="px-4 py-4">
+                                        <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div
-                                                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                                                    className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-sm"
                                                     style={{ backgroundColor: appColors.accent }}
                                                 >
                                                     {(user.name || user.email || "?").charAt(0).toUpperCase()}
@@ -162,30 +169,30 @@ export default function UsersPage() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-4">
-                                            <span style={{ color: appColors.accent }}>
+                                        <td className="px-5 py-4">
+                                            <span className="font-medium" style={{ color: appColors.accent }}>
                                                 {user.username ? `@${user.username}` : "-"}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4">
-                                            <span style={{ color: isDark ? "#f3f4f6" : "#1f2937" }}>
+                                        <td className="px-5 py-4">
+                                            <span style={{ color: isDark ? "#e5e7eb" : "#1f2937" }}>
                                                 {user.phone || "-"}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4">
+                                        <td className="px-5 py-4">
                                             <span
-                                                className="px-2 py-1 rounded-full text-xs font-medium"
+                                                className="px-2.5 py-1 rounded-full text-xs font-semibold"
                                                 style={{
                                                     backgroundColor: user.profileCompleted
-                                                        ? "rgba(34,197,94,0.1)"
-                                                        : "rgba(234,179,8,0.1)",
+                                                        ? "rgba(34,197,94,0.15)"
+                                                        : "rgba(234,179,8,0.15)",
                                                     color: user.profileCompleted ? "#22c55e" : "#eab308",
                                                 }}
                                             >
                                                 {user.profileCompleted ? "Complete" : "Incomplete"}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-4">
+                                        <td className="px-5 py-4">
                                             <span className="text-sm" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                                                 {formatDate(user.createdAt)}
                                             </span>
@@ -198,25 +205,25 @@ export default function UsersPage() {
                 )}
 
                 {totalPages > 1 && (
-                    <div className="p-4 flex justify-center gap-2" style={{ borderTop: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}` }}>
+                    <div className="p-4 flex justify-center items-center gap-3" style={{ borderTop: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}` }}>
                         <button
                             onClick={() => setPage((p) => Math.max(0, p - 1))}
                             disabled={page === 0}
-                            className="px-4 py-2 rounded-lg disabled:opacity-50"
-                            style={{ backgroundColor: isDark ? "#374151" : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
+                            className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition-all"
+                            style={{ backgroundColor: isDark ? appColors.cardBgHover : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
                         >
-                            Previous
+                            ← Previous
                         </button>
-                        <span className="px-4 py-2" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                        <span className="px-4 py-2 text-sm font-medium" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
                             Page {page + 1} of {totalPages}
                         </span>
                         <button
                             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                             disabled={page >= totalPages - 1}
-                            className="px-4 py-2 rounded-lg disabled:opacity-50"
-                            style={{ backgroundColor: isDark ? "#374151" : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
+                            className="px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-40 transition-all"
+                            style={{ backgroundColor: isDark ? appColors.cardBgHover : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
                         >
-                            Next
+                            Next →
                         </button>
                     </div>
                 )}

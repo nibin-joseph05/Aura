@@ -11,10 +11,10 @@ interface ApiResponse<T> {
 class WellnessService {
     async getPendingUpdates(page: number = 0, size: number = 20): Promise<WellnessUpdatesResponse> {
         const response = await apiClient.get<ApiResponse<WellnessUpdatesResponse>>(`${API_ENDPOINTS.WELLNESS.PENDING}?page=${page}&size=${size}`);
-        if (response.data.success) {
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to fetch pending updates');
+        throw new Error(response.data?.error || 'Failed to fetch pending updates');
     }
 
     async getAllUpdates(page: number = 0, size: number = 20, category?: WellnessCategory): Promise<WellnessUpdatesResponse> {
@@ -23,40 +23,40 @@ class WellnessService {
             url += `&category=${category}`;
         }
         const response = await apiClient.get<ApiResponse<WellnessUpdatesResponse>>(url);
-        if (response.data.success) {
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to fetch updates');
+        throw new Error(response.data?.error || 'Failed to fetch updates');
     }
 
     async getStats(): Promise<WellnessStats> {
         const response = await apiClient.get<ApiResponse<WellnessStats>>(API_ENDPOINTS.WELLNESS.STATS);
-        if (response.data.success) {
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to fetch stats');
+        throw new Error(response.data?.error || 'Failed to fetch stats');
     }
 
     async approveUpdate(id: string): Promise<WellnessUpdate> {
         const response = await apiClient.put<ApiResponse<WellnessUpdate>>(API_ENDPOINTS.WELLNESS.APPROVE(id), {});
-        if (response.data.success) {
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to approve update');
+        throw new Error(response.data?.error || 'Failed to approve update');
     }
 
     async rejectUpdate(id: string, request?: ModerateWellnessRequest): Promise<WellnessUpdate> {
         const response = await apiClient.put<ApiResponse<WellnessUpdate>>(API_ENDPOINTS.WELLNESS.REJECT(id), request || {});
-        if (response.data.success) {
+        if (response.data?.success) {
             return response.data.data;
         }
-        throw new Error(response.data.error || 'Failed to reject update');
+        throw new Error(response.data?.error || 'Failed to reject update');
     }
 
     async deleteUpdate(id: string): Promise<void> {
         const response = await apiClient.delete<ApiResponse<void>>(API_ENDPOINTS.WELLNESS.DELETE(id));
-        if (!response.data.success) {
-            throw new Error(response.data.error || 'Failed to delete update');
+        if (!response.data?.success) {
+            throw new Error(response.data?.error || 'Failed to delete update');
         }
     }
 

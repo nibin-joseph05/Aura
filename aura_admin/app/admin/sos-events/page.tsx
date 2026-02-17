@@ -104,7 +104,7 @@ export default function SOSEventsPage() {
                             onClick={() => { setStatusFilter(status); setPage(0); }}
                             className="px-4 py-2 rounded-lg text-sm font-medium transition-all"
                             style={{
-                                backgroundColor: statusFilter === status ? appColors.accent : isDark ? "#374151" : "#f3f4f6",
+                                backgroundColor: statusFilter === status ? appColors.accent : isDark ? appColors.cardBgHover : "#f3f4f6",
                                 color: statusFilter === status ? "white" : isDark ? "#f3f4f6" : "#1f2937",
                             }}
                         >
@@ -155,7 +155,13 @@ export default function SOSEventsPage() {
                                                 {sosService.getTimeAgo(event.triggeredAt)}
                                             </span>
                                             {event.syncedFromOffline && (
-                                                <span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
+                                                <span
+                                                    className="text-xs px-2 py-0.5 rounded font-medium"
+                                                    style={{
+                                                        backgroundColor: isDark ? "rgba(234,179,8,0.15)" : "#fef3c7",
+                                                        color: isDark ? "#fbbf24" : "#b45309",
+                                                    }}
+                                                >
                                                     Synced Offline
                                                 </span>
                                             )}
@@ -188,19 +194,16 @@ export default function SOSEventsPage() {
                                                 Resolve
                                             </button>
                                         )}
-                                        <a
-                                            href={event.mapsUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            onClick={(e) => e.stopPropagation()}
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); setSelectedEvent(event); }}
                                             className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
                                             style={{
-                                                backgroundColor: isDark ? "#374151" : "#f3f4f6",
+                                                backgroundColor: isDark ? appColors.cardBgHover : "#f3f4f6",
                                                 color: isDark ? "#f3f4f6" : "#1f2937",
                                             }}
                                         >
-                                            📍 Map
-                                        </a>
+                                            �️ View
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -214,7 +217,7 @@ export default function SOSEventsPage() {
                             onClick={() => setPage((p) => Math.max(0, p - 1))}
                             disabled={page === 0}
                             className="px-4 py-2 rounded-lg disabled:opacity-50"
-                            style={{ backgroundColor: isDark ? "#374151" : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
+                            style={{ backgroundColor: isDark ? appColors.cardBgHover : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
                         >
                             Previous
                         </button>
@@ -225,7 +228,7 @@ export default function SOSEventsPage() {
                             onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
                             disabled={page >= totalPages - 1}
                             className="px-4 py-2 rounded-lg disabled:opacity-50"
-                            style={{ backgroundColor: isDark ? "#374151" : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
+                            style={{ backgroundColor: isDark ? appColors.cardBgHover : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937" }}
                         >
                             Next
                         </button>

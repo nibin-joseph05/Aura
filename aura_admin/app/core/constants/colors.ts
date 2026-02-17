@@ -24,8 +24,10 @@ export const appColors = {
     splashMedium: '#0E2A4A',
     splashLight: '#134B73',
 
-    cardBg: 'rgba(255, 255, 255, 0.08)',
-    cardBorder: 'rgba(255, 255, 255, 0.15)',
+    cardBg: '#111d2e',
+    cardBorder: '#1e3048',
+    cardBgHover: '#162640',
+    modalBg: '#0f1923',
 };
 
 export const gradients = {

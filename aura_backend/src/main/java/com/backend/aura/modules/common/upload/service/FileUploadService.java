@@ -35,7 +35,7 @@ public class FileUploadService {
 
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
 
-        return "profile-images/" + filename;
+        return "/uploads/profile-images/" + filename;
     }
 
     public void deleteProfileImage(String relativePath) {

@@ -43,7 +43,7 @@ export const API_ENDPOINTS = {
         DELETE: (id: string) => `/api/admin/wellness/${id}`,
     },
     USERS: {
-        BASE: "/api/users",
-        BY_ID: (id: string) => `/api/users/${id}`,
+        BASE: "/api/admin/users",
+        BY_ID: (id: string) => `/api/admin/users/${id}`,
     },
 };

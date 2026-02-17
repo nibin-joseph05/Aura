@@ -13,6 +13,8 @@ import com.backend.aura.modules.sos.repository.TrustedContactRepository;
 import com.backend.aura.modules.user.model.User;
 import com.backend.aura.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SOSService {
+
+    private static final Logger log = LoggerFactory.getLogger(SOSService.class);
 
     private final SOSSettingsRepository sosSettingsRepository;
     private final TrustedContactRepository trustedContactRepository;
@@ -126,7 +130,12 @@ public class SOSService {
 
     @Transactional
     public SOSEventResponse triggerSOS(String userId, TriggerSOSRequest request) {
+        log.debug("SOS_SVC - triggerSOS | userId: {} | lat: {} | lng: {}", userId, request.getLatitude(),
+                request.getLongitude());
+
         User user = userRepository.findById(userId).orElse(null);
+        log.debug("SOS_SVC - triggerSOS | user found: {} | name: {}", user != null,
+                user != null ? user.getName() : "N/A");
 
         SOSSettings settings = sosSettingsRepository.findByUserId(userId).orElse(null);
         String message = request.getCustomMessage();
@@ -156,13 +165,18 @@ public class SOSService {
         event.setDeviceInfo(request.getDeviceInfo());
 
         SOSEvent saved = sosEventRepository.save(event);
+        log.debug("SOS_SVC - triggerSOS | event saved | eventId: {} | userId: {}", saved.getId(), userId);
         auraLogger.sosTriggered(userId, saved.getId().toString());
 
+        log.debug("SOS_SVC - triggerSOS | writing to blockchain | eventId: {}", saved.getId());
         blockchainService.writeSosEvent(
                 saved.getId().toString(),
                 userId,
                 request.getLatitude(),
                 request.getLongitude()).ifPresent(result -> {
+                    log.debug(
+                            "SOS_SVC - triggerSOS | blockchain SUCCESS | eventId: {} | blockHash: {} | blockIndex: {}",
+                            saved.getId(), result.blockHash(), result.blockIndex());
                     saved.setBlockHash(result.blockHash());
                     saved.setBlockIndex(result.blockIndex());
                     sosEventRepository.save(saved);
