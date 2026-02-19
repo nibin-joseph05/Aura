@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../user/presentation/providers/user_provider.dart';
 import '../../data/service/notification_api_service.dart';
 
 class NotificationState {
@@ -41,6 +42,7 @@ class NotificationNotifier extends StateNotifier<NotificationState> {
     : super(const NotificationState());
 
   Future<void> loadNotifications({bool refresh = false}) async {
+    if (_userId.isEmpty) return;
     if (state.isLoading) return;
 
     final page = refresh ? 0 : state.currentPage;
@@ -88,5 +90,9 @@ final notificationProvider =
     StateNotifierProvider.autoDispose<NotificationNotifier, NotificationState>((
       ref,
     ) {
-      throw UnimplementedError('Must be overridden with userId');
+      final userId = ref.watch(userProvider).user?.uid;
+      if (userId == null || userId.isEmpty) {
+        return NotificationNotifier(NotificationApiService(), '');
+      }
+      return NotificationNotifier(NotificationApiService(), userId);
     });

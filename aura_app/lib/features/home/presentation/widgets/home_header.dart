@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/constants/asset_constants.dart';
+import '../../../../core/routes/app_routes.dart';
 import '../../../../core/ui/responsive/responsive.dart';
+import '../../../notification/presentation/providers/notification_provider.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 
 class HomeHeader extends ConsumerWidget {
@@ -22,6 +24,8 @@ class HomeHeader extends ConsumerWidget {
     final userState = ref.watch(userProvider);
     final user = userState.user;
     final profileImageUrl = _buildFullImageUrl(user?.profileImageUrl);
+    final notifState = ref.watch(notificationProvider);
+    final unreadCount = notifState.unreadCount;
 
     final firstName = user?.name?.split(' ').first ?? 'User';
 
@@ -70,14 +74,14 @@ class HomeHeader extends ConsumerWidget {
                 responsive: responsive,
               ),
               SizedBox(width: responsive.w(1.5)),
-              _buildHeaderIcon(
-                icon: Icons.notifications_outlined,
+              _buildNotificationIcon(
                 onTap: () => Navigator.pushNamed(context, '/notifications'),
                 responsive: responsive,
+                unreadCount: unreadCount,
               ),
               SizedBox(width: responsive.w(2)),
               GestureDetector(
-                onTap: () {},
+                onTap: () => Navigator.pushNamed(context, AppRoutes.myAccount),
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -175,6 +179,58 @@ class HomeHeader extends ConsumerWidget {
           color: Colors.white,
           size: responsive.isTablet ? 20 : 17,
         ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationIcon({
+    required VoidCallback onTap,
+    required Responsive responsive,
+    required int unreadCount,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Container(
+            width: responsive.isTablet ? 40 : 34,
+            height: responsive.isTablet ? 40 : 34,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.08),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+            ),
+            child: Icon(
+              Icons.notifications_outlined,
+              color: Colors.white,
+              size: responsive.isTablet ? 20 : 17,
+            ),
+          ),
+          if (unreadCount > 0)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFF416C),
+                  shape: BoxShape.circle,
+                ),
+                constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+                child: Center(
+                  child: Text(
+                    unreadCount > 99 ? '99+' : '$unreadCount',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

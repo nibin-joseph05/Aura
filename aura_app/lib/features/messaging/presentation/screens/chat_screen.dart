@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -9,11 +10,13 @@ import '../providers/messaging_provider.dart';
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
   final String otherUserId;
+  final String otherUserName;
 
   const ChatScreen({
     super.key,
     required this.conversationId,
     required this.otherUserId,
+    this.otherUserName = '',
   });
 
   @override
@@ -55,49 +58,54 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final state = ref.watch(messagingProvider);
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: AppColors.primaryGradient,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              AppHeader(
-                title: widget.otherUserId.length > 12
-                    ? '${widget.otherUserId.substring(0, 12)}...'
-                    : widget.otherUserId,
-              ),
-              Expanded(
-                child: state.isLoading && state.messages.isEmpty
-                    ? const GhostRunning(
-                        primaryMessage: 'Loading messages...',
-                        secondaryMessage: 'Just a moment',
-                      )
-                    : state.messages.isEmpty
-                    ? _buildEmptyChat(isDark)
-                    : ListView.builder(
-                        controller: _scrollController,
-                        reverse: true,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+          child: SafeArea(
+            child: Column(
+              children: [
+                AppHeader(
+                  title: widget.otherUserName.isNotEmpty
+                      ? widget.otherUserName
+                      : widget.otherUserId.length > 12
+                      ? '${widget.otherUserId.substring(0, 12)}...'
+                      : widget.otherUserId,
+                ),
+                Expanded(
+                  child: state.isLoading && state.messages.isEmpty
+                      ? const GhostRunning(
+                          primaryMessage: 'Loading messages...',
+                          secondaryMessage: 'Just a moment',
+                        )
+                      : state.messages.isEmpty
+                      ? _buildEmptyChat(isDark)
+                      : ListView.builder(
+                          controller: _scrollController,
+                          reverse: true,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          itemCount: state.messages.length,
+                          itemBuilder: (context, index) {
+                            return _buildMessageBubble(
+                              state.messages[index],
+                              isDark,
+                            );
+                          },
                         ),
-                        itemCount: state.messages.length,
-                        itemBuilder: (context, index) {
-                          return _buildMessageBubble(
-                            state.messages[index],
-                            isDark,
-                          );
-                        },
-                      ),
-              ),
-              _buildInputBar(isDark),
-            ],
+                ),
+                _buildInputBar(isDark),
+              ],
+            ),
           ),
         ),
       ),
@@ -108,72 +116,133 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return Center(
       child: Text(
         'Send a message to start the conversation',
-        style: TextStyle(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.5)
-              : AppColors.textSecondary,
-        ),
+        style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
       ),
     );
   }
 
   Widget _buildMessageBubble(MessageModel message, bool isDark) {
-    // TODO: Replace with actual user ID from auth
     final isMine = message.senderId != widget.otherUserId;
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.72,
-        ),
-        decoration: BoxDecoration(
-          color: isMine
-              ? AppColors.primary
-              : isDark
-              ? AppColors.surfaceDark
-              : AppColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isMine ? 16 : 4),
-            bottomRight: Radius.circular(isMine ? 4 : 16),
+      child: GestureDetector(
+        onLongPress: () => _showMessageActions(message),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.72,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 4,
-              offset: const Offset(0, 1),
+          decoration: BoxDecoration(
+            color: isMine
+                ? AppColors.primary
+                : isDark
+                ? AppColors.surfaceDark
+                : AppColors.surface,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              bottomLeft: Radius.circular(isMine ? 16 : 4),
+              bottomRight: Radius.circular(isMine ? 4 : 16),
             ),
-          ],
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 4,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                message.content,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isMine
+                      ? Colors.white
+                      : isDark
+                      ? Colors.white
+                      : AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _formatMessageTime(message.sentAt),
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isMine
+                      ? Colors.white.withValues(alpha: 0.7)
+                      : AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              message.content,
-              style: TextStyle(
-                fontSize: 14,
-                color: isMine
-                    ? Colors.white
-                    : isDark
-                    ? Colors.white
-                    : AppColors.textPrimary,
+      ),
+    );
+  }
+
+  void _showMessageActions(MessageModel message) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _formatMessageTime(message.sentAt),
-              style: TextStyle(
-                fontSize: 10,
-                color: isMine
-                    ? Colors.white.withValues(alpha: 0.7)
-                    : AppColors.textSecondary,
+              ListTile(
+                leading: const Icon(Icons.copy_rounded, color: Colors.white70),
+                title: const Text(
+                  'Copy',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: message.content));
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Message copied'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
               ),
-            ),
-          ],
+              ListTile(
+                leading: const Icon(Icons.reply_rounded, color: Colors.white70),
+                title: const Text(
+                  'Reply',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  final preview = message.content.length > 30
+                      ? '${message.content.substring(0, 30)}...'
+                      : message.content;
+                  _controller.text = '> $preview\n';
+                  _controller.selection = TextSelection.fromPosition(
+                    TextPosition(offset: _controller.text.length),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

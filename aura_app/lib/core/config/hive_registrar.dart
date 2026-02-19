@@ -10,16 +10,16 @@ class HiveRegistrar {
   static Future<void> registerAdapters() async {
     await Hive.initFlutter();
 
-    if (!Hive.isAdapterRegistered(10)) {
+    if (!Hive.isAdapterRegistered(50)) {
       Hive.registerAdapter(ActivityCategoryAdapter());
     }
-    if (!Hive.isAdapterRegistered(11)) {
+    if (!Hive.isAdapterRegistered(51)) {
       Hive.registerAdapter(ActivityTypeAdapter());
     }
-    if (!Hive.isAdapterRegistered(12)) {
+    if (!Hive.isAdapterRegistered(60)) {
       Hive.registerAdapter(RepeatTypeAdapter());
     }
-    if (!Hive.isAdapterRegistered(13)) {
+    if (!Hive.isAdapterRegistered(61)) {
       Hive.registerAdapter(UserActivityAdapter());
     }
     if (!Hive.isAdapterRegistered(14)) {

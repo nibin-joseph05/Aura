@@ -92,34 +92,48 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
     setState(() => _isLoading = true);
 
     final notifier = ref.read(sosNotifierProvider.notifier);
-    final contact = await notifier.addContact(
-      user.uid,
-      name: _nameController.text.trim(),
-      phone: _phoneController.text.trim(),
-      email: _emailController.text.trim().isEmpty
-          ? null
-          : _emailController.text.trim(),
-      relationship: _relationshipController.text.trim().isEmpty
-          ? null
-          : _relationshipController.text.trim(),
-    );
+    final rawPhone = _phoneController.text.trim();
+    final cleanedPhone = rawPhone.startsWith('+')
+        ? '+${rawPhone.substring(1).replaceAll(RegExp(r'[^\d]'), '')}'
+        : rawPhone.replaceAll(RegExp(r'[^\d]'), '');
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (contact != null) {
-        Navigator.pop(context);
+    try {
+      final contact = await notifier.addContact(
+        user.uid,
+        name: _nameController.text.trim(),
+        phone: cleanedPhone,
+        email: _emailController.text.trim().isEmpty
+            ? null
+            : _emailController.text.trim(),
+        relationship: _relationshipController.text.trim().isEmpty
+            ? null
+            : _relationshipController.text.trim(),
+      );
+
+      if (mounted) {
+        setState(() => _isLoading = false);
+        if (contact != null) {
+          Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Contact added successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to add contact. Check your connection.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Contact added successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to add contact'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -224,6 +238,16 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
                 label: 'Email (Optional)',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
+                validator: (value) {
+                  if (value != null && value.trim().isNotEmpty) {
+                    if (!RegExp(
+                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,}$',
+                    ).hasMatch(value.trim())) {
+                      return 'Please enter a valid email address';
+                    }
+                  }
+                  return null;
+                },
               ),
               SizedBox(height: responsive.h(2)),
               _buildTextField(

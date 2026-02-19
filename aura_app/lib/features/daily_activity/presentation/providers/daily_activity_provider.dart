@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/network/connectivity/internet_status_provider.dart';
+import '../../../../core/services/local_notification_service.dart';
 import '../../data/datasources/daily_activity_local_datasource.dart';
 import '../../data/datasources/daily_activity_remote_datasource.dart';
 import '../../data/models/daily_activity_model.dart';
@@ -111,6 +112,8 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
     required String activityType,
     required String title,
     String? description,
+    int? intervalMinutes,
+    int targetCompletions = 1,
   }) async {
     final now = DateTime.now();
     final activity = DailyActivityModel(
@@ -121,6 +124,8 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       description: description,
       isSynced: false,
       createdAt: now,
+      intervalMinutes: intervalMinutes,
+      targetCompletions: targetCompletions,
     );
 
     await _localDataSource.save(activity);
@@ -131,6 +136,13 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
     state = state.copyWith(
       todayActivities: todayActivities,
       pendingSyncCount: pending.length,
+    );
+
+    // Notify user that activity has been added
+    await LocalNotificationService.instance.showActivityReminder(
+      id: now.millisecondsSinceEpoch % 100000,
+      activityName: title,
+      description: description,
     );
 
     _trySyncActivity(activity);
@@ -189,6 +201,47 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       todayActivities: todayActivities,
       pendingSyncCount: pending.length,
     );
+
+    _trySyncActivity(updatedActivity);
+  }
+
+  Future<void> recordCompletion(String id) async {
+    final activities = await _localDataSource.getAll();
+    final activity = activities.firstWhere(
+      (a) => a.id == id,
+      orElse: () => throw Exception('Activity not found'),
+    );
+
+    if (activity.isFullyCompleted) return;
+
+    final now = DateTime.now();
+    final updatedTimes = [...activity.completionTimes, now];
+    final isNowFull = updatedTimes.length >= activity.targetCompletions;
+
+    final updatedActivity = activity.copyWith(
+      completionTimes: updatedTimes,
+      completedAt: isNowFull ? now : activity.completedAt,
+      isSynced: false,
+    );
+
+    await _localDataSource.save(updatedActivity);
+
+    final todayActivities = await _localDataSource.getByDate(DateTime.now());
+    final pending = await _localDataSource.getPendingSync();
+
+    state = state.copyWith(
+      todayActivities: todayActivities,
+      pendingSyncCount: pending.length,
+    );
+
+    // Show completion notification when fully done
+    if (updatedTimes.length >= activity.targetCompletions) {
+      await LocalNotificationService.instance.showImmediate(
+        id: activity.id.hashCode % 100000,
+        title: '✅ Activity Complete!',
+        body: '${activity.title} fully completed for today. Great job!',
+      );
+    }
 
     _trySyncActivity(updatedActivity);
   }

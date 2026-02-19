@@ -7,6 +7,8 @@ import 'core/routes/app_routes.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class AuraApp extends ConsumerWidget {
   const AuraApp({super.key});
 
@@ -20,9 +22,9 @@ class AuraApp extends ConsumerWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
+      navigatorKey: navigatorKey,
       initialRoute: AppRoutes.splash,
       onGenerateRoute: AppRouter.onGenerateRoute,
-
       builder: (context, child) {
         return ConnectivityWrapper(child: child!);
       },

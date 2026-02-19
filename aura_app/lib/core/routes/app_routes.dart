@@ -30,4 +30,8 @@ class AppRoutes {
   static const String followers = '/followers';
   static const String following = '/following';
   static const String liveLocation = '/live-location';
+  static const String changePassword = '/change-password';
+  static const String changePhone = '/change-phone';
+  static const String notificationSettings = '/notification-settings';
+  static const String myAccount = '/my-account';
 }

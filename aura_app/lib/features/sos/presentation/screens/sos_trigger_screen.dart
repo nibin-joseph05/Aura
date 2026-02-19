@@ -24,6 +24,7 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   bool _isTriggering = false;
+  bool _isSending = false;
   bool _isTriggered = false;
   int _countdown = 5;
   Timer? _countdownTimer;
@@ -69,11 +70,17 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
     _countdownTimer?.cancel();
     setState(() {
       _isTriggering = false;
+      _isSending = false;
       _countdown = 5;
     });
   }
 
   Future<void> _triggerSOS() async {
+    setState(() {
+      _isSending = true;
+      _isTriggering = false;
+    });
+
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
@@ -86,15 +93,14 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
             backgroundColor: Colors.red,
           ),
         );
+        setState(() => _isSending = false);
       }
-      _cancelCountdown();
       return;
     }
 
     final settings = await ref.read(sosSettingsProvider(user.uid).future);
     final contacts = await ref.read(trustedContactsProvider(user.uid).future);
 
-    int smsCount = 0;
     final mapsUrl =
         'https://www.google.com/maps?q=${location.latitude},${location.longitude}';
     final messageBody =
@@ -102,16 +108,41 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
 
     for (final contact in contacts) {
       try {
-        final smsUri = Uri(
-          scheme: 'sms',
-          path: contact.phone,
-          queryParameters: {'body': messageBody},
-        );
-        if (await canLaunchUrl(smsUri)) {
-          await launchUrl(smsUri);
-          smsCount++;
+        if (Platform.isAndroid) {
+          final smsUri = Uri(
+            scheme: 'sms',
+            path: contact.phone,
+            queryParameters: {'body': messageBody},
+          );
+          try {
+            await launchUrl(smsUri);
+          } catch (_) {
+            debugPrint('[SOS] SMS launch to ${contact.name} failed');
+          }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[SOS] SMS to ${contact.name} failed: $e');
+      }
+
+      if (contact.email != null && contact.email!.isNotEmpty) {
+        try {
+          final emailUri = Uri(
+            scheme: 'mailto',
+            path: contact.email,
+            queryParameters: {
+              'subject': 'EMERGENCY SOS - ${user.name ?? "User"} needs help!',
+              'body': messageBody,
+            },
+          );
+          try {
+            await launchUrl(emailUri);
+          } catch (_) {
+            debugPrint('[SOS] Email launch to ${contact.name} failed');
+          }
+        } catch (e) {
+          debugPrint('[SOS] Email to ${contact.name} failed: $e');
+        }
+      }
     }
 
     final notifier = ref.read(sosNotifierProvider.notifier);
@@ -120,16 +151,18 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
       latitude: location.latitude,
       longitude: location.longitude,
       customMessage: settings.customMessage,
-      contactsNotified: smsCount,
+      contactsNotified: contacts.length,
       deviceInfo:
           '${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
     );
 
-    setState(() {
-      _isTriggering = false;
-      _isTriggered = true;
-      _triggeredEvent = event;
-    });
+    if (mounted) {
+      setState(() {
+        _isSending = false;
+        _isTriggered = true;
+        _triggeredEvent = event;
+      });
+    }
   }
 
   @override
@@ -154,6 +187,8 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
               Expanded(
                 child: _isTriggered
                     ? _buildTriggeredContent(responsive)
+                    : _isSending
+                    ? _buildSendingContent(responsive)
                     : _buildTriggerContent(responsive),
               ),
             ],
@@ -183,6 +218,39 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
     );
   }
 
+  Widget _buildSendingContent(Responsive responsive) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SizedBox(
+          width: responsive.w(25),
+          height: responsive.w(25),
+          child: CircularProgressIndicator(
+            strokeWidth: 4,
+            color: Colors.white.withValues(alpha: 0.8),
+          ),
+        ),
+        SizedBox(height: responsive.h(4)),
+        const Text(
+          'Sending SOS...',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: responsive.h(1)),
+        Text(
+          'Notifying contacts & sharing location',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTriggerContent(Responsive responsive) {
     final user = ref.watch(currentUserProvider);
     final contactsAsync = user != null
@@ -201,13 +269,24 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
             ),
           ),
           SizedBox(height: responsive.h(2)),
-          Text(
-            '$_countdown',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 72,
-              fontWeight: FontWeight.bold,
-            ),
+          TweenAnimationBuilder<double>(
+            key: ValueKey(_countdown),
+            tween: Tween(begin: 1.3, end: 1.0),
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOutBack,
+            builder: (context, value, child) {
+              return Transform.scale(
+                scale: value,
+                child: Text(
+                  '$_countdown',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 72,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              );
+            },
           ),
           SizedBox(height: responsive.h(4)),
           ElevatedButton(

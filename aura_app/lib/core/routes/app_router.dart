@@ -30,6 +30,10 @@ import '../../features/messaging/presentation/screens/chat_screen.dart';
 import '../../features/messaging/presentation/screens/follow_requests_screen.dart';
 import '../../features/notification/presentation/screens/notification_screen.dart';
 import '../../features/sos/live/live_location_screen.dart';
+import '../../features/home/presentation/screens/change_password_screen.dart';
+import '../../features/home/presentation/screens/change_phone_screen.dart';
+import '../../features/home/presentation/screens/my_account_screen.dart';
+import '../../features/home/presentation/screens/notification_settings_screen.dart';
 
 import 'app_routes.dart';
 
@@ -94,6 +98,7 @@ class AppRouter {
           ChatScreen(
             conversationId: args['conversationId'] as String,
             otherUserId: args['otherUserId'] as String,
+            otherUserName: args['otherUserName'] as String? ?? '',
           ),
           settings,
         );
@@ -118,6 +123,14 @@ class AppRouter {
         );
       case AppRoutes.liveLocation:
         return _build(const LiveLocationScreen(), settings);
+      case AppRoutes.changePassword:
+        return _build(const ChangePasswordScreen(), settings);
+      case AppRoutes.changePhone:
+        return _build(const ChangePhoneScreen(), settings);
+      case AppRoutes.notificationSettings:
+        return _build(const NotificationSettingsScreen(), settings);
+      case AppRoutes.myAccount:
+        return _build(const MyAccountScreen(), settings);
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),
@@ -126,7 +139,33 @@ class AppRouter {
     }
   }
 
-  static MaterialPageRoute _build(Widget child, RouteSettings settings) {
-    return MaterialPageRoute(builder: (_) => child, settings: settings);
+  static PageRouteBuilder<dynamic> _build(
+    Widget child,
+    RouteSettings settings,
+  ) {
+    return PageRouteBuilder(
+      settings: settings,
+      pageBuilder: (context, animation, secondaryAnimation) => child,
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const curve = Curves.easeInOutCubic;
+        final tween = Tween(
+          begin: const Offset(0.08, 0),
+          end: Offset.zero,
+        ).chain(CurveTween(curve: curve));
+        final fadeTween = Tween<double>(
+          begin: 0.0,
+          end: 1.0,
+        ).chain(CurveTween(curve: curve));
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: FadeTransition(
+            opacity: animation.drive(fadeTween),
+            child: child,
+          ),
+        );
+      },
+      transitionDuration: const Duration(milliseconds: 300),
+      reverseTransitionDuration: const Duration(milliseconds: 250),
+    );
   }
 }

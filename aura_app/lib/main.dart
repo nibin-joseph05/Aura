@@ -8,6 +8,7 @@ import 'app.dart';
 import 'features/user/data/models/hive_adapters.dart';
 import 'core/network/sync/sync_manager.dart';
 import 'core/network/push/fcm_handler.dart';
+import 'core/services/local_notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,8 +16,9 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp();
 
-  // Initialize push notification handler
+  // Initialize push notification handlers
   await FcmHandler.instance.initialize();
+  await LocalNotificationService.instance.initialize();
 
   await Hive.initFlutter();
   registerHiveAdapters();

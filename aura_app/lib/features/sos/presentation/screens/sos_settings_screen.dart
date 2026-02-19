@@ -40,30 +40,33 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
     final responsive = Responsive.of(context);
     final user = ref.watch(currentUserProvider);
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: AppColors.primaryGradient,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context, responsive),
-              Expanded(
-                child: user == null
-                    ? const Center(
-                        child: Text(
-                          'Please log in to access SOS settings',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      )
-                    : _buildContent(responsive, user.uid),
-              ),
-            ],
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context, responsive),
+                Expanded(
+                  child: user == null
+                      ? const Center(
+                          child: Text(
+                            'Please log in to access SOS settings',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )
+                      : _buildContent(responsive, user.uid),
+                ),
+              ],
+            ),
           ),
         ),
       ),

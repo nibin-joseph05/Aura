@@ -68,19 +68,28 @@ class WalkingNotifier extends StateNotifier<WalkingState> {
   WalkingNotifier(this._repository) : super(WalkingState());
 
   Future<void> init() async {
-    await _repository.init();
-    final active = _repository.getActiveSession();
-    if (active != null) {
+    try {
+      await _repository.init();
+      final active = _repository.getActiveSession();
+      if (active != null) {
+        state = state.copyWith(
+          activeSession: active,
+          isTracking: true,
+          isInitialized: true,
+          totalDistance: active.distanceMeters,
+          durationSeconds: DateTime.now()
+              .difference(active.startTime)
+              .inSeconds,
+        );
+        _startTracking();
+      } else {
+        state = state.copyWith(isInitialized: true);
+      }
+    } catch (e) {
       state = state.copyWith(
-        activeSession: active,
-        isTracking: true,
         isInitialized: true,
-        totalDistance: active.distanceMeters,
-        durationSeconds: DateTime.now().difference(active.startTime).inSeconds,
+        error: 'Failed to initialize walking: $e',
       );
-      _startTracking();
-    } else {
-      state = state.copyWith(isInitialized: true);
     }
   }
 
@@ -88,6 +97,10 @@ class WalkingNotifier extends StateNotifier<WalkingState> {
     state = state.copyWith(isLoading: true);
 
     try {
+      if (!_repository.isInitialized) {
+        await _repository.init();
+      }
+
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         state = state.copyWith(
@@ -204,7 +217,11 @@ class WalkingNotifier extends StateNotifier<WalkingState> {
 
   List<WalkingSessionModel> getHistory() {
     if (!_repository.isInitialized) return [];
-    return _repository.getCompletedSessions();
+    try {
+      return _repository.getCompletedSessions();
+    } catch (_) {
+      return [];
+    }
   }
 
   @override

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/ui/responsive/responsive.dart';
+import '../../../daily_activity/presentation/providers/daily_activity_provider.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 
 class WellnessSummaryCard extends ConsumerWidget {
@@ -19,6 +20,12 @@ class WellnessSummaryCard extends ConsumerWidget {
     final responsive = Responsive.of(context);
     final user = ref.watch(userProvider).user;
     final firstName = user?.name?.split(' ').first ?? 'User';
+    final activityState = ref.watch(dailyActivityProvider);
+    final completed = activityState.todayActivities
+        .where((a) => a.completedAt != null)
+        .length;
+    final total = activityState.todayActivities.length;
+    final percentage = total > 0 ? ((completed / total) * 100).round() : 0;
 
     return Container(
       padding: EdgeInsets.all(responsive.w(5)),
@@ -60,8 +67,8 @@ class WellnessSummaryCard extends ConsumerWidget {
                 child: _buildStatItem(
                   responsive,
                   icon: Icons.local_fire_department,
-                  value: '5',
-                  label: 'Day Streak',
+                  value: '$completed',
+                  label: 'Done Today',
                   color: Colors.orange,
                 ),
               ),
@@ -70,7 +77,7 @@ class WellnessSummaryCard extends ConsumerWidget {
                 child: _buildStatItem(
                   responsive,
                   icon: Icons.favorite,
-                  value: '85%',
+                  value: '$percentage%',
                   label: 'Wellness',
                   color: Colors.redAccent,
                 ),
@@ -80,7 +87,7 @@ class WellnessSummaryCard extends ConsumerWidget {
                 child: _buildStatItem(
                   responsive,
                   icon: Icons.directions_run,
-                  value: '3',
+                  value: '$total',
                   label: 'Activities',
                   color: Colors.greenAccent,
                 ),

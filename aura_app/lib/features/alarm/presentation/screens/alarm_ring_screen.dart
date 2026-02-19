@@ -93,116 +93,119 @@ class _AlarmRingScreenState extends ConsumerState<AlarmRingScreen> {
   @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.background,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Spacer(),
-              Icon(Icons.alarm, size: 80, color: AppColors.primary),
-              const SizedBox(height: 24),
-              Text(
-                '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-                style: TextStyle(
-                  fontSize: 72,
-                  fontWeight: FontWeight.w200,
-                  color: isDark ? Colors.white : AppColors.textPrimary,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: AppColors.primaryGradient,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Spacer(),
+                Icon(
+                  Icons.alarm,
+                  size: 80,
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
-              ),
-              if (_alarm?.label.isNotEmpty == true) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: 24),
                 Text(
-                  _alarm!.label,
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: isDark ? Colors.grey : AppColors.textSecondary,
+                  '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
+                  style: const TextStyle(
+                    fontSize: 72,
+                    fontWeight: FontWeight.w200,
+                    color: Colors.white,
                   ),
                 ),
+                if (_alarm?.label.isNotEmpty == true) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _alarm!.label,
+                    style: const TextStyle(fontSize: 20, color: Colors.white70),
+                  ),
+                ],
+                const Spacer(),
+                if (_alarm?.hasMathDismiss == true && _mathProblem != null) ...[
+                  Text(
+                    'Solve to dismiss',
+                    style: const TextStyle(fontSize: 16, color: Colors.white70),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    _mathProblem!,
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _answerController,
+                    keyboardType: TextInputType.number,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 24),
+                    decoration: InputDecoration(
+                      hintText: 'Answer',
+                      errorText: _errorMessage,
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.15),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onSubmitted: (_) => _checkAnswer(),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: _checkAnswer,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      minimumSize: const Size(double.infinity, 56),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Submit',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                ] else ...[
+                  ElevatedButton(
+                    onPressed: _dismissAlarm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      minimumSize: const Size(double.infinity, 56),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Dismiss',
+                      style: TextStyle(fontSize: 18, color: Colors.white),
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 16),
+                TextButton(
+                  onPressed: _snoozeAlarm,
+                  child: Text(
+                    'Snooze ${_alarm?.snoozeMinutes ?? 5} minutes',
+                    style: const TextStyle(fontSize: 16, color: Colors.white70),
+                  ),
+                ),
+                const SizedBox(height: 32),
               ],
-              const Spacer(),
-              if (_alarm?.hasMathDismiss == true && _mathProblem != null) ...[
-                Text(
-                  'Solve to dismiss',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: isDark ? Colors.grey : AppColors.textSecondary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  _mathProblem!,
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _answerController,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 24),
-                  decoration: InputDecoration(
-                    hintText: 'Answer',
-                    errorText: _errorMessage,
-                    filled: true,
-                    fillColor: isDark
-                        ? AppColors.surfaceDark
-                        : AppColors.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  onSubmitted: (_) => _checkAnswer(),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _checkAnswer,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Submit',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
-                ),
-              ] else ...[
-                ElevatedButton(
-                  onPressed: _dismissAlarm,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    minimumSize: const Size(double.infinity, 56),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Dismiss',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: _snoozeAlarm,
-                child: Text(
-                  'Snooze ${_alarm?.snoozeMinutes ?? 5} minutes',
-                  style: TextStyle(fontSize: 16, color: AppColors.primary),
-                ),
-              ),
-              const SizedBox(height: 32),
-            ],
+            ),
           ),
         ),
       ),

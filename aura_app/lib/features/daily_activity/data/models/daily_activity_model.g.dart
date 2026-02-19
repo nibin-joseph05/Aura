@@ -25,13 +25,16 @@ class DailyActivityModelAdapter extends TypeAdapter<DailyActivityModel> {
       completedAt: fields[5] as DateTime?,
       isSynced: fields[6] as bool,
       createdAt: fields[7] as DateTime,
+      intervalMinutes: fields[8] as int?,
+      targetCompletions: (fields[9] as int?) ?? 1,
+      completionTimes: (fields[10] as List?)?.cast<DateTime>() ?? [],
     );
   }
 
   @override
   void write(BinaryWriter writer, DailyActivityModel obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -47,7 +50,13 @@ class DailyActivityModelAdapter extends TypeAdapter<DailyActivityModel> {
       ..writeByte(6)
       ..write(obj.isSynced)
       ..writeByte(7)
-      ..write(obj.createdAt);
+      ..write(obj.createdAt)
+      ..writeByte(8)
+      ..write(obj.intervalMinutes)
+      ..writeByte(9)
+      ..write(obj.targetCompletions)
+      ..writeByte(10)
+      ..write(obj.completionTimes);
   }
 
   @override

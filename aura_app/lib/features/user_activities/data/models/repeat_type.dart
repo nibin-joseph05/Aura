@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'repeat_type.g.dart';
 
-@HiveType(typeId: 12)
+@HiveType(typeId: 60)
 enum RepeatType {
   @HiveField(0)
   none,

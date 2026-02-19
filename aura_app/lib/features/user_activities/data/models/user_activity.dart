@@ -3,7 +3,7 @@ import 'repeat_type.dart';
 
 part 'user_activity.g.dart';
 
-@HiveType(typeId: 13)
+@HiveType(typeId: 61)
 class UserActivity extends HiveObject {
   @HiveField(0)
   final String id;

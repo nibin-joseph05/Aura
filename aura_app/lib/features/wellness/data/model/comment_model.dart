@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'comment_model.g.dart';
 
-@HiveType(typeId: 20)
+@HiveType(typeId: 23)
 class CommentModel extends HiveObject {
   @HiveField(0)
   String? id;

@@ -15,6 +15,7 @@ final messagingProvider =
 class ConversationModel {
   final String id;
   final String otherUserId;
+  final String otherUserName;
   final String lastMessagePreview;
   final DateTime lastMessageAt;
   final int unreadCount;
@@ -22,6 +23,7 @@ class ConversationModel {
   ConversationModel({
     required this.id,
     required this.otherUserId,
+    this.otherUserName = '',
     required this.lastMessagePreview,
     required this.lastMessageAt,
     required this.unreadCount,
@@ -37,6 +39,9 @@ class ConversationModel {
       otherUserId: isParticipantOne
           ? json['participantTwoId']
           : json['participantOneId'],
+      otherUserName: isParticipantOne
+          ? (json['participantTwoName'] ?? '')
+          : (json['participantOneName'] ?? ''),
       lastMessagePreview: json['lastMessagePreview'] ?? '',
       lastMessageAt: DateTime.parse(json['lastMessageAt']),
       unreadCount: isParticipantOne
@@ -83,12 +88,14 @@ class MessageModel {
 class FollowRequestModel {
   final String id;
   final String followerId;
+  final String followerName;
   final String followingId;
   final String status;
 
   FollowRequestModel({
     required this.id,
     required this.followerId,
+    this.followerName = '',
     required this.followingId,
     required this.status,
   });
@@ -97,6 +104,7 @@ class FollowRequestModel {
     return FollowRequestModel(
       id: json['id'],
       followerId: json['followerId'],
+      followerName: json['followerName'] ?? '',
       followingId: json['followingId'],
       status: json['status'],
     );
@@ -303,15 +311,16 @@ class MessagingNotifier extends StateNotifier<MessagingState>
     }
   }
 
-  Future<void> loadConversations(String userId) async {
+  Future<void> loadConversations([String? userId]) async {
+    final uid = userId ?? _currentUserId;
+    if (uid == null) return;
     try {
       state = state.copyWith(isLoading: true);
-      final data = await _api.getConversations(userId);
+      final data = await _api.getConversations(uid);
       final content = data['content'] as List? ?? [];
       final convs = content
           .map(
-            (c) =>
-                ConversationModel.fromJson(c as Map<String, dynamic>, userId),
+            (c) => ConversationModel.fromJson(c as Map<String, dynamic>, uid),
           )
           .toList();
       state = state.copyWith(conversations: convs, isLoading: false);
@@ -396,6 +405,7 @@ class MessagingNotifier extends StateNotifier<MessagingState>
           return ConversationModel(
             id: c.id,
             otherUserId: c.otherUserId,
+            otherUserName: c.otherUserName,
             lastMessagePreview: c.lastMessagePreview,
             lastMessageAt: c.lastMessageAt,
             unreadCount: 0,

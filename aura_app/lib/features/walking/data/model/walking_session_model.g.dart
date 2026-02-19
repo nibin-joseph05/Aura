@@ -8,7 +8,7 @@ part of 'walking_session_model.dart';
 
 class WalkingSessionModelAdapter extends TypeAdapter<WalkingSessionModel> {
   @override
-  final int typeId = 10;
+  final int typeId = 40;
 
   @override
   WalkingSessionModel read(BinaryReader reader) {
@@ -72,7 +72,7 @@ class WalkingSessionModelAdapter extends TypeAdapter<WalkingSessionModel> {
 
 class RoutePointAdapter extends TypeAdapter<RoutePoint> {
   @override
-  final int typeId = 11;
+  final int typeId = 41;
 
   @override
   RoutePoint read(BinaryReader reader) {

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
+import '../../../../core/widgets/loading/ghost_running.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
 import '../providers/walking_provider.dart';
 import '../widgets/walking_stats_card.dart';
@@ -47,6 +48,21 @@ class _WalkingScreenState extends ConsumerState<WalkingScreen> {
     final walkingState = ref.watch(walkingProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    ref.listen<WalkingState>(walkingProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.error!),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    });
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -61,43 +77,62 @@ class _WalkingScreenState extends ConsumerState<WalkingScreen> {
             children: [
               const AppHeader(title: 'Walking Session'),
               Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? AppColors.backgroundDark
-                        : AppColors.background,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(24),
-                    ),
-                  ),
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.all(responsive.space(4)),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (walkingState.isTracking) ...[
-                          _buildActiveSessionCard(walkingState, responsive),
-                          SizedBox(height: responsive.space(4)),
-                        ],
-                        if (!walkingState.isTracking) ...[
-                          _buildStartCard(walkingState, responsive),
-                          SizedBox(height: responsive.space(4)),
-                        ],
-                        WalkingStatsCard(
-                          sessions: ref
-                              .read(walkingProvider.notifier)
-                              .getHistory(),
+                child: !walkingState.isInitialized
+                    ? const Center(
+                        child: GhostRunning(
+                          primaryMessage: 'Preparing...',
+                          secondaryMessage: 'Setting up walking session',
                         ),
-                        SizedBox(height: responsive.space(4)),
-                        WalkingHistoryList(
-                          sessions: ref
-                              .read(walkingProvider.notifier)
-                              .getHistory(),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? AppColors.backgroundDark
+                              : AppColors.background,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(24),
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
-                ),
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            await ref.read(walkingProvider.notifier).init();
+                          },
+                          color: AppColors.primary,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(
+                              parent: BouncingScrollPhysics(),
+                            ),
+                            padding: EdgeInsets.all(responsive.space(4)),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                if (walkingState.isTracking) ...[
+                                  _buildActiveSessionCard(
+                                    walkingState,
+                                    responsive,
+                                  ),
+                                  SizedBox(height: responsive.space(4)),
+                                ],
+                                if (!walkingState.isTracking) ...[
+                                  _buildStartCard(walkingState, responsive),
+                                  SizedBox(height: responsive.space(4)),
+                                ],
+                                WalkingStatsCard(
+                                  sessions: ref
+                                      .read(walkingProvider.notifier)
+                                      .getHistory(),
+                                ),
+                                SizedBox(height: responsive.space(4)),
+                                WalkingHistoryList(
+                                  sessions: ref
+                                      .read(walkingProvider.notifier)
+                                      .getHistory(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
               ),
             ],
           ),

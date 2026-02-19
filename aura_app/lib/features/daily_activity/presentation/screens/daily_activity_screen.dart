@@ -115,11 +115,15 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   }
 
   Widget _buildProgressCard(DailyActivityState state, Responsive responsive) {
-    final completed = state.todayActivities
-        .where((a) => a.completedAt != null)
-        .length;
-    final total = state.todayActivities.length;
-    final progress = total > 0 ? completed / total : 0.0;
+    int totalTarget = 0;
+    int totalDone = 0;
+    for (final a in state.todayActivities) {
+      totalTarget += a.targetCompletions;
+      totalDone += a.isRepeating
+          ? a.completionTimes.length
+          : (a.completedAt != null ? 1 : 0);
+    }
+    final progress = totalTarget > 0 ? totalDone / totalTarget : 0.0;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: responsive.w(4)),
@@ -137,14 +141,14 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
             child: Stack(
               children: [
                 CircularProgressIndicator(
-                  value: progress,
+                  value: progress.clamp(0.0, 1.0),
                   strokeWidth: 5,
                   backgroundColor: Colors.white.withValues(alpha: 0.1),
                   valueColor: const AlwaysStoppedAnimation(AppColors.success),
                 ),
                 Center(
                   child: Text(
-                    '${(progress * 100).toInt()}%',
+                    '${(progress * 100).toInt().clamp(0, 100)}%',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: responsive.text(13),
@@ -170,7 +174,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                 ),
                 SizedBox(height: responsive.space(4)),
                 Text(
-                  '$completed of $total activities completed',
+                  '$totalDone of $totalTarget completions',
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.6),
                     fontSize: responsive.text(13),
@@ -246,7 +250,9 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
     DailyActivityModel activity,
     Responsive responsive,
   ) {
-    final isCompleted = activity.completedAt != null;
+    final isCompleted = activity.isRepeating
+        ? activity.isFullyCompleted
+        : activity.completedAt != null;
 
     return Container(
       margin: EdgeInsets.only(bottom: responsive.space(10)),
@@ -256,6 +262,8 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
         border: Border.all(
           color: isCompleted
               ? AppColors.success.withValues(alpha: 0.3)
+              : activity.isRepeating && activity.isDueNow
+              ? AppColors.accent.withValues(alpha: 0.4)
               : Colors.white.withValues(alpha: 0.12),
         ),
       ),
@@ -265,9 +273,17 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
           borderRadius: BorderRadius.circular(responsive.radius(14)),
           onTap: isCompleted
               ? null
-              : () => ref
-                    .read(dailyActivityProvider.notifier)
-                    .completeActivity(activity.id),
+              : () {
+                  if (activity.isRepeating) {
+                    ref
+                        .read(dailyActivityProvider.notifier)
+                        .recordCompletion(activity.id);
+                  } else {
+                    ref
+                        .read(dailyActivityProvider.notifier)
+                        .completeActivity(activity.id);
+                  }
+                },
           child: Padding(
             padding: EdgeInsets.all(responsive.space(14)),
             child: Row(
@@ -317,6 +333,33 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                               fontWeight: FontWeight.w500,
                             ),
                           ),
+                          if (activity.isRepeating) ...[
+                            SizedBox(width: responsive.space(10)),
+                            Icon(
+                              Icons.repeat_rounded,
+                              color: AppColors.accent,
+                              size: responsive.icon(12),
+                            ),
+                            SizedBox(width: responsive.space(3)),
+                            Text(
+                              '${activity.completionTimes.length}/${activity.targetCompletions}',
+                              style: TextStyle(
+                                color: AppColors.accent,
+                                fontSize: responsive.text(11),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            if (activity.intervalMinutes != null) ...[
+                              SizedBox(width: responsive.space(6)),
+                              Text(
+                                _formatInterval(activity.intervalMinutes!),
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.4),
+                                  fontSize: responsive.text(10),
+                                ),
+                              ),
+                            ],
+                          ],
                           if (!activity.isSynced) ...[
                             SizedBox(width: responsive.space(10)),
                             Icon(
@@ -335,6 +378,26 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                           ],
                         ],
                       ),
+                      if (activity.isRepeating) ...[
+                        SizedBox(height: responsive.space(8)),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            responsive.radius(3),
+                          ),
+                          child: LinearProgressIndicator(
+                            value: activity.completionProgress.clamp(0.0, 1.0),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.1,
+                            ),
+                            valueColor: AlwaysStoppedAnimation(
+                              isCompleted
+                                  ? AppColors.success
+                                  : _getActivityColor(activity.activityType),
+                            ),
+                            minHeight: responsive.space(4),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -362,6 +425,15 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
         ),
       ),
     );
+  }
+
+  String _formatInterval(int minutes) {
+    if (minutes >= 60) {
+      final hrs = minutes ~/ 60;
+      final mins = minutes % 60;
+      return mins > 0 ? 'every ${hrs}h${mins}m' : 'every ${hrs}h';
+    }
+    return 'every ${minutes}m';
   }
 
   IconData _getActivityIcon(String type) {
@@ -436,13 +508,15 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
       context: context,
       title: 'Add New Activity',
       child: _AddActivityContent(
-        onAdd: (type, title, description) {
+        onAdd: (type, title, description, intervalMinutes, targetCompletions) {
           ref
               .read(dailyActivityProvider.notifier)
               .addActivity(
                 activityType: type,
                 title: title,
                 description: description,
+                intervalMinutes: intervalMinutes,
+                targetCompletions: targetCompletions,
               );
         },
       ),
@@ -451,7 +525,14 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
 }
 
 class _AddActivityContent extends ConsumerStatefulWidget {
-  final void Function(String type, String title, String? description) onAdd;
+  final void Function(
+    String type,
+    String title,
+    String? description,
+    int? intervalMinutes,
+    int targetCompletions,
+  )
+  onAdd;
 
   const _AddActivityContent({required this.onAdd});
 
@@ -463,6 +544,10 @@ class _AddActivityContent extends ConsumerStatefulWidget {
 class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
+  bool _isRepeating = false;
+  int _targetCompletions = 1;
+  int _intervalHours = 2;
+  int _intervalMinutes = 0;
 
   @override
   void dispose() {
@@ -568,18 +653,25 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
             maxLines: 3,
             responsive: responsive,
           ),
+          SizedBox(height: responsive.space(20)),
+          _buildRepeatSection(responsive),
           SizedBox(height: responsive.space(24)),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
                 if (_titleController.text.trim().isNotEmpty) {
+                  final totalMin = _isRepeating
+                      ? (_intervalHours * 60 + _intervalMinutes)
+                      : null;
                   widget.onAdd(
                     selectedType,
                     _titleController.text.trim(),
                     _descController.text.trim().isNotEmpty
                         ? _descController.text.trim()
                         : null,
+                    totalMin != null && totalMin > 0 ? totalMin : null,
+                    _isRepeating ? _targetCompletions : 1,
                   );
                   Navigator.pop(context);
                 }
@@ -603,6 +695,186 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
           ),
           SizedBox(height: responsive.space(16)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRepeatSection(Responsive responsive) {
+    return Container(
+      padding: EdgeInsets.all(responsive.space(16)),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(responsive.radius(14)),
+        border: Border.all(
+          color: _isRepeating
+              ? AppColors.accent.withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.repeat_rounded,
+                    color: _isRepeating ? AppColors.accent : Colors.white54,
+                    size: responsive.icon(20),
+                  ),
+                  SizedBox(width: responsive.space(10)),
+                  Text(
+                    'Repeat Activity',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: responsive.text(15),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              Switch(
+                value: _isRepeating,
+                onChanged: (v) => setState(() {
+                  _isRepeating = v;
+                  if (v && _targetCompletions < 2) _targetCompletions = 2;
+                }),
+                activeColor: AppColors.accent,
+                inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
+              ),
+            ],
+          ),
+          if (_isRepeating) ...[
+            SizedBox(height: responsive.space(16)),
+            Text(
+              'How many times?',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: responsive.text(13),
+              ),
+            ),
+            SizedBox(height: responsive.space(8)),
+            Row(
+              children: [
+                _buildCounterBtn(Icons.remove, () {
+                  if (_targetCompletions > 2) {
+                    setState(() => _targetCompletions--);
+                  }
+                }, responsive),
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: responsive.space(20),
+                  ),
+                  child: Text(
+                    '$_targetCompletions times',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: responsive.text(18),
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                _buildCounterBtn(Icons.add, () {
+                  if (_targetCompletions < 20) {
+                    setState(() => _targetCompletions++);
+                  }
+                }, responsive),
+              ],
+            ),
+            SizedBox(height: responsive.space(16)),
+            Text(
+              'Interval between each',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: responsive.text(13),
+              ),
+            ),
+            SizedBox(height: responsive.space(8)),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildDropdown(
+                    value: _intervalHours,
+                    items: List.generate(13, (i) => i),
+                    suffix: 'hrs',
+                    onChanged: (v) => setState(() => _intervalHours = v),
+                    responsive: responsive,
+                  ),
+                ),
+                SizedBox(width: responsive.space(12)),
+                Expanded(
+                  child: _buildDropdown(
+                    value: _intervalMinutes,
+                    items: [0, 15, 30, 45],
+                    suffix: 'min',
+                    onChanged: (v) => setState(() => _intervalMinutes = v),
+                    responsive: responsive,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: responsive.space(8)),
+            Text(
+              'e.g. Drink water every ${_intervalHours}h${_intervalMinutes > 0 ? "${_intervalMinutes}m" : ""}, $_targetCompletions times/day',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.4),
+                fontSize: responsive.text(11),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCounterBtn(
+    IconData icon,
+    VoidCallback onTap,
+    Responsive responsive,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.all(responsive.space(8)),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(responsive.radius(8)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        ),
+        child: Icon(icon, color: Colors.white, size: responsive.icon(18)),
+      ),
+    );
+  }
+
+  Widget _buildDropdown({
+    required int value,
+    required List<int> items,
+    required String suffix,
+    required ValueChanged<int> onChanged,
+    required Responsive responsive,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: responsive.space(12)),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(responsive.radius(10)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+      ),
+      child: DropdownButton<int>(
+        value: value,
+        isExpanded: true,
+        underline: const SizedBox(),
+        dropdownColor: const Color(0xFF1A2A3F),
+        style: TextStyle(color: Colors.white, fontSize: responsive.text(14)),
+        items: items
+            .map((v) => DropdownMenuItem(value: v, child: Text('$v $suffix')))
+            .toList(),
+        onChanged: (v) {
+          if (v != null) onChanged(v);
+        },
       ),
     );
   }

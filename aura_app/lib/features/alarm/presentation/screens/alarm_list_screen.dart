@@ -57,41 +57,56 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
               Expanded(
                 child: state.isLoading
                     ? const GhostRunning(primaryMessage: 'Loading alarms...')
-                    : state.alarms.isEmpty
-                    ? const EmptyStateWidget(
-                        icon: Icons.alarm_off,
-                        title: 'No alarms set',
-                        description: 'Tap + to create your first alarm',
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: state.alarms.length,
-                        itemBuilder: (context, index) {
-                          final alarm = state.alarms[index];
-                          return AlarmCard(
-                            alarm: alarm,
-                            onToggle: (enabled) {
-                              ref
-                                  .read(alarmProvider.notifier)
-                                  .toggleAlarm(alarm.id, enabled);
-                            },
-                            onTap: () {
-                              Navigator.pushNamed(
-                                context,
-                                AppRoutes.alarmEdit,
-                                arguments: alarm.id,
-                              );
-                            },
-                            onDelete: () {
-                              ref
-                                  .read(alarmProvider.notifier)
-                                  .deleteAlarm(alarm.id);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Alarm deleted')),
-                              );
-                            },
-                          );
+                    : RefreshIndicator(
+                        onRefresh: () async {
+                          await ref.read(alarmProvider.notifier).init();
                         },
+                        color: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        child: state.alarms.isEmpty
+                            ? const EmptyStateWidget(
+                                icon: Icons.alarm_off,
+                                title: 'No alarms set',
+                                description: 'Tap + to create your first alarm',
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: state.alarms.length,
+                                itemBuilder: (context, index) {
+                                  // Fix: capture alarm in local variable to avoid closure bug
+                                  final alarm = state.alarms[index];
+                                  final alarmId =
+                                      alarm.id; // capture id, not index
+                                  return AlarmCard(
+                                    key: ValueKey(alarmId),
+                                    alarm: alarm,
+                                    onToggle: (enabled) {
+                                      ref
+                                          .read(alarmProvider.notifier)
+                                          .toggleAlarm(alarmId, enabled);
+                                    },
+                                    onTap: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        AppRoutes.alarmEdit,
+                                        arguments: alarmId,
+                                      );
+                                    },
+                                    onDelete: () {
+                                      ref
+                                          .read(alarmProvider.notifier)
+                                          .deleteAlarm(alarmId);
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Alarm deleted'),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                       ),
               ),
             ],

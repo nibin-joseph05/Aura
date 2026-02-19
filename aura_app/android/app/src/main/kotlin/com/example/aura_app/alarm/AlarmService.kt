@@ -36,6 +36,7 @@ class AlarmService : Service() {
         val mathDifficulty = intent.getIntExtra(AlarmReceiver.EXTRA_MATH_DIFFICULTY, 1)
 
         Log.i("AlarmService", "Alarm triggered: $alarmId")
+        instance = this
 
         startForeground(NOTIFICATION_ID, createNotification(label, alarmId))
         playAlarmSound(tone)
@@ -150,6 +151,7 @@ class AlarmService : Service() {
         super.onDestroy()
         mediaPlayer?.release()
         vibrator?.cancel()
+        instance = null
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

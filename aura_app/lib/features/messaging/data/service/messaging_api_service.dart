@@ -142,4 +142,9 @@ class MessagingApiService {
       data: {'userId': userId},
     );
   }
+
+  Future<Map<String, dynamic>> getUserProfile(String userId) async {
+    final response = await _dio.get('/api/users/$userId/profile');
+    return response.data;
+  }
 }

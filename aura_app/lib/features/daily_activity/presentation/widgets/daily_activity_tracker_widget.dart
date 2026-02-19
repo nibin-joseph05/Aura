@@ -177,10 +177,15 @@ class _DailyActivityTrackerWidgetState
     DailyActivityState state,
     Responsive responsive,
   ) {
-    final completed = state.todayActivities
-        .where((a) => a.completedAt != null)
-        .length;
-    final total = state.todayActivities.length;
+    int totalTarget = 0;
+    int totalDone = 0;
+    for (final a in state.todayActivities) {
+      totalTarget += a.targetCompletions;
+      totalDone += a.isRepeating
+          ? a.completionTimes.length
+          : (a.completedAt != null ? 1 : 0);
+    }
+    final pending = totalTarget - totalDone;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -190,7 +195,7 @@ class _DailyActivityTrackerWidgetState
             _buildStatItem(
               icon: Icons.check_circle_outline_rounded,
               label: 'Done',
-              value: '$completed',
+              value: '$totalDone',
               color: AppColors.success,
               responsive: responsive,
             ),
@@ -198,7 +203,7 @@ class _DailyActivityTrackerWidgetState
             _buildStatItem(
               icon: Icons.pending_outlined,
               label: 'Pending',
-              value: '${total - completed}',
+              value: '$pending',
               color: AppColors.warning,
               responsive: responsive,
             ),
@@ -206,18 +211,18 @@ class _DailyActivityTrackerWidgetState
             _buildStatItem(
               icon: Icons.list_alt_rounded,
               label: 'Total',
-              value: '$total',
+              value: '$totalTarget',
               color: AppColors.info,
               responsive: responsive,
             ),
           ],
         ),
-        if (total > 0) ...[
+        if (totalTarget > 0) ...[
           SizedBox(height: responsive.space(14)),
           ClipRRect(
             borderRadius: BorderRadius.circular(responsive.radius(4)),
             child: LinearProgressIndicator(
-              value: total > 0 ? completed / total : 0,
+              value: totalTarget > 0 ? totalDone / totalTarget : 0,
               backgroundColor: Colors.white.withValues(alpha: 0.1),
               valueColor: const AlwaysStoppedAnimation(AppColors.success),
               minHeight: responsive.space(5),

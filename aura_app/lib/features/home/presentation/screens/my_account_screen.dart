@@ -22,6 +22,38 @@ class MyAccountScreen extends ConsumerWidget {
   }
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Logout',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to log out?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Logout',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
     await FirebaseAuth.instance.signOut();
     ref.read(userProvider.notifier).clearUser();
     ref.read(profileImageProvider.notifier).reset();
@@ -91,22 +123,19 @@ class MyAccountScreen extends ConsumerWidget {
                           icon: Icons.lock_outline,
                           title: 'Change Password',
                           subtitle: 'Update your password',
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Password reset email will be sent',
-                                ),
-                                backgroundColor: Colors.orange,
-                              ),
-                            );
-                          },
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.changePassword,
+                          ),
                         ),
                         _MenuItemData(
                           icon: Icons.phone_outlined,
                           title: 'Phone Number',
                           subtitle: user?.phone ?? 'Not added',
-                          onTap: () {},
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.changePhone,
+                          ),
                         ),
                       ]),
                       SizedBox(height: responsive.h(2)),
@@ -115,14 +144,10 @@ class MyAccountScreen extends ConsumerWidget {
                           icon: Icons.notifications_outlined,
                           title: 'Notifications',
                           subtitle: 'Manage notification settings',
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Notifications enabled'),
-                                backgroundColor: Colors.green,
-                              ),
-                            );
-                          },
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.notificationSettings,
+                          ),
                         ),
                         _MenuItemData(
                           icon: Icons.language_outlined,

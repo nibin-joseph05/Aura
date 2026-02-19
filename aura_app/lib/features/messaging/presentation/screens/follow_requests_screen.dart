@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../../core/widgets/screens/empty_state_widget.dart';
+import '../../../user/presentation/providers/user_provider.dart';
 import '../providers/messaging_provider.dart';
 
 class FollowRequestsScreen extends ConsumerStatefulWidget {
@@ -19,7 +20,10 @@ class _FollowRequestsScreenState extends ConsumerState<FollowRequestsScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // TODO: Replace with actual user ID
+      final userId = ref.read(userProvider).user?.uid;
+      if (userId != null) {
+        ref.read(messagingProvider.notifier).loadFollowRequests(userId);
+      }
     });
   }
 
@@ -96,7 +100,9 @@ class _FollowRequestsScreenState extends ConsumerState<FollowRequestsScreen> {
           const SizedBox(width: 14),
           Expanded(
             child: Text(
-              request.followerId.length > 12
+              request.followerName.isNotEmpty
+                  ? request.followerName
+                  : request.followerId.length > 12
                   ? '${request.followerId.substring(0, 12)}...'
                   : request.followerId,
               style: TextStyle(

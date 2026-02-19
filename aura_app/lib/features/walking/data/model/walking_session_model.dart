@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 
 part 'walking_session_model.g.dart';
 
-@HiveType(typeId: 10)
+@HiveType(typeId: 40)
 class WalkingSessionModel extends HiveObject {
   @HiveField(0)
   String? id;
@@ -90,7 +90,7 @@ class WalkingSessionModel extends HiveObject {
   }
 }
 
-@HiveType(typeId: 11)
+@HiveType(typeId: 41)
 class RoutePoint {
   @HiveField(0)
   double latitude;

@@ -24,7 +24,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
   }
 
   void _loadData() {
-    // TODO: Replace with actual user ID from auth provider
+    ref.read(messagingProvider.notifier).loadConversations();
   }
 
   @override
@@ -95,22 +95,29 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                     ? const Center(
                         child: CircularProgressIndicator(color: Colors.white),
                       )
-                    : state.conversations.isEmpty
-                    ? const EmptyStateWidget(
-                        icon: Icons.chat_bubble_outline_rounded,
-                        title: 'No conversations yet',
-                        description: 'Follow other users to start messaging',
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: state.conversations.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 4),
-                        itemBuilder: (context, index) {
-                          return _buildConversationTile(
-                            state.conversations[index],
-                            isDark,
-                          );
-                        },
+                    : RefreshIndicator(
+                        onRefresh: () async => _loadData(),
+                        color: Colors.white,
+                        backgroundColor: AppColors.primary,
+                        child: state.conversations.isEmpty
+                            ? const EmptyStateWidget(
+                                icon: Icons.chat_bubble_outline_rounded,
+                                title: 'No conversations yet',
+                                description:
+                                    'Follow other users to start messaging',
+                              )
+                            : ListView.separated(
+                                padding: const EdgeInsets.all(16),
+                                itemCount: state.conversations.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 4),
+                                itemBuilder: (context, index) {
+                                  return _buildConversationTile(
+                                    state.conversations[index],
+                                    isDark,
+                                  );
+                                },
+                              ),
                       ),
               ),
             ],
@@ -129,6 +136,7 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
           arguments: {
             'conversationId': conv.id,
             'otherUserId': conv.otherUserId,
+            'otherUserName': conv.otherUserName,
           },
         );
       },
@@ -159,7 +167,9 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    conv.otherUserId.length > 8
+                    conv.otherUserName.isNotEmpty
+                        ? conv.otherUserName
+                        : conv.otherUserId.length > 8
                         ? '${conv.otherUserId.substring(0, 8)}...'
                         : conv.otherUserId,
                     style: TextStyle(

@@ -1,9 +1,14 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
+import '../providers/profile_image_provider.dart';
 import '../providers/user_provider.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
@@ -47,6 +52,104 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     _nameController.dispose();
     _usernameController.dispose();
     super.dispose();
+  }
+
+  String? _buildFullImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http')) return path;
+    final base = AppConfig.baseUrl;
+    return '$base/uploads/$path';
+  }
+
+  Future<void> _pickAndCropImage() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Change Profile Photo',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: AppColors.accent),
+                title: const Text(
+                  'Take Photo',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: AppColors.accent,
+                ),
+                title: const Text(
+                  'Choose from Gallery',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (source == null) return;
+
+    final picked = await ImagePicker().pickImage(
+      source: source,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: picked.path,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Photo',
+          toolbarColor: const Color(0xFF0A1A2F),
+          toolbarWidgetColor: Colors.white,
+          activeControlsWidgetColor: AppColors.accent,
+          backgroundColor: const Color(0xFF0A1A2F),
+          cropStyle: CropStyle.circle,
+          initAspectRatio: CropAspectRatioPreset.square,
+          lockAspectRatio: true,
+        ),
+        IOSUiSettings(
+          title: 'Crop Photo',
+          cropStyle: CropStyle.circle,
+          aspectRatioLockEnabled: true,
+          resetAspectRatioEnabled: false,
+        ),
+      ],
+    );
+    if (cropped == null) return;
+
+    ref.read(profileImageProvider.notifier).uploadImage(File(cropped.path));
   }
 
   Future<void> _selectDateOfBirth() async {
@@ -119,116 +222,212 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final responsive = Responsive.of(context);
     final user = ref.watch(userProvider).user;
 
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: AppColors.primaryGradient,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const AppHeader(title: 'Edit Profile', showBack: true),
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: responsive.horizontal(5),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: responsive.h(2)),
-                        _buildTextField(
-                          responsive,
-                          controller: _nameController,
-                          label: 'Full Name',
-                          icon: Icons.person_outline,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please enter your name';
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: responsive.h(2)),
-                        _buildTextField(
-                          responsive,
-                          controller: _usernameController,
-                          label: 'Username',
-                          icon: Icons.alternate_email,
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please enter a username';
-                            }
-                            if (value.length < 3) {
-                              return 'Username must be at least 3 characters';
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: responsive.h(2)),
-                        _buildReadOnlyField(
-                          responsive,
-                          label: 'Email',
-                          value: user?.email ?? 'Not set',
-                          icon: Icons.email_outlined,
-                        ),
-                        SizedBox(height: responsive.h(2)),
-                        _buildReadOnlyField(
-                          responsive,
-                          label: 'Phone',
-                          value: user?.phone ?? 'Not set',
-                          icon: Icons.phone_outlined,
-                        ),
-                        SizedBox(height: responsive.h(2)),
-                        _buildDatePicker(responsive),
-                        SizedBox(height: responsive.h(2)),
-                        _buildGenderSelector(responsive),
-                        SizedBox(height: responsive.h(4)),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _saveProfile,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.accent,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(
-                                vertical: responsive.h(2),
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Text(
-                                    'Save Changes',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+          child: SafeArea(
+            child: Column(
+              children: [
+                const AppHeader(title: 'Edit Profile', showBack: true),
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: responsive.horizontal(5),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: responsive.h(2)),
+                          _buildProfileImageSection(responsive),
+                          SizedBox(height: responsive.h(3)),
+                          _buildTextField(
+                            responsive,
+                            controller: _nameController,
+                            label: 'Full Name',
+                            icon: Icons.person_outline,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter your name';
+                              }
+                              return null;
+                            },
                           ),
-                        ),
-                        SizedBox(height: responsive.h(3)),
-                      ],
+                          SizedBox(height: responsive.h(2)),
+                          _buildTextField(
+                            responsive,
+                            controller: _usernameController,
+                            label: 'Username',
+                            icon: Icons.alternate_email,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'Please enter a username';
+                              }
+                              if (value.length < 3) {
+                                return 'Username must be at least 3 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: responsive.h(2)),
+                          _buildReadOnlyField(
+                            responsive,
+                            label: 'Email',
+                            value: user?.email ?? 'Not set',
+                            icon: Icons.email_outlined,
+                          ),
+                          SizedBox(height: responsive.h(2)),
+                          _buildReadOnlyField(
+                            responsive,
+                            label: 'Phone',
+                            value: user?.phone ?? 'Not set',
+                            icon: Icons.phone_outlined,
+                          ),
+                          SizedBox(height: responsive.h(2)),
+                          _buildDatePicker(responsive),
+                          SizedBox(height: responsive.h(2)),
+                          _buildGenderSelector(responsive),
+                          SizedBox(height: responsive.h(4)),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _isLoading ? null : _saveProfile,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.accent,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                  vertical: responsive.h(2),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Text(
+                                      'Save Changes',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          SizedBox(height: responsive.h(3)),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileImageSection(Responsive responsive) {
+    final user = ref.watch(userProvider).user;
+    final imgState = ref.watch(profileImageProvider);
+    final profileUrl = _buildFullImageUrl(
+      imgState.imageUrl ?? user?.profileImageUrl,
+    );
+
+    return Center(
+      child: GestureDetector(
+        onTap: _pickAndCropImage,
+        child: Stack(
+          children: [
+            Container(
+              width: responsive.isTablet ? 120 : 100,
+              height: responsive.isTablet ? 120 : 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: AppColors.accent.withValues(alpha: 0.5),
+                  width: 3,
+                ),
+              ),
+              child: ClipOval(
+                child: imgState.isUploading
+                    ? Container(
+                        color: Colors.white24,
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    : profileUrl != null
+                    ? Image.network(
+                        profileUrl,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (ctx, child, progress) {
+                          if (progress == null) return child;
+                          return Container(
+                            color: Colors.white24,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white54,
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => Container(
+                          color: Colors.white24,
+                          child: Icon(
+                            Icons.person,
+                            size: responsive.isTablet ? 50 : 40,
+                            color: Colors.white,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        color: Colors.white24,
+                        child: Icon(
+                          Icons.person,
+                          size: responsive.isTablet ? 50 : 40,
+                          color: Colors.white,
+                        ),
+                      ),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF0A1A2F), width: 2),
+                ),
+                child: Icon(
+                  Icons.camera_alt,
+                  size: responsive.isTablet ? 18 : 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

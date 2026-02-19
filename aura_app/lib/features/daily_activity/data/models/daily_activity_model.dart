@@ -28,6 +28,15 @@ class DailyActivityModel {
   @HiveField(7)
   final DateTime createdAt;
 
+  @HiveField(8)
+  final int? intervalMinutes;
+
+  @HiveField(9)
+  final int targetCompletions;
+
+  @HiveField(10)
+  final List<DateTime> completionTimes;
+
   DailyActivityModel({
     required this.id,
     required this.date,
@@ -37,7 +46,30 @@ class DailyActivityModel {
     this.completedAt,
     this.isSynced = false,
     required this.createdAt,
+    this.intervalMinutes,
+    this.targetCompletions = 1,
+    this.completionTimes = const [],
   });
+
+  bool get isRepeating => targetCompletions > 1;
+  bool get isFullyCompleted => completionTimes.length >= targetCompletions;
+  int get completionsRemaining => targetCompletions - completionTimes.length;
+  double get completionProgress =>
+      targetCompletions > 0 ? completionTimes.length / targetCompletions : 0.0;
+
+  DateTime? get nextDueAt {
+    if (intervalMinutes == null || isFullyCompleted) return null;
+    if (completionTimes.isEmpty) {
+      return DateTime(date.year, date.month, date.day);
+    }
+    return completionTimes.last.add(Duration(minutes: intervalMinutes!));
+  }
+
+  bool get isDueNow {
+    final next = nextDueAt;
+    if (next == null) return false;
+    return DateTime.now().isAfter(next);
+  }
 
   factory DailyActivityModel.fromJson(Map<String, dynamic> json) {
     return DailyActivityModel(
@@ -53,6 +85,13 @@ class DailyActivityModel {
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
+      intervalMinutes: json['intervalMinutes'],
+      targetCompletions: json['targetCompletions'] ?? 1,
+      completionTimes:
+          (json['completionTimes'] as List<dynamic>?)
+              ?.map((e) => DateTime.parse(e as String))
+              .toList() ??
+          [],
     );
   }
 
@@ -65,6 +104,11 @@ class DailyActivityModel {
       'description': description,
       'completedAt': completedAt?.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
+      'intervalMinutes': intervalMinutes,
+      'targetCompletions': targetCompletions,
+      'completionTimes': completionTimes
+          .map((t) => t.toIso8601String())
+          .toList(),
     };
   }
 
@@ -77,6 +121,9 @@ class DailyActivityModel {
     DateTime? completedAt,
     bool? isSynced,
     DateTime? createdAt,
+    int? intervalMinutes,
+    int? targetCompletions,
+    List<DateTime>? completionTimes,
   }) {
     return DailyActivityModel(
       id: id ?? this.id,
@@ -87,6 +134,9 @@ class DailyActivityModel {
       completedAt: completedAt ?? this.completedAt,
       isSynced: isSynced ?? this.isSynced,
       createdAt: createdAt ?? this.createdAt,
+      intervalMinutes: intervalMinutes ?? this.intervalMinutes,
+      targetCompletions: targetCompletions ?? this.targetCompletions,
+      completionTimes: completionTimes ?? this.completionTimes,
     );
   }
 }

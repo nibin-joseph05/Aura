@@ -60,13 +60,14 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
       final currentUserId = ref.read(userProvider).user?.uid ?? '';
       final dio = _api;
 
-      final profileResponse = await dio.getFollowStatus(
-        currentUserId,
-        widget.userId,
-      );
+      final results = await Future.wait([
+        dio.getUserProfile(widget.userId),
+        dio.getFollowStatus(currentUserId, widget.userId),
+      ]);
 
       setState(() {
-        _followStatus = profileResponse;
+        _profile = results[0];
+        _followStatus = results[1];
       });
 
       setState(() {

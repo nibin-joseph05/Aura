@@ -61,9 +61,10 @@ class AlarmModel extends HiveObject {
        createdAt = createdAt ?? DateTime.now();
 
   String get timeString {
-    final h = hour.toString().padLeft(2, '0');
+    final isPm = hour >= 12;
+    final h12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
     final m = minute.toString().padLeft(2, '0');
-    return '$h:$m';
+    return '$h12:$m ${isPm ? 'PM' : 'AM'}';
   }
 
   bool get isOneTime => repeatDays.isEmpty;

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
+import '../../../../core/widgets/notifications/notification_encourage_card.dart';
 import '../../../../core/widgets/screens/success_overlay_card.dart';
 import '../../../daily_activity/presentation/widgets/daily_activity_tracker_widget.dart';
 import '../providers/success_overlay_provider.dart';
@@ -118,29 +119,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildMainContent(Responsive responsive) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: responsive.horizontal(5),
-      child: Column(
-        children: [
-          SizedBox(height: responsive.h(2)),
-          const WellnessSummaryCard(),
-          SizedBox(height: responsive.h(2.5)),
-          QuickActionsRow(
-            onSOS: () => Navigator.pushNamed(context, '/sos-trigger'),
-            onCreatePost: () =>
-                Navigator.pushNamed(context, '/wellness-create'),
-            onWellnessFeed: () =>
-                Navigator.pushNamed(context, '/wellness-feed'),
-          ),
-          SizedBox(height: responsive.h(3)),
-          const DailyActivityTrackerWidget(),
-          SizedBox(height: responsive.h(3)),
-          FeedPreviewSection(
-            onSeeAll: () => Navigator.pushNamed(context, '/wellness-feed'),
-          ),
-          SizedBox(height: responsive.h(3)),
-        ],
+    return RefreshIndicator(
+      onRefresh: () async {
+        setState(() {});
+      },
+      color: Colors.white,
+      backgroundColor: AppColors.splashMedium,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        padding: responsive.horizontal(5),
+        child: Column(
+          children: [
+            SizedBox(height: responsive.h(2)),
+            const NotificationEncourageCard(),
+            const WellnessSummaryCard(),
+            SizedBox(height: responsive.h(2.5)),
+            QuickActionsRow(
+              onSOS: () => Navigator.pushNamed(context, '/sos-trigger'),
+              onCreatePost: () =>
+                  Navigator.pushNamed(context, '/wellness-create'),
+              onWellnessFeed: () =>
+                  Navigator.pushNamed(context, '/wellness-feed'),
+              onAlarm: () => Navigator.pushNamed(context, '/alarm'),
+              onChat: () => Navigator.pushNamed(context, '/chat'),
+              onWalking: () => Navigator.pushNamed(context, '/walking'),
+            ),
+            SizedBox(height: responsive.h(3)),
+            const DailyActivityTrackerWidget(),
+            SizedBox(height: responsive.h(3)),
+            FeedPreviewSection(
+              onSeeAll: () => Navigator.pushNamed(context, '/wellness-feed'),
+            ),
+            SizedBox(height: responsive.h(3)),
+          ],
+        ),
       ),
     );
   }
