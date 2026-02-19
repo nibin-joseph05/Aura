@@ -16,7 +16,6 @@ Future<void> main() async {
   await dotenv.load(fileName: ".env");
   await Firebase.initializeApp();
 
-  // Initialize push notification handlers
   await FcmHandler.instance.initialize();
   await LocalNotificationService.instance.initialize();
 
