@@ -8,6 +8,7 @@ class OtpInputField extends StatelessWidget {
   final int index;
   final Function(String) onChanged;
   final Responsive responsive;
+  final bool hasError;
 
   const OtpInputField({
     super.key,
@@ -16,6 +17,7 @@ class OtpInputField extends StatelessWidget {
     required this.index,
     required this.onChanged,
     required this.responsive,
+    this.hasError = false,
   });
 
   @override
@@ -36,28 +38,35 @@ class OtpInputField extends StatelessWidget {
         cursorColor: Colors.white,
         style: TextStyle(
           fontSize: fontSize,
-          color: Colors.white,
+          color: hasError ? Colors.redAccent : Colors.white,
           fontWeight: FontWeight.w600,
         ),
         decoration: InputDecoration(
           counterText: "",
           enabledBorder: OutlineInputBorder(
             borderSide: BorderSide(
-              color: Colors.white.withValues(alpha: 0.3),
-              width: 1.2,
+              color: hasError
+                  ? Colors.redAccent.withValues(alpha: 0.8)
+                  : Colors.white.withValues(alpha: 0.3),
+              width: hasError ? 1.5 : 1.2,
             ),
             borderRadius: BorderRadius.circular(
               responsive.radius(AppDimensions.radiusL),
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
+            borderSide: BorderSide(
+              color: hasError ? Colors.redAccent : Colors.blueAccent,
+              width: 2,
+            ),
             borderRadius: BorderRadius.circular(
               responsive.radius(AppDimensions.radiusL),
             ),
           ),
           filled: true,
-          fillColor: Colors.white.withValues(alpha: 0.05),
+          fillColor: hasError
+              ? Colors.redAccent.withValues(alpha: 0.06)
+              : Colors.white.withValues(alpha: 0.05),
         ),
         onChanged: onChanged,
       ),

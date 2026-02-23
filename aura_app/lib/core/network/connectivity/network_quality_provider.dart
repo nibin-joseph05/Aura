@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum NetworkQuality { fast, slow, verySlow, offline }
 
-final networkQualityProvider = StreamProvider<NetworkQuality>((ref) async* {
+final networkQualityProvider = StreamProvider.autoDispose<NetworkQuality>((
+  ref,
+) async* {
   yield await _checkQuality();
 
   final stream = Stream.periodic(const Duration(seconds: 3), (_) async {

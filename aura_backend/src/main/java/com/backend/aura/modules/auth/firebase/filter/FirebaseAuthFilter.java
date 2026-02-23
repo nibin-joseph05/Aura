@@ -76,7 +76,8 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
 
         boolean skip = path.startsWith("/api/health")
                 || path.startsWith("/api/auth")
-                || path.startsWith("/api/admin");
+                || path.startsWith("/api/admin")
+                || path.startsWith("/api/upload");
 
         if (skip) {
             log.debug("FILTER - SKIPPING filter for path: {}", path);

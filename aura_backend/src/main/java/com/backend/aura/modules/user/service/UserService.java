@@ -1,5 +1,6 @@
 package com.backend.aura.modules.user.service;
 
+import com.backend.aura.modules.auth.dto.RegisterRequest;
 import com.backend.aura.modules.mail.service.EmailService;
 import com.backend.aura.modules.messaging.model.FollowRelationship;
 import com.backend.aura.modules.messaging.repository.FollowRelationshipRepository;
@@ -7,6 +8,7 @@ import com.backend.aura.modules.user.dto.request.UpdateProfileRequest;
 import com.backend.aura.modules.user.dto.response.UserResponse;
 import com.backend.aura.modules.user.model.User;
 import com.backend.aura.modules.user.model.enums.AccountStatus;
+import com.backend.aura.modules.user.model.enums.SignupMethod;
 import com.backend.aura.modules.user.repository.UserRepository;
 import com.backend.aura.modules.wellness.repository.WellnessUpdateRepository;
 import org.slf4j.Logger;
@@ -204,6 +206,60 @@ public class UserService {
         }
 
         return mapToUserResponse(savedUser);
+    }
+
+    public UserResponse registerUser(RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail().trim()).isPresent()) {
+            throw new RuntimeException("Email already registered");
+        }
+        if (userRepository.findByUsername(request.getUsername().trim()).isPresent()) {
+            throw new RuntimeException("Username already taken");
+        }
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
+            if (userRepository.findByPhone(request.getPhone().trim()).isPresent()) {
+                throw new RuntimeException("Phone number already registered");
+            }
+        }
+
+        User user = new User();
+        user.setUid(java.util.UUID.randomUUID().toString());
+        user.setName(request.getName().trim());
+        user.setEmail(request.getEmail().trim());
+        user.setUsername(request.getUsername().trim());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEmailPasswordLinked(true);
+        user.setSignupMethod(SignupMethod.EMAIL);
+        user.setAccountStatus(AccountStatus.ACTIVE);
+        user.setCreatedAt(new Date());
+        user.setLastLoginAt(new Date());
+        user.setUpdatedAt(new Date());
+
+        if (request.getPhone() != null && !request.getPhone().isEmpty()) {
+            user.setPhone(request.getPhone().trim());
+        }
+        if (request.getGender() != null && !request.getGender().isEmpty()) {
+            user.setGender(request.getGender());
+        }
+        if (request.getDob() != null && !request.getDob().isEmpty()) {
+            user.setDob(request.getDob());
+        }
+        if (request.getProfileImageUrl() != null && !request.getProfileImageUrl().isEmpty()) {
+            user.setProfileImageUrl(request.getProfileImageUrl());
+        }
+
+        boolean profileComplete = user.getName() != null && !user.getName().isEmpty() &&
+                user.getUsername() != null && !user.getUsername().isEmpty() &&
+                user.getGender() != null && !user.getGender().isEmpty() &&
+                user.getDob() != null && !user.getDob().isEmpty();
+        user.setProfileCompleted(profileComplete);
+
+        User saved = userRepository.save(user);
+
+        if (saved.getEmail() != null && profileComplete) {
+            emailService.sendWelcomeEmail(saved.getEmail(), saved.getName());
+        }
+
+        return mapToUserResponse(saved);
     }
 
     public void updateFcmToken(String uid, String token) {

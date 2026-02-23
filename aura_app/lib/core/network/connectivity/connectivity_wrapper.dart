@@ -8,21 +8,28 @@ import 'internet_status_provider.dart';
 import 'network_quality_provider.dart';
 import 'offline_mode_provider.dart';
 
-class ConnectivityWrapper extends ConsumerWidget {
+class ConnectivityWrapper extends ConsumerStatefulWidget {
   final Widget child;
 
   const ConnectivityWrapper({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ConnectivityWrapper> createState() =>
+      _ConnectivityWrapperState();
+}
+
+class _ConnectivityWrapperState extends ConsumerState<ConnectivityWrapper> {
+  @override
+  Widget build(BuildContext context) {
     final hasInternet = ref.watch(internetStatusProvider).value ?? true;
     final offlineMode = ref.watch(offlineModeProvider);
     final uiReady = ref.watch(appUiReadyProvider);
 
     ref.listen(networkQualityProvider, (prev, next) {
+      if (!mounted) return;
+
       final quality = next.value;
       if (!uiReady) return;
-
       if (quality == null) return;
 
       if (quality == NetworkQuality.slow) {
@@ -42,7 +49,7 @@ class ConnectivityWrapper extends ConsumerWidget {
 
     return Stack(
       children: [
-        child,
+        widget.child,
         if (!hasInternet && offlineMode)
           const NoInternetScreen(isOverlay: true),
       ],

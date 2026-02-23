@@ -1,6 +1,7 @@
 class ApiEndpoints {
   static const me = "/api/auth/me";
   static const login = "/api/auth/login";
+  static const register = "/api/auth/register";
   static const userProfile = "/api/user";
   static const usernameAvailable = "/api/user/username-available";
   static const updateProfile = "/api/user/profile";

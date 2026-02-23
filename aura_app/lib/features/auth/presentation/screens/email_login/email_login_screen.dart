@@ -147,21 +147,16 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
 
     notifier.clearErrors();
 
+    bool hasError = false;
     if (identifier.isEmpty) {
-      AppSnackbar.showError(
-        context: context,
-        message: "Please enter your email, username or phone",
-      );
-      return;
+      notifier.setIdentifierError("Please enter your email, username or phone");
+      hasError = true;
     }
-
     if (password.isEmpty) {
-      AppSnackbar.showError(
-        context: context,
-        message: "Please enter your password",
-      );
-      return;
+      notifier.setPasswordError("Please enter your password");
+      hasError = true;
     }
+    if (hasError) return;
 
     notifier.setLoading(true);
 
@@ -393,6 +388,13 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                                       icon: Icons.person_outline,
                                       keyboardType: TextInputType.text,
                                       errorText: emailState.emailError,
+                                      onChanged: (_) {
+                                        if (emailState.emailError != null) {
+                                          ref
+                                              .read(emailLoginProvider.notifier)
+                                              .clearErrors();
+                                        }
+                                      },
                                     ),
 
                                     SizedBox(height: responsive.h(2)),
@@ -404,6 +406,13 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                                       icon: Icons.lock_outline,
                                       obscureText: emailState.obscurePassword,
                                       errorText: emailState.passwordError,
+                                      onChanged: (_) {
+                                        if (emailState.passwordError != null) {
+                                          ref
+                                              .read(emailLoginProvider.notifier)
+                                              .clearErrors();
+                                        }
+                                      },
                                       suffixIcon: IconButton(
                                         icon: Icon(
                                           emailState.obscurePassword
@@ -445,6 +454,46 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                                   ),
                                 );
                               },
+                            ),
+
+                            SizedBox(height: responsive.h(2)),
+
+                            SlideTransition(
+                              position: _inputSlide,
+                              child: FadeTransition(
+                                opacity: _inputOpacity,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Don't have an account? ",
+                                      style: TextStyle(
+                                        color: AppColors.textLight.withValues(
+                                          alpha: 0.6,
+                                        ),
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.pushNamed(
+                                          context,
+                                          AppRoutes.profileComplete,
+                                          arguments: {'isRegister': true},
+                                        );
+                                      },
+                                      child: const Text(
+                                        "Register",
+                                        style: TextStyle(
+                                          color: Colors.lightBlueAccent,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
 
                             SizedBox(height: responsive.h(3)),

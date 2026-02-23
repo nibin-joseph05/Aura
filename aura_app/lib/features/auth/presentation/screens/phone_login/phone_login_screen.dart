@@ -138,17 +138,14 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
 
   Future<void> _sendOtp() async {
     final phone = _phoneController.text.trim();
+    final notifier = ref.read(phoneLoginProvider.notifier);
 
-    if (phone.isEmpty || phone.length != 10) {
-      AppSnackbar.showError(
-        context: context,
-        message: "Please enter a valid 10-digit mobile number.",
-      );
+    if (!notifier.validatePhone(phone)) {
       return;
     }
 
-    ref.read(phoneLoginProvider.notifier).setLoading(true);
-    ref.read(phoneLoginProvider.notifier).updatePhoneNumber(phone);
+    notifier.setLoading(true);
+    notifier.updatePhoneNumber(phone);
 
     showDialog(
       context: context,
@@ -165,7 +162,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
       onCodeSent: (String verificationId, int? resendToken) {
         if (mounted) {
           Navigator.pop(context);
-          ref.read(phoneLoginProvider.notifier).setLoading(false);
+          notifier.setLoading(false);
 
           ref
               .read(otpStateProvider.notifier)
@@ -181,7 +178,7 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
       onError: (error) {
         if (mounted) {
           Navigator.pop(context);
-          ref.read(phoneLoginProvider.notifier).setLoading(false);
+          notifier.setLoading(false);
           AppSnackbar.showError(context: context, message: error);
         }
       },
@@ -329,6 +326,12 @@ class _PhoneLoginScreenState extends ConsumerState<PhoneLoginScreen>
                               responsive: responsive,
                               slideAnimation: _inputSlide,
                               opacityAnimation: _inputOpacity,
+                              errorText: phoneLoginState.phoneError,
+                              onChanged: (value) {
+                                ref
+                                    .read(phoneLoginProvider.notifier)
+                                    .onPhoneChanged(value);
+                              },
                             ),
                             SizedBox(height: responsive.h(5)),
                             AnimatedBuilder(

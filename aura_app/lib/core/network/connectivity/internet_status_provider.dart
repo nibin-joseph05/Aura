@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final internetStatusProvider = StreamProvider<bool>((ref) async* {
+final internetStatusProvider = StreamProvider.autoDispose<bool>((ref) async* {
   yield await _checkInternet();
 
   final stream = Stream.periodic(const Duration(seconds: 1), (_) async {

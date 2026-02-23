@@ -81,6 +81,8 @@ class FirebaseAuthDataSource {
 
   Future<User?> signInWithGoogle() async {
     try {
+      await _googleSignIn.signOut();
+
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {

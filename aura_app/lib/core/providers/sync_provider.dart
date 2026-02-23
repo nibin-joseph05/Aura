@@ -6,7 +6,7 @@ final syncManagerProvider = Provider<SyncManager>((ref) {
   return SyncManager();
 });
 
-final syncStatusProvider = StreamProvider<SyncStatus>((ref) {
+final syncStatusProvider = StreamProvider.autoDispose<SyncStatus>((ref) {
   final manager = ref.watch(syncManagerProvider);
   return manager.statusStream;
 });

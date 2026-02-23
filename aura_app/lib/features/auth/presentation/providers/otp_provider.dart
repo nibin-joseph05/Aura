@@ -1,90 +1,105 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:async';
 
 class OtpState {
-  final List<String> otpDigits;
+  final List<String> digits;
+  final bool isVerified;
   final bool isVerifying;
+  final bool isResendActive;
   final int timerSeconds;
-  final bool canResend;
+  final bool hasError;
+  final String? errorMessage;
 
   const OtpState({
-    this.otpDigits = const ['', '', '', '', '', ''],
+    this.digits = const ['', '', '', '', '', ''],
+    this.isVerified = false,
     this.isVerifying = false,
-    this.timerSeconds = 30,
-    this.canResend = false,
+    this.isResendActive = false,
+    this.timerSeconds = 60,
+    this.hasError = false,
+    this.errorMessage,
   });
 
+  String get fullOtp => digits.join();
+  bool get isComplete => digits.every((d) => d.isNotEmpty);
+  bool get canResend => isResendActive;
+
   OtpState copyWith({
-    List<String>? otpDigits,
+    List<String>? digits,
+    bool? isVerified,
     bool? isVerifying,
+    bool? isResendActive,
     int? timerSeconds,
-    bool? canResend,
+    bool? hasError,
+    String? errorMessage,
+    bool clearError = false,
   }) {
     return OtpState(
-      otpDigits: otpDigits ?? this.otpDigits,
+      digits: digits ?? this.digits,
+      isVerified: isVerified ?? this.isVerified,
       isVerifying: isVerifying ?? this.isVerifying,
+      isResendActive: isResendActive ?? this.isResendActive,
       timerSeconds: timerSeconds ?? this.timerSeconds,
-      canResend: canResend ?? this.canResend,
+      hasError: clearError ? false : (hasError ?? this.hasError),
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
     );
   }
-
-  String get fullOtp => otpDigits.join();
-  bool get isComplete => otpDigits.every((d) => d.isNotEmpty);
 }
 
 class OtpNotifier extends StateNotifier<OtpState> {
-  Timer? _timer;
-
-  OtpNotifier() : super(const OtpState()) {
-    _startTimer();
-  }
+  OtpNotifier() : super(const OtpState());
 
   void updateDigit(int index, String value) {
-    final newDigits = List<String>.from(state.otpDigits);
+    final newDigits = List<String>.from(state.digits);
     newDigits[index] = value;
-    state = state.copyWith(otpDigits: newDigits);
+    state = state.copyWith(digits: newDigits, clearError: true);
   }
 
-  void setAutoFillOtp(String otp) {
-    if (otp.length == 6) {
-      final digits = otp.split('');
-      state = state.copyWith(otpDigits: digits);
-    }
+  void setAutoFillOtp(String code) {
+    if (code.length != 6) return;
+    final digits = code.split('');
+    state = state.copyWith(digits: digits, clearError: true);
+  }
+
+  void setVerified(bool verified) {
+    state = state.copyWith(isVerified: verified);
+  }
+
+  void setVerifying(bool verifying) {
+    state = state.copyWith(isVerifying: verifying);
+  }
+
+  void setError(String message) {
+    state = state.copyWith(hasError: true, errorMessage: message);
+  }
+
+  void clearError() {
+    state = state.copyWith(clearError: true);
   }
 
   void clearOtp() {
-    state = state.copyWith(otpDigits: ['', '', '', '', '', '']);
+    state = state.copyWith(
+      digits: const ['', '', '', '', '', ''],
+      clearError: true,
+    );
   }
 
-  void setVerifying(bool isVerifying) {
-    state = state.copyWith(isVerifying: isVerifying);
+  void setResendActive(bool active) {
+    state = state.copyWith(isResendActive: active);
   }
 
-  void _startTimer() {
-    _timer?.cancel();
-    state = state.copyWith(timerSeconds: 30, canResend: false);
-
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (state.timerSeconds == 0) {
-        timer.cancel();
-        state = state.copyWith(canResend: true);
-      } else {
-        state = state.copyWith(timerSeconds: state.timerSeconds - 1);
-      }
-    });
+  void setTimerSeconds(int seconds) {
+    state = state.copyWith(timerSeconds: seconds);
   }
 
   void resetTimer() {
-    _startTimer();
+    state = state.copyWith(timerSeconds: 60, isResendActive: false);
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
+  void reset() {
+    state = const OtpState();
   }
 }
 
-final otpProvider = StateNotifierProvider.autoDispose<OtpNotifier, OtpState>(
+final otpProvider = StateNotifierProvider<OtpNotifier, OtpState>(
   (ref) => OtpNotifier(),
 );

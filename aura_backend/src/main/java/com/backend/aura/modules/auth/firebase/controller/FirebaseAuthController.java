@@ -2,6 +2,7 @@ package com.backend.aura.modules.auth.firebase.controller;
 
 import com.backend.aura.modules.auth.dto.LoginRequest;
 import com.backend.aura.modules.auth.dto.LoginResponse;
+import com.backend.aura.modules.auth.dto.RegisterRequest;
 import com.backend.aura.modules.auth.firebase.context.AuthenticatedUserContext;
 import com.backend.aura.modules.user.dto.response.UserResponse;
 import com.backend.aura.modules.user.model.User;
@@ -119,5 +120,37 @@ public class FirebaseAuthController {
         log.debug("AUTH_CTRL - /login RESPONSE: 200 OK | email: {}", user.getEmail());
         log.debug("------------------------------------------------------------");
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+
+        log.debug("------------------------------------------------------------");
+        log.debug("AUTH_CTRL - POST /api/auth/register | email: {} | username: {}",
+                request.getEmail(), request.getUsername());
+
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
+        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Username is required"));
+        }
+        if (request.getPassword() == null || request.getPassword().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Password is required"));
+        }
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Name is required"));
+        }
+
+        try {
+            UserResponse user = userService.registerUser(request);
+            log.debug("AUTH_CTRL - /register RESPONSE: 200 OK | uid: {}", user.getUid());
+            log.debug("------------------------------------------------------------");
+            return ResponseEntity.ok(Map.of("user", user));
+        } catch (RuntimeException e) {
+            log.debug("AUTH_CTRL - /register RESPONSE: 400 | error: {}", e.getMessage());
+            log.debug("------------------------------------------------------------");
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 }

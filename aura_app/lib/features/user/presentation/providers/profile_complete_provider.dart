@@ -24,6 +24,13 @@ class ProfileCompleteState {
   final bool isGoogleAuth;
   final bool obscurePassword;
   final bool obscureConfirmPassword;
+  final bool isEmailVerified;
+  final bool isPhoneVerified;
+  final bool emailVerificationSent;
+  final bool phoneVerificationSent;
+  final bool verifyLaterEmail;
+  final bool verifyLaterPhone;
+  final bool isRegister;
 
   const ProfileCompleteState({
     this.isLoading = false,
@@ -46,6 +53,13 @@ class ProfileCompleteState {
     this.isGoogleAuth = false,
     this.obscurePassword = true,
     this.obscureConfirmPassword = true,
+    this.isEmailVerified = false,
+    this.isPhoneVerified = false,
+    this.emailVerificationSent = false,
+    this.phoneVerificationSent = false,
+    this.verifyLaterEmail = false,
+    this.verifyLaterPhone = false,
+    this.isRegister = false,
   });
 
   ProfileCompleteState copyWith({
@@ -77,6 +91,13 @@ class ProfileCompleteState {
     bool clearConfirmPasswordError = false,
     bool clearGenderError = false,
     bool clearDobError = false,
+    bool? isEmailVerified,
+    bool? isPhoneVerified,
+    bool? emailVerificationSent,
+    bool? phoneVerificationSent,
+    bool? verifyLaterEmail,
+    bool? verifyLaterPhone,
+    bool? isRegister,
   }) {
     return ProfileCompleteState(
       isLoading: isLoading ?? this.isLoading,
@@ -106,6 +127,15 @@ class ProfileCompleteState {
       obscurePassword: obscurePassword ?? this.obscurePassword,
       obscureConfirmPassword:
           obscureConfirmPassword ?? this.obscureConfirmPassword,
+      isEmailVerified: isEmailVerified ?? this.isEmailVerified,
+      isPhoneVerified: isPhoneVerified ?? this.isPhoneVerified,
+      emailVerificationSent:
+          emailVerificationSent ?? this.emailVerificationSent,
+      phoneVerificationSent:
+          phoneVerificationSent ?? this.phoneVerificationSent,
+      verifyLaterEmail: verifyLaterEmail ?? this.verifyLaterEmail,
+      verifyLaterPhone: verifyLaterPhone ?? this.verifyLaterPhone,
+      isRegister: isRegister ?? this.isRegister,
     );
   }
 }
@@ -124,6 +154,7 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
     final displayName = args['displayName'] as String?;
     final photoUrl = args['photoUrl'] as String?;
     final isGoogle = args['isGoogleAuth'] as bool? ?? false;
+    final isRegister = args['isRegister'] as bool? ?? false;
 
     state = state.copyWith(
       email: email,
@@ -131,6 +162,10 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
       displayName: displayName,
       photoUrl: photoUrl,
       isGoogleAuth: isGoogle,
+      isRegister: isRegister,
+      isEmailVerified: isGoogle,
+      isPhoneVerified:
+          !isGoogle && !isRegister && phone != null && phone.isNotEmpty,
     );
   }
 
@@ -163,6 +198,30 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
       clearGenderError: true,
       clearDobError: true,
     );
+  }
+
+  void setEmailVerified(bool verified) {
+    state = state.copyWith(isEmailVerified: verified);
+  }
+
+  void setPhoneVerified(bool verified) {
+    state = state.copyWith(isPhoneVerified: verified);
+  }
+
+  void setEmailVerificationSent(bool sent) {
+    state = state.copyWith(emailVerificationSent: sent);
+  }
+
+  void setPhoneVerificationSent(bool sent) {
+    state = state.copyWith(phoneVerificationSent: sent);
+  }
+
+  void setVerifyLaterEmail() {
+    state = state.copyWith(verifyLaterEmail: true);
+  }
+
+  void setVerifyLaterPhone() {
+    state = state.copyWith(verifyLaterPhone: true);
   }
 
   String? validateName(String name) {
@@ -275,8 +334,17 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
   }) {
     final nameError = validateName(name);
     final usernameError = validateUsername(username);
-    final emailError = isGoogleAuth ? null : validateEmail(email);
-    final phoneError = isGoogleAuth ? validatePhone(phone) : null;
+
+    String? emailError;
+    String? phoneError;
+    if (state.isRegister) {
+      emailError = validateEmail(email);
+      phoneError = validatePhone(phone);
+    } else {
+      emailError = isGoogleAuth ? null : validateEmail(email);
+      phoneError = isGoogleAuth ? validatePhone(phone) : null;
+    }
+
     final passwordError = validatePassword(password);
     final confirmPasswordError = validateConfirmPassword(
       password,
@@ -320,14 +388,7 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
       return;
     }
 
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      state = state.copyWith(
-        isCheckingUsername: false,
-        usernameError: "Authentication error",
-      );
-      return;
-    }
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? 'new_user';
 
     state = state.copyWith(isCheckingUsername: true, clearUsernameError: true);
 

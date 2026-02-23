@@ -56,14 +56,9 @@ class ProfileImageNotifier extends StateNotifier<ProfileImageState> {
   }
 
   Future<void> uploadImage(File imageFile) async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      state = state.copyWith(
-        status: ProfileImageUploadStatus.error,
-        errorMessage: 'User not authenticated',
-      );
-      return;
-    }
+    String uid =
+        FirebaseAuth.instance.currentUser?.uid ??
+        'temp_${DateTime.now().millisecondsSinceEpoch}';
 
     state = state.copyWith(
       status: ProfileImageUploadStatus.uploading,
@@ -107,7 +102,7 @@ class ProfileImageNotifier extends StateNotifier<ProfileImageState> {
   }
 
   void reset() {
-    state = const ProfileImageState();
+    state = const ProfileImageState(wasRemoved: true);
   }
 }
 

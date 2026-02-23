@@ -14,6 +14,8 @@ import '../../../../../core/widgets/navigation/app_header.dart';
 import '../../../../../core/widgets/wrappers/confirm_exit_wrapper.dart';
 import '../../../../auth/domain/models/auth_success_payload.dart';
 import '../../../../common/widgets/password_text_field.dart';
+import '../../../../common/widgets/password_strength_indicator.dart';
+import '../../../../auth/data/datasources/auth_remote_datasource.dart';
 import '../../providers/profile_complete_provider.dart';
 import '../../providers/profile_image_provider.dart';
 import '../../providers/user_provider.dart';
@@ -54,6 +56,7 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
     if (args != null) {
       final payload = args['payload'] as AuthSuccessPayload?;
       final signupMethod = args['signupMethod'] as String?;
+      final isRegister = args['isRegister'] as bool? ?? false;
 
       bool isGoogleAuth = false;
       if (payload != null) {
@@ -68,15 +71,18 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
       final photoUrl = args['photoUrl'] as String?;
 
       Future(() {
+        ref.read(profileImageProvider.notifier).reset();
+
         ref.read(profileCompleteProvider.notifier).initializeFromArgs({
           'email': email,
           'phone': phone,
           'displayName': displayName,
           'photoUrl': photoUrl,
           'isGoogleAuth': isGoogleAuth,
+          'isRegister': isRegister,
         });
 
-        if (photoUrl != null && photoUrl.isNotEmpty) {
+        if (!isRegister && photoUrl != null && photoUrl.isNotEmpty) {
           ref.read(profileImageProvider.notifier).initializeWithUrl(photoUrl);
         }
       });
@@ -126,9 +132,10 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
   }
 
   Future<void> _submitProfile() async {
+    final profileState = ref.read(profileCompleteProvider);
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
-    if (uid == null) {
+    if (!profileState.isRegister && uid == null) {
       AppSnackbar.showError(
         context: context,
         message: "Authentication error. Please sign in again.",
@@ -137,7 +144,6 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
     }
 
     final notifier = ref.read(profileCompleteProvider.notifier);
-    final profileState = ref.read(profileCompleteProvider);
     final imageState = ref.read(profileImageProvider);
 
     final name = _nameController.text.trim();
@@ -189,41 +195,59 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
     );
 
     try {
-      final emailToSend = profileState.isGoogleAuth
-          ? profileState.email
-          : email;
-      final phoneToSend = profileState.isGoogleAuth
-          ? '+91$phone'
-          : profileState.phone;
+      if (profileState.isRegister) {
+        final registerResult = await AuthRemoteDataSource().register(
+          email: email,
+          password: password,
+          phone: '+91$phone',
+          name: name,
+          username: username,
+          gender: gender,
+          dob: dob,
+          profileImageUrl: imageState.imageUrl,
+        );
 
-      await ref
-          .read(userProvider.notifier)
-          .updateProfile(
-            uid: uid,
-            name: name,
-            username: username,
-            email: emailToSend,
-            phone: phoneToSend,
-            gender: gender,
-            dob: dob,
-            profileImageUrl: imageState.imageUrl ?? profileState.photoUrl,
-            password: password,
-          );
+        final userData = registerResult['user'] as Map<String, dynamic>?;
+        if (userData != null) {
+          await ref.read(userProvider.notifier).setUserFromJson(userData);
+        }
+      } else {
+        final emailToSend = profileState.isGoogleAuth
+            ? profileState.email
+            : email;
+        final phoneToSend = profileState.isGoogleAuth
+            ? '+91$phone'
+            : profileState.phone;
 
-      if (password.isNotEmpty &&
-          emailToSend != null &&
-          emailToSend.isNotEmpty) {
-        try {
-          final firebaseAuth = FirebaseAuth.instance;
-          final currentUser = firebaseAuth.currentUser;
-          if (currentUser != null) {
-            final credential = EmailAuthProvider.credential(
+        await ref
+            .read(userProvider.notifier)
+            .updateProfile(
+              uid: uid!,
+              name: name,
+              username: username,
               email: emailToSend,
+              phone: phoneToSend,
+              gender: gender,
+              dob: dob,
+              profileImageUrl: imageState.imageUrl ?? profileState.photoUrl,
               password: password,
             );
-            await currentUser.linkWithCredential(credential);
-          }
-        } catch (_) {}
+
+        if (password.isNotEmpty &&
+            emailToSend != null &&
+            emailToSend.isNotEmpty) {
+          try {
+            final firebaseAuth = FirebaseAuth.instance;
+            final currentUser = firebaseAuth.currentUser;
+            if (currentUser != null) {
+              final credential = EmailAuthProvider.credential(
+                email: emailToSend,
+                password: password,
+              );
+              await currentUser.linkWithCredential(credential);
+            }
+          } catch (_) {}
+        }
       }
 
       if (!mounted) return;
@@ -281,10 +305,12 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
             child: SafeArea(
               child: Column(
                 children: [
-                  const AppHeader(
-                    title: "Complete Your Profile",
+                  AppHeader(
+                    title: profileState.isRegister
+                        ? "Create Your Account"
+                        : "Complete Your Profile",
                     textColor: Colors.white,
-                    showBack: false,
+                    showBack: profileState.isRegister,
                     compact: true,
                   ),
                   Expanded(
@@ -299,7 +325,9 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                             _buildHeader(responsive),
                             SizedBox(height: responsive.h(1.5)),
                             ProfileImagePicker(
-                              initialImageUrl: profileState.photoUrl,
+                              initialImageUrl: profileState.isRegister
+                                  ? null
+                                  : profileState.photoUrl,
                               onImageChanged: (url) {
                                 notifier.setProfileImageUrl(url);
                               },
@@ -328,14 +356,20 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                             PhoneNumberInput(
                               controller: _phoneController,
                               responsive: responsive,
-                              errorText: profileState.isGoogleAuth
+                              errorText:
+                                  (profileState.isGoogleAuth ||
+                                      profileState.isRegister)
                                   ? profileState.phoneError
                                   : null,
-                              onChanged: profileState.isGoogleAuth
+                              onChanged:
+                                  (profileState.isGoogleAuth ||
+                                      profileState.isRegister)
                                   ? (v) => notifier.onPhoneChanged(v)
                                   : null,
-                              readOnly: !profileState.isGoogleAuth,
-                              showVerifiedBadge: !profileState.isGoogleAuth,
+                              readOnly:
+                                  !profileState.isGoogleAuth &&
+                                  !profileState.isRegister,
+                              showVerifiedBadge: profileState.isPhoneVerified,
                             ),
                             SizedBox(height: responsive.h(1.2)),
                             AppTextField(
@@ -344,14 +378,20 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                               hint: "Email Address",
                               icon: Icons.email_outlined,
                               keyboardType: TextInputType.emailAddress,
-                              errorText: profileState.isGoogleAuth
+                              errorText:
+                                  (profileState.isGoogleAuth &&
+                                      !profileState.isRegister)
                                   ? null
                                   : profileState.emailError,
-                              onChanged: profileState.isGoogleAuth
+                              onChanged:
+                                  (profileState.isGoogleAuth &&
+                                      !profileState.isRegister)
                                   ? null
                                   : (v) => notifier.onEmailChanged(v),
-                              readOnly: profileState.isGoogleAuth,
-                              showVerifiedBadge: profileState.isGoogleAuth,
+                              readOnly:
+                                  profileState.isGoogleAuth &&
+                                  !profileState.isRegister,
+                              showVerifiedBadge: profileState.isEmailVerified,
                             ),
                             SizedBox(height: responsive.h(1.2)),
                             GenderSelector(
@@ -384,6 +424,9 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                                 _confirmPasswordController.text,
                               ),
                             ),
+                            PasswordStrengthIndicator(
+                              password: _passwordController.text,
+                            ),
                             SizedBox(height: responsive.h(1.2)),
                             PasswordTextField(
                               controller: _confirmPasswordController,
@@ -407,7 +450,9 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
                                     ),
                                   )
                                 : PrimaryButton(
-                                    label: "Complete Profile",
+                                    label: profileState.isRegister
+                                        ? "Register"
+                                        : "Complete Profile",
                                     onPressed: _submitProfile,
                                     responsive: responsive,
                                   ),

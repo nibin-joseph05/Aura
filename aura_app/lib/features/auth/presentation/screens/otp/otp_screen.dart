@@ -114,7 +114,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
   void _setupSmsAutoFill() {
     SmsAutoFill().listenForCode();
     _smsSubscription = SmsAutoFill().code.listen((code) {
-      if (_hasNavigated) return;
+      if (_hasNavigated || !mounted) return;
 
       if (code.length == 6) {
         ref.read(otpProvider.notifier).setAutoFillOtp(code);
@@ -190,24 +190,30 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
 
       _smsSubscription?.cancel();
       ref.invalidate(otpProvider);
+      ref.invalidate(otpStateProvider);
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-
-        Navigator.pushReplacementNamed(
-          context,
-          AppRoutes.otpSuccess,
-          arguments: AuthSuccessPayload(
-            method: AuthMethod.phone,
-            identifier: widget.phoneNumber,
-            isNewUser: true,
-          ),
-        );
-      });
-    } catch (_) {
+      Navigator.pushReplacementNamed(
+        context,
+        AppRoutes.otpSuccess,
+        arguments: AuthSuccessPayload(
+          method: AuthMethod.phone,
+          identifier: widget.phoneNumber,
+          isNewUser: true,
+        ),
+      );
+    } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
       ref.read(otpProvider.notifier).setVerifying(false);
+
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
+      ref.read(otpProvider.notifier).setError(errorMsg);
+
+      ref.read(otpProvider.notifier).clearOtp();
+      for (var c in _controllers) {
+        c.clear();
+      }
+      _focusNodes.first.requestFocus();
     }
   }
 
@@ -426,20 +432,38 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                             position: _contentSlide,
                             child: FadeTransition(
                               opacity: _contentOpacity,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: List.generate(
-                                  6,
-                                  (i) => OtpInputField(
-                                    controller: _controllers[i],
-                                    focusNode: _focusNodes[i],
-                                    index: i,
-                                    onChanged: (value) =>
-                                        _handleOtpChange(i, value),
-                                    responsive: responsive,
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: List.generate(
+                                      6,
+                                      (i) => OtpInputField(
+                                        controller: _controllers[i],
+                                        focusNode: _focusNodes[i],
+                                        index: i,
+                                        onChanged: (value) =>
+                                            _handleOtpChange(i, value),
+                                        responsive: responsive,
+                                        hasError: otpState.hasError,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  if (otpState.hasError &&
+                                      otpState.errorMessage != null) ...[
+                                    SizedBox(height: responsive.h(1)),
+                                    Text(
+                                      otpState.errorMessage!,
+                                      style: const TextStyle(
+                                        color: Colors.redAccent,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ),

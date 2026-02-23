@@ -52,6 +52,14 @@ class EmailLoginNotifier extends StateNotifier<EmailLoginState> {
     state = state.copyWith(emailError: null, passwordError: null);
   }
 
+  void setIdentifierError(String error) {
+    state = state.copyWith(emailError: error);
+  }
+
+  void setPasswordError(String error) {
+    state = state.copyWith(passwordError: error);
+  }
+
   bool validateFields({
     required String email,
     required String password,
