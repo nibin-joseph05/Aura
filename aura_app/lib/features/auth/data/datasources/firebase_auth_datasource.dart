@@ -10,22 +10,24 @@ class FirebaseAuthDataSource {
     required Function(String verificationId, int? resendToken) onCodeSent,
     required Function(String error) onError,
     int? forceResendToken,
+    Function(PhoneAuthCredential credential)? onAutoVerified,
   }) async {
     try {
-      await _auth.setSettings(
-        appVerificationDisabledForTesting: false,
-        forceRecaptchaFlow: true,
-      );
+      await _auth.setSettings(appVerificationDisabledForTesting: false);
 
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         forceResendingToken: forceResendToken,
         timeout: const Duration(seconds: 60),
         verificationCompleted: (PhoneAuthCredential credential) async {
-          try {
-            await _auth.signInWithCredential(credential);
-          } catch (e) {
-            onError("Auto-verification failed");
+          if (onAutoVerified != null) {
+            onAutoVerified(credential);
+          } else {
+            try {
+              await _auth.signInWithCredential(credential);
+            } catch (e) {
+              onError("Auto-verification failed");
+            }
           }
         },
         verificationFailed: (FirebaseAuthException e) {

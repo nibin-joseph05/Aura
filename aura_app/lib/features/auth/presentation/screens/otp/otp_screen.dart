@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sms_autofill/sms_autofill.dart';
@@ -48,6 +49,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
   late Animation<double> _buttonOpacity;
 
   StreamSubscription? _smsSubscription;
+  Timer? _resendTimer;
   bool _hasNavigated = false;
 
   @override
@@ -55,6 +57,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
     super.initState();
     _initAnimations();
     _setupSmsAutoFill();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _startResendTimer();
+    });
   }
 
   void _initAnimations() {
@@ -111,19 +116,39 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
     });
   }
 
-  void _setupSmsAutoFill() {
-    SmsAutoFill().listenForCode();
+  void _setupSmsAutoFill() async {
+    await SmsAutoFill().listenForCode();
     _smsSubscription = SmsAutoFill().code.listen((code) {
       if (_hasNavigated || !mounted) return;
 
-      if (code.length == 6) {
-        ref.read(otpProvider.notifier).setAutoFillOtp(code);
+      final digits = code.replaceAll(RegExp(r'[^0-9]'), '');
+      if (digits.length == 6) {
+        ref.read(otpProvider.notifier).setAutoFillOtp(digits);
 
         for (int i = 0; i < 6; i++) {
-          _controllers[i].text = code[i];
+          _controllers[i].text = digits[i];
         }
 
         _verifyOtp();
+      }
+    });
+  }
+
+  void _startResendTimer() {
+    ref.read(otpProvider.notifier).resetTimer();
+    _resendTimer?.cancel();
+    _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      final current = ref.read(otpProvider).timerSeconds;
+      if (current <= 1) {
+        timer.cancel();
+        ref.read(otpProvider.notifier).setTimerSeconds(0);
+        ref.read(otpProvider.notifier).setResendActive(true);
+      } else {
+        ref.read(otpProvider.notifier).setTimerSeconds(current - 1);
       }
     });
   }
@@ -189,6 +214,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
       _hasNavigated = true;
 
       _smsSubscription?.cancel();
+      _resendTimer?.cancel();
       ref.invalidate(otpProvider);
       ref.invalidate(otpStateProvider);
 
@@ -208,6 +234,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
 
       final errorMsg = e.toString().replaceFirst('Exception: ', '');
       ref.read(otpProvider.notifier).setError(errorMsg);
+      AppSnackbar.showError(context: context, message: errorMsg);
 
       ref.read(otpProvider.notifier).clearOtp();
       for (var c in _controllers) {
@@ -221,8 +248,6 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
     final otpState = ref.read(otpProvider);
     if (!otpState.canResend) return;
 
-    ref.read(otpProvider.notifier).resetTimer();
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -235,6 +260,33 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
     await FirebaseAuthDataSource().sendOtp(
       phoneNumber: widget.phoneNumber,
       forceResendToken: ref.read(otpStateProvider).resendToken,
+      onAutoVerified: (PhoneAuthCredential credential) async {
+        try {
+          final result = await FirebaseAuth.instance.signInWithCredential(
+            credential,
+          );
+          if (!mounted) return;
+          Navigator.pop(context);
+          if (result.user != null && !_hasNavigated) {
+            _hasNavigated = true;
+            _smsSubscription?.cancel();
+            _resendTimer?.cancel();
+            ref.invalidate(otpProvider);
+            ref.invalidate(otpStateProvider);
+            Navigator.pushReplacementNamed(
+              context,
+              AppRoutes.otpSuccess,
+              arguments: AuthSuccessPayload(
+                method: AuthMethod.phone,
+                identifier: widget.phoneNumber,
+                isNewUser: true,
+              ),
+            );
+          }
+        } catch (_) {
+          if (mounted) Navigator.pop(context);
+        }
+      },
       onCodeSent: (verificationId, resendToken) {
         if (!mounted) return;
         Navigator.pop(context);
@@ -244,7 +296,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
               verificationId: verificationId,
               resendToken: resendToken,
             );
-
+        _startResendTimer();
         AppSnackbar.showSuccess(
           context: context,
           message: "A new OTP has been sent to your number",
@@ -262,6 +314,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
   void dispose() {
     _hasNavigated = true;
     _smsSubscription?.cancel();
+    _resendTimer?.cancel();
+    SmsAutoFill().unregisterListener();
 
     for (final c in _controllers) {
       c.dispose();
