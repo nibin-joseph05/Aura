@@ -9,6 +9,7 @@ import '../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../core/widgets/loading/ghost_running.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../messaging/data/service/messaging_api_service.dart';
+import '../../presentation/providers/profile_image_provider.dart';
 import '../../presentation/providers/user_provider.dart';
 
 class UserProfileScreen extends ConsumerStatefulWidget {
@@ -49,10 +50,21 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     super.dispose();
   }
 
-  String? _buildImageUrl(String? path) {
+  String? _buildImageUrl(String? path, {int? cacheBust}) {
     if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http')) return path;
-    return '${AppConfig.baseUrl}/uploads/$path';
+    String url;
+    if (path.startsWith('http')) {
+      url = path;
+    } else {
+      final base = AppConfig.baseUrl;
+      if (path.startsWith('/uploads/')) {
+        url = '$base$path';
+      } else {
+        url = '$base/uploads/$path';
+      }
+    }
+    if (cacheBust != null) return '$url?v=$cacheBust';
+    return url;
   }
 
   Future<void> _loadProfile() async {
@@ -122,6 +134,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final userState = ref.watch(userProvider);
+    final imgState = ref.watch(profileImageProvider);
     final isOwnProfile = widget.userId == userState.user?.uid;
 
     return Scaffold(
@@ -170,6 +183,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
                           responsive,
                           userState,
                           isOwnProfile,
+                          imgState,
                         ),
                       ),
               ),
@@ -184,13 +198,17 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     Responsive responsive,
     dynamic userState,
     bool isOwnProfile,
+    ProfileImageState imgState,
   ) {
     final user = isOwnProfile ? userState.user : null;
     final name = user?.name ?? _profile?['name'] ?? '';
     final username = user?.username ?? _profile?['username'] ?? '';
     final bio = user?.bio ?? _profile?['bio'] ?? '';
     final profileImageUrl = _buildImageUrl(
-      user?.profileImageUrl ?? _profile?['profileImageUrl'],
+      isOwnProfile
+          ? (imgState.imageUrl ?? user?.profileImageUrl)
+          : _profile?['profileImageUrl'],
+      cacheBust: isOwnProfile ? imgState.uploadedAt : null,
     );
     final followersCount =
         _profile?['followersCount'] ?? user?.followersCount ?? 0;

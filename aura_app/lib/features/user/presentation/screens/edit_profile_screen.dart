@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -10,6 +9,7 @@ import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
 import '../providers/profile_image_provider.dart';
 import '../providers/user_provider.dart';
+import '../widgets/image_crop_dialog.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -54,11 +54,21 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     super.dispose();
   }
 
-  String? _buildFullImageUrl(String? path) {
+  String? _buildFullImageUrl(String? path, {int? cacheBust}) {
     if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http')) return path;
-    final base = AppConfig.baseUrl;
-    return '$base/uploads/$path';
+    String url;
+    if (path.startsWith('http')) {
+      url = path;
+    } else {
+      final base = AppConfig.baseUrl;
+      if (path.startsWith('/uploads/')) {
+        url = '$base$path';
+      } else {
+        url = '$base/uploads/$path';
+      }
+    }
+    if (cacheBust != null) return '$url?v=$cacheBust';
+    return url;
   }
 
   Future<void> _pickAndCropImage() async {
@@ -120,36 +130,27 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
     final picked = await ImagePicker().pickImage(
       source: source,
-      maxWidth: 800,
-      maxHeight: 800,
-      imageQuality: 85,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      imageQuality: 90,
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
 
-    final cropped = await ImageCropper().cropImage(
-      sourcePath: picked.path,
-      uiSettings: [
-        AndroidUiSettings(
-          toolbarTitle: 'Crop Photo',
-          toolbarColor: const Color(0xFF0A1A2F),
-          toolbarWidgetColor: Colors.white,
-          activeControlsWidgetColor: AppColors.accent,
-          backgroundColor: const Color(0xFF0A1A2F),
-          cropStyle: CropStyle.circle,
-          initAspectRatio: CropAspectRatioPreset.square,
-          lockAspectRatio: true,
-        ),
-        IOSUiSettings(
-          title: 'Crop Photo',
-          cropStyle: CropStyle.circle,
-          aspectRatioLockEnabled: true,
-          resetAspectRatioEnabled: false,
-        ),
-      ],
-    );
-    if (cropped == null) return;
+    final cropped = await ImageCropDialog.show(context, File(picked.path));
+    if (cropped == null || !mounted) return;
 
-    ref.read(profileImageProvider.notifier).uploadImage(File(cropped.path));
+    await ref.read(profileImageProvider.notifier).uploadImage(cropped);
+
+    if (!mounted) return;
+    final imgState = ref.read(profileImageProvider);
+    if (!imgState.hasError) {
+      final user = ref.read(userProvider).user;
+      if (user != null) {
+        await ref
+            .read(userProvider.notifier)
+            .updateProfile(uid: user.uid, profileImageUrl: imgState.imageUrl);
+      }
+    }
   }
 
   Future<void> _selectDateOfBirth() async {
@@ -347,6 +348,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final imgState = ref.watch(profileImageProvider);
     final profileUrl = _buildFullImageUrl(
       imgState.imageUrl ?? user?.profileImageUrl,
+      cacheBust: imgState.uploadedAt,
     );
 
     return Center(

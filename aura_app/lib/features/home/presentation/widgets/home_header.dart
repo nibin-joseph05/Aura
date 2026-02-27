@@ -6,24 +6,44 @@ import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../../notification/presentation/providers/notification_provider.dart';
+import '../../../user/presentation/providers/profile_image_provider.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 
 class HomeHeader extends ConsumerWidget {
   const HomeHeader({super.key});
 
-  String? _buildFullImageUrl(String? path) {
+  String? _buildFullImageUrl(String? path, {int? cacheBust}) {
     if (path == null || path.isEmpty) return null;
-    if (path.startsWith('http')) return path;
-    final base = AppConfig.baseUrl;
-    return '$base/uploads/$path';
+    String url;
+    if (path.startsWith('http')) {
+      url = path;
+    } else {
+      final base = AppConfig.baseUrl;
+      if (path.startsWith('/uploads/')) {
+        url = '$base$path';
+      } else {
+        url = '$base/uploads/$path';
+      }
+    }
+    if (cacheBust != null) {
+      return '$url?v=$cacheBust';
+    }
+    return url;
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final responsive = Responsive.of(context);
     final userState = ref.watch(userProvider);
+    final imgState = ref.watch(profileImageProvider);
     final user = userState.user;
-    final profileImageUrl = _buildFullImageUrl(user?.profileImageUrl);
+
+    final String? rawPath = imgState.imageUrl ?? user?.profileImageUrl;
+    final profileImageUrl = _buildFullImageUrl(
+      rawPath,
+      cacheBust: imgState.uploadedAt,
+    );
+
     final notifState = ref.watch(notificationProvider);
     final unreadCount = notifState.unreadCount;
 

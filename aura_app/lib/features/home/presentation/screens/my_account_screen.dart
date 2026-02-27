@@ -18,6 +18,7 @@ class MyAccountScreen extends ConsumerWidget {
     if (path == null || path.isEmpty) return null;
     if (path.startsWith('http')) return path;
     final base = AppConfig.baseUrl;
+    if (path.startsWith('/uploads/')) return '$base$path';
     return '$base/uploads/$path';
   }
 

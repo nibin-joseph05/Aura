@@ -11,12 +11,14 @@ class ProfileImageState {
   final String? imageUrl;
   final String? errorMessage;
   final bool wasRemoved;
+  final int? uploadedAt;
 
   const ProfileImageState({
     this.status = ProfileImageUploadStatus.idle,
     this.imageUrl,
     this.errorMessage,
     this.wasRemoved = false,
+    this.uploadedAt,
   });
 
   ProfileImageState copyWith({
@@ -26,12 +28,14 @@ class ProfileImageState {
     bool clearError = false,
     bool clearUrl = false,
     bool? wasRemoved,
+    int? uploadedAt,
   }) {
     return ProfileImageState(
       status: status ?? this.status,
       imageUrl: clearUrl ? null : (imageUrl ?? this.imageUrl),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       wasRemoved: wasRemoved ?? this.wasRemoved,
+      uploadedAt: uploadedAt ?? this.uploadedAt,
     );
   }
 
@@ -76,6 +80,7 @@ class ProfileImageNotifier extends StateNotifier<ProfileImageState> {
         status: ProfileImageUploadStatus.success,
         imageUrl: response.url,
         wasRemoved: false,
+        uploadedAt: DateTime.now().millisecondsSinceEpoch,
       );
     } catch (e) {
       state = state.copyWith(
