@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,10 +7,18 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
+import '../../../../core/ui/snackbar/app_snackbar.dart';
+import '../../../../core/widgets/inputs/app_text_field.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
+import '../providers/edit_profile_provider.dart';
 import '../providers/profile_image_provider.dart';
 import '../providers/user_provider.dart';
+import '../widgets/date_of_birth_picker.dart';
+import '../widgets/gender_selector.dart';
 import '../widgets/image_crop_dialog.dart';
+import '../widgets/phone_number_input.dart';
+import '../widgets/verify_email_dialog.dart';
+import '../widgets/verify_phone_dialog.dart';
 
 class EditProfileScreen extends ConsumerStatefulWidget {
   const EditProfileScreen({super.key});
@@ -19,39 +28,82 @@ class EditProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
-  bool _isLoading = false;
-  String? _selectedGender;
-  DateTime? _dateOfBirth;
+  final _dobController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+
+  Timer? _usernameDebounce;
+  bool _initialized = false;
+  String _originalUsername = '';
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadUserData();
-    });
-  }
-
-  void _loadUserData() {
-    final user = ref.read(userProvider).user;
-    if (user != null) {
-      _nameController.text = user.name ?? '';
-      _usernameController.text = user.username ?? '';
-      _selectedGender = user.gender;
-      if (user.dob != null) {
-        _dateOfBirth = DateTime.tryParse(user.dob!);
-      }
-      setState(() {});
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadUserData());
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _usernameController.dispose();
+    _dobController.dispose();
+    _phoneController.dispose();
+    _emailController.dispose();
+    _usernameDebounce?.cancel();
     super.dispose();
+  }
+
+  void _loadUserData() {
+    if (_initialized) return;
+    _initialized = true;
+    final user = ref.read(userProvider).user;
+    if (user == null) return;
+
+    _nameController.text = user.name ?? '';
+    _usernameController.text = user.username ?? '';
+    _originalUsername = user.username ?? '';
+
+    final rawPhone = user.phone ?? '';
+    String digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.startsWith('91') && digits.length > 10) {
+      digits = digits.substring(2);
+    }
+    _phoneController.text = digits;
+    _emailController.text = user.email ?? '';
+
+    final gender = user.gender ?? '';
+    final dob = user.dob ?? '';
+    if (dob.isNotEmpty) {
+      try {
+        final parsed = DateTime.parse(dob);
+        _dobController.text =
+            '${_monthName(parsed.month)} ${parsed.day.toString().padLeft(2, '0')}, ${parsed.year}';
+      } catch (_) {
+        _dobController.text = dob;
+      }
+    }
+
+    ref.read(editProfileProvider.notifier).initialize(gender, dob);
+  }
+
+  String _monthName(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month - 1];
   }
 
   String? _buildFullImageUrl(String? path, {int? cacheBust}) {
@@ -69,6 +121,18 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
     if (cacheBust != null) return '$url?v=$cacheBust';
     return url;
+  }
+
+  void _onUsernameChanged(String value) {
+    ref.read(editProfileProvider.notifier).onUsernameChanged(value);
+    _usernameDebounce?.cancel();
+    _usernameDebounce = Timer(const Duration(milliseconds: 500), () {
+      if (value.isNotEmpty && value.length >= 3) {
+        ref
+            .read(editProfileProvider.notifier)
+            .checkUsernameAvailability(value, _originalUsername);
+      }
+    });
   }
 
   Future<void> _pickAndCropImage() async {
@@ -153,68 +217,68 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     }
   }
 
-  Future<void> _selectDateOfBirth() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _dateOfBirth ?? DateTime(2000),
-      firstDate: DateTime(1920),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.dark().copyWith(
-            colorScheme: ColorScheme.dark(
-              primary: AppColors.accent,
-              surface: const Color(0xFF1A1A2E),
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() => _dateOfBirth = picked);
-    }
-  }
-
   Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) return;
-
+    final profileState = ref.read(editProfileProvider);
     final user = ref.read(userProvider).user;
     if (user == null) return;
 
-    setState(() => _isLoading = true);
+    final name = _nameController.text.trim();
+    final username = _usernameController.text.trim();
+    final gender = profileState.selectedGender;
+    final dob = profileState.selectedDob;
+
+    final isValid = ref
+        .read(editProfileProvider.notifier)
+        .validateAll(name: name, username: username, gender: gender, dob: dob);
+
+    if (!isValid) return;
+
+    if (username != _originalUsername) {
+      if (!profileState.isUsernameAvailable) {
+        await ref
+            .read(editProfileProvider.notifier)
+            .checkUsernameAvailability(username, _originalUsername);
+        final rechecked = ref.read(editProfileProvider);
+        if (!rechecked.isUsernameAvailable) {
+          if (mounted) {
+            AppSnackbar.showError(
+              context: context,
+              message: 'Username is already taken',
+            );
+          }
+          return;
+        }
+      }
+    }
+
+    ref.read(editProfileProvider.notifier).setLoading(true);
 
     try {
       await ref
           .read(userProvider.notifier)
           .updateProfile(
             uid: user.uid,
-            name: _nameController.text.trim(),
-            username: _usernameController.text.trim(),
-            gender: _selectedGender,
-            dob: _dateOfBirth?.toIso8601String().split('T').first,
+            name: name,
+            username: username,
+            gender: gender.isNotEmpty ? gender : null,
+            dob: dob.isNotEmpty ? dob : null,
           );
 
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile updated successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context);
-      }
+      if (!mounted) return;
+      ref.read(editProfileProvider.notifier).setLoading(false);
+      _originalUsername = username;
+      AppSnackbar.showSuccess(
+        context: context,
+        message: 'Profile updated successfully',
+      );
+      Navigator.pop(context);
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update profile: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      if (!mounted) return;
+      ref.read(editProfileProvider.notifier).setLoading(false);
+      AppSnackbar.showError(
+        context: context,
+        message: e.toString().replaceFirst('Exception: ', ''),
+      );
     }
   }
 
@@ -222,6 +286,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final user = ref.watch(userProvider).user;
+    final profileState = ref.watch(editProfileProvider);
+    final imgState = ref.watch(profileImageProvider);
+    final notifier = ref.read(editProfileProvider.notifier);
+
+    final profileUrl = _buildFullImageUrl(
+      imgState.imageUrl ?? user?.profileImageUrl,
+      cacheBust: imgState.uploadedAt,
+    );
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -242,96 +314,114 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
                     padding: responsive.horizontal(5),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: responsive.h(2)),
-                          _buildProfileImageSection(responsive),
-                          SizedBox(height: responsive.h(3)),
-                          _buildTextField(
-                            responsive,
-                            controller: _nameController,
-                            label: 'Full Name',
-                            icon: Icons.person_outline,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter your name';
-                              }
-                              return null;
-                            },
-                          ),
-                          SizedBox(height: responsive.h(2)),
-                          _buildTextField(
-                            responsive,
-                            controller: _usernameController,
-                            label: 'Username',
-                            icon: Icons.alternate_email,
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a username';
-                              }
-                              if (value.length < 3) {
-                                return 'Username must be at least 3 characters';
-                              }
-                              return null;
-                            },
-                          ),
-                          SizedBox(height: responsive.h(2)),
-                          _buildReadOnlyField(
-                            responsive,
-                            label: 'Email',
-                            value: user?.email ?? 'Not set',
-                            icon: Icons.email_outlined,
-                          ),
-                          SizedBox(height: responsive.h(2)),
-                          _buildReadOnlyField(
-                            responsive,
-                            label: 'Phone',
-                            value: user?.phone ?? 'Not set',
-                            icon: Icons.phone_outlined,
-                          ),
-                          SizedBox(height: responsive.h(2)),
-                          _buildDatePicker(responsive),
-                          SizedBox(height: responsive.h(2)),
-                          _buildGenderSelector(responsive),
-                          SizedBox(height: responsive.h(4)),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _isLoading ? null : _saveProfile,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.accent,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  vertical: responsive.h(2),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: responsive.h(2)),
+                        _buildProfileImageSection(
+                          responsive,
+                          profileUrl,
+                          imgState,
+                        ),
+                        SizedBox(height: responsive.h(1)),
+                        _buildPhotoNote(responsive, imgState),
+                        SizedBox(height: responsive.h(2)),
+
+                        AppTextField(
+                          controller: _nameController,
+                          responsive: responsive,
+                          hint: 'Full Name',
+                          icon: Icons.person_outline,
+                          errorText: profileState.nameError,
+                          onChanged: (v) => notifier.onNameChanged(v),
+                        ),
+                        SizedBox(height: responsive.h(2)),
+                        AppTextField(
+                          controller: _usernameController,
+                          responsive: responsive,
+                          hint: 'Username',
+                          icon: Icons.alternate_email,
+                          errorText: profileState.usernameError,
+                          onChanged: _onUsernameChanged,
+                          suffixIcon: _buildUsernameSuffix(profileState),
+                        ),
+                        SizedBox(height: responsive.h(2)),
+                        _buildContactField(
+                          responsive: responsive,
+                          label: 'Email',
+                          value: user?.email ?? 'Not set',
+                          icon: Icons.email_outlined,
+                          isVerified: user?.emailVerified ?? false,
+                          canVerify:
+                              (user?.email != null && user!.email!.isNotEmpty),
+                          onVerify: () async {
+                            if (user?.email == null) return;
+                            final verified = await VerifyEmailDialog.show(
+                              context,
+                              user!.email!,
+                            );
+                            if (verified && mounted) {
+                              AppSnackbar.showSuccess(
+                                context: context,
+                                message: 'Email verified successfully',
+                              );
+                            }
+                          },
+                        ),
+                        SizedBox(height: responsive.h(2)),
+                        _buildPhoneField(responsive, user),
+                        SizedBox(height: responsive.h(2)),
+                        GenderSelector(
+                          selectedGender: profileState.selectedGender,
+                          errorText: profileState.genderError,
+                          onGenderSelected: (g) =>
+                              notifier.setSelectedGender(g),
+                          responsive: responsive,
+                        ),
+                        SizedBox(height: responsive.h(2)),
+                        DateOfBirthPicker(
+                          controller: _dobController,
+                          responsive: responsive,
+                          errorText: profileState.dobError,
+                          onDateSelected: (d) => notifier.setSelectedDob(d),
+                        ),
+                        SizedBox(height: responsive.h(4)),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: profileState.isLoading
+                                ? null
+                                : _saveProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.accent,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                vertical: responsive.h(2),
                               ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Save Changes',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
+                            child: profileState.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Save Changes',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                           ),
-                          SizedBox(height: responsive.h(3)),
-                        ],
-                      ),
+                        ),
+                        SizedBox(height: responsive.h(3)),
+                      ],
                     ),
                   ),
                 ),
@@ -343,14 +433,54 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
-  Widget _buildProfileImageSection(Responsive responsive) {
-    final user = ref.watch(userProvider).user;
-    final imgState = ref.watch(profileImageProvider);
-    final profileUrl = _buildFullImageUrl(
-      imgState.imageUrl ?? user?.profileImageUrl,
-      cacheBust: imgState.uploadedAt,
+  Widget _buildPhotoNote(Responsive responsive, dynamic imgState) {
+    final wasJustUploaded = imgState.uploadedAt != null;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      padding: EdgeInsets.symmetric(
+        horizontal: responsive.w(3.5),
+        vertical: responsive.h(1),
+      ),
+      decoration: BoxDecoration(
+        color: wasJustUploaded
+            ? Colors.greenAccent.withValues(alpha: 0.12)
+            : Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: wasJustUploaded
+              ? Colors.greenAccent.withValues(alpha: 0.35)
+              : Colors.white.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            wasJustUploaded ? Icons.check_circle_outline : Icons.info_outline,
+            size: 15,
+            color: wasJustUploaded ? Colors.greenAccent : Colors.white38,
+          ),
+          SizedBox(width: responsive.w(2)),
+          Expanded(
+            child: Text(
+              wasJustUploaded
+                  ? 'Your profile photo was updated instantly — no need to tap Save Changes.'
+                  : 'Profile photo is saved immediately when changed, independent of Save Changes.',
+              style: TextStyle(
+                color: wasJustUploaded ? Colors.greenAccent : Colors.white38,
+                fontSize: 11.5,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
 
+  Widget _buildProfileImageSection(
+    Responsive responsive,
+    String? profileUrl,
+    dynamic imgState,
+  ) {
     return Center(
       child: GestureDetector(
         onTap: _pickAndCropImage,
@@ -435,181 +565,204 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     );
   }
 
-  Widget _buildTextField(
-    Responsive responsive, {
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      style: const TextStyle(color: Colors.white),
-      validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
-        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.7)),
-        filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.1),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
+  Widget? _buildUsernameSuffix(EditProfileState state) {
+    if (state.isCheckingUsername) {
+      return const Padding(
+        padding: EdgeInsets.all(12),
+        child: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Colors.white70,
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.accent),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.redAccent),
-        ),
-      ),
-    );
+      );
+    }
+
+    final currentUsername = _usernameController.text.trim();
+    if (currentUsername == _originalUsername && currentUsername.isNotEmpty) {
+      return const Icon(
+        Icons.check_circle,
+        color: Colors.greenAccent,
+        size: 22,
+      );
+    }
+
+    if (state.isUsernameAvailable && currentUsername.length >= 3) {
+      return const Icon(
+        Icons.check_circle,
+        color: Colors.greenAccent,
+        size: 22,
+      );
+    }
+
+    return null;
   }
 
-  Widget _buildReadOnlyField(
-    Responsive responsive, {
+  Widget _buildContactField({
+    required Responsive responsive,
     required String label,
     required String value,
     required IconData icon,
+    required bool isVerified,
+    required bool canVerify,
+    required VoidCallback onVerify,
   }) {
-    return Container(
-      padding: EdgeInsets.all(responsive.w(4)),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.white38),
-          SizedBox(width: responsive.w(3)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: Colors.white54,
-                    fontSize: responsive.isTablet ? 12 : 11,
-                  ),
-                ),
-                Text(value, style: const TextStyle(color: Colors.white70)),
-              ],
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: responsive.w(4),
+            vertical: responsive.h(2),
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: isVerified ? 0.05 : 0.08),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: isVerified
+                  ? Colors.greenAccent.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.15),
             ),
           ),
-          Icon(Icons.lock_outline, color: Colors.white24, size: 18),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDatePicker(Responsive responsive) {
-    final displayDate = _dateOfBirth != null
-        ? '${_dateOfBirth!.day}/${_dateOfBirth!.month}/${_dateOfBirth!.year}'
-        : 'Select date';
-
-    return GestureDetector(
-      onTap: _selectDateOfBirth,
-      child: Container(
-        padding: EdgeInsets.all(responsive.w(4)),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.cake_outlined,
-              color: Colors.white.withValues(alpha: 0.7),
-            ),
-            SizedBox(width: responsive.w(3)),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Date of Birth',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: responsive.isTablet ? 12 : 11,
+          child: Row(
+            children: [
+              Icon(icon, color: Colors.white54),
+              SizedBox(width: responsive.w(3)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: responsive.isTablet ? 12 : 11,
+                      ),
                     ),
-                  ),
-                  Text(
-                    displayDate,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ],
+                    Text(value, style: const TextStyle(color: Colors.white70)),
+                  ],
+                ),
+              ),
+              Icon(Icons.lock_outline, color: Colors.white24, size: 18),
+            ],
+          ),
+        ),
+        if (isVerified)
+          Positioned(
+            top: -8,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.greenAccent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text(
+                'Verified',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-            Icon(Icons.chevron_right, color: Colors.white38),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGenderSelector(Responsive responsive) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Gender',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: responsive.isTablet ? 14 : 12,
           ),
-        ),
-        SizedBox(height: responsive.h(1)),
-        Row(
-          children: [
-            _buildGenderChip(responsive, 'Male'),
-            SizedBox(width: responsive.w(2)),
-            _buildGenderChip(responsive, 'Female'),
-            SizedBox(width: responsive.w(2)),
-            _buildGenderChip(responsive, 'Other'),
-          ],
-        ),
+        if (!isVerified && canVerify)
+          Positioned(
+            top: -8,
+            right: 12,
+            child: GestureDetector(
+              onTap: onVerify,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Verify',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  Widget _buildGenderChip(Responsive responsive, String gender) {
-    final isSelected = _selectedGender == gender;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedGender = gender),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: responsive.w(4),
-          vertical: responsive.h(1.2),
+  Widget _buildPhoneField(Responsive responsive, dynamic user) {
+    final isVerified = user?.phoneVerified ?? false;
+    final hasPhone =
+        (user?.phone != null && (user?.phone as String).isNotEmpty);
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        PhoneNumberInput(
+          controller: _phoneController,
+          responsive: responsive,
+          readOnly: true,
+          showVerifiedBadge: false,
         ),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.accent
-              : Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.accent
-                : Colors.white.withValues(alpha: 0.2),
+        if (isVerified)
+          Positioned(
+            top: -8,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.greenAccent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text(
+                'Verified',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ),
-        ),
-        child: Text(
-          gender,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: responsive.isTablet ? 14 : 12,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+        if (!isVerified && hasPhone)
+          Positioned(
+            top: -8,
+            right: 12,
+            child: GestureDetector(
+              onTap: () async {
+                final phone = user?.phone as String;
+                final verified = await VerifyPhoneDialog.show(context, phone);
+                if (verified && mounted) {
+                  AppSnackbar.showSuccess(
+                    context: context,
+                    message: 'Phone number verified successfully',
+                  );
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Verify',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+      ],
     );
   }
 }

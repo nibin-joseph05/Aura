@@ -107,6 +107,26 @@ public class FirebaseAuthController {
             return ResponseEntity.status(401).body(Map.of("error", "Incorrect password"));
         }
 
+        boolean loginByEmail = request.getIdentifier().trim().contains("@");
+        boolean loginByPhone = !loginByEmail &&
+                request.getIdentifier().trim().matches("^[+]?[0-9]{7,15}$");
+
+        if (loginByEmail && !user.isEmailVerified()) {
+            log.debug("AUTH_CTRL - /login RESPONSE: 403 Email not verified | uid: {}", user.getUid());
+            log.debug("------------------------------------------------------------");
+            return ResponseEntity.status(403).body(Map.of(
+                    "error",
+                    "Your email address is not verified. Please verify your email before logging in, or log in using your username."));
+        }
+
+        if (loginByPhone && !user.isPhoneVerified()) {
+            log.debug("AUTH_CTRL - /login RESPONSE: 403 Phone not verified | uid: {}", user.getUid());
+            log.debug("------------------------------------------------------------");
+            return ResponseEntity.status(403).body(Map.of(
+                    "error",
+                    "Your phone number is not verified. Please verify your phone number before logging in, or log in using your username."));
+        }
+
         if (user.getEmail() == null || user.getEmail().isEmpty()) {
             log.debug("AUTH_CTRL - /login RESPONSE: 401 No email linked");
             log.debug("------------------------------------------------------------");

@@ -68,4 +68,16 @@ public class User {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastLoginAt;
 
+    @Column(columnDefinition = "int default 0")
+    private int dobChangesThisMonth;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date dobLastChangedAt;
+
+    @Column(columnDefinition = "int default 0")
+    private int genderChangesThisMonth;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date genderLastChangedAt;
+
 }

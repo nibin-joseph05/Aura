@@ -16,4 +16,5 @@ public class UpdateProfileRequest {
     private String profileImageUrl;
     private String password;
     private Boolean isPrivate;
+    private Boolean phoneVerified;
 }

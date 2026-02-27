@@ -51,6 +51,8 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
     if (_initialized) return;
     _initialized = true;
 
+    ref.read(profileImageProvider.notifier).reset();
+
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (args != null) {
@@ -71,8 +73,6 @@ class _ProfileCompleteScreenState extends ConsumerState<ProfileCompleteScreen> {
       final photoUrl = args['photoUrl'] as String?;
 
       Future(() {
-        ref.read(profileImageProvider.notifier).reset();
-
         ref.read(profileCompleteProvider.notifier).initializeFromArgs({
           'email': email,
           'phone': phone,

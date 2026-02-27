@@ -107,7 +107,7 @@ class ProfileImageNotifier extends StateNotifier<ProfileImageState> {
   }
 
   void reset() {
-    state = const ProfileImageState(wasRemoved: true);
+    state = const ProfileImageState();
   }
 }
 

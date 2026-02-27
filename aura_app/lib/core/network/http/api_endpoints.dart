@@ -6,6 +6,8 @@ class ApiEndpoints {
   static const usernameAvailable = "/api/user/username-available";
   static const updateProfile = "/api/user/profile";
   static const uploadProfileImage = "/api/upload/profile-image";
+  static const verifyEmailSend = "/api/user/verify-email/send";
+  static const verifyEmailConfirm = "/api/user/verify-email/confirm";
 
   static const dailyActivities = "/api/daily-activities";
   static const syncDailyActivities = "/api/daily-activities/sync";

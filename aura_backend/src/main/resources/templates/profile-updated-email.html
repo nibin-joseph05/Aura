@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Updated – Aura</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0A1A2F;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 20px;">
+                <table role="presentation" style="max-width: 600px; width: 100%; border-collapse: collapse;">
+
+                    <tr>
+                        <td align="center" style="padding: 30px 0;">
+                            <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #2196F3, #00BCD4); border-radius: 50%; display: inline-block; line-height: 70px; text-align: center;">
+                                <span style="color: white; font-size: 32px; font-weight: bold;">A</span>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #1E4D6B, #0F2A3D); border-radius: 20px; padding: 40px 30px;">
+
+                            <h1 style="color: #64B5F6; font-size: 24px; margin: 0 0 8px 0; text-align: center;">
+                                Profile Updated
+                            </h1>
+
+                            <p style="color: #B0BEC5; font-size: 15px; line-height: 1.6; text-align: center; margin: 0 0 28px 0;">
+                                Hi <span th:text="${userName}" style="color: #00BCD4; font-weight: 600;">there</span>,
+                            </p>
+
+                            <p style="color: #ECEFF1; font-size: 15px; line-height: 1.8; margin: 0 0 24px 0;">
+                                Your Aura profile was successfully updated. Here's a summary of what changed:
+                            </p>
+
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 28px; background: rgba(33, 150, 243, 0.07); border-radius: 12px; overflow: hidden;">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align: left; color: #64B5F6; font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 16px; border-bottom: 1px solid rgba(100,181,246,0.15);">Field</th>
+                                        <th style="text-align: left; color: #64B5F6; font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; padding: 12px 16px; border-bottom: 1px solid rgba(100,181,246,0.15);">Updated To</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="field : ${changedFields}">
+                                        <td style="padding: 11px 16px; color: #90A4AE; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05);" th:text="${field.key}"></td>
+                                        <td style="padding: 11px 16px; color: #ECEFF1; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05);" th:text="${field.value}"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+                                <tr>
+                                    <td style="padding: 14px 16px; background: rgba(0, 188, 212, 0.08); border-radius: 10px; border-left: 4px solid #00BCD4;">
+                                        <p style="margin: 0; color: #90A4AE; font-size: 13px;">
+                                            🕐 Updated on <span th:text="${updatedAt}" style="color: #4DD0E1; font-weight: 600;">—</span>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; margin-bottom: 10px;">
+                                <tr>
+                                    <td style="padding: 14px 16px; background: rgba(255, 152, 0, 0.08); border-radius: 10px; border-left: 4px solid #FF9800;">
+                                        <p style="margin: 0; color: #FFCC80; font-size: 13px; line-height: 1.6;">
+                                            🔒 If you did not make this change, please contact our support team immediately or update your password to secure your account.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding: 28px 0; text-align: center;">
+                            <p style="color: #607D8B; font-size: 13px; margin: 0 0 8px 0;">
+                                Move safely. Live healthily. Stay connected.
+                            </p>
+                            <p style="color: #455A64; font-size: 12px; margin: 0;">
+                                © 2026 Aura. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

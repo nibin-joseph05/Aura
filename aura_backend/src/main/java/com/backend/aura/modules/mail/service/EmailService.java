@@ -137,6 +137,21 @@ public class EmailService {
         sendHtmlEmail(email, "Your Aura Verification Code: " + otp, htmlContent);
     }
 
+    @Async
+    public void sendProfileUpdateNotification(String toEmail, String userName,
+            java.util.Map<String, String> changedFields, String updatedAt) {
+        Context context = new Context();
+        context.setVariable("userName", userName);
+        context.setVariable("appName", appName);
+        context.setVariable("logoUrl", logoUrl);
+        context.setVariable("changedFields", changedFields.entrySet());
+        context.setVariable("updatedAt", updatedAt);
+
+        String htmlContent = templateEngine.process("profile-updated-email", context);
+
+        sendHtmlEmail(toEmail, "Your Aura Profile Was Updated", htmlContent);
+    }
+
     private void sendHtmlEmail(String toEmail, String subject, String htmlContent) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

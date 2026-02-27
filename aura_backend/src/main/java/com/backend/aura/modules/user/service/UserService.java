@@ -16,7 +16,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.TimeZone;
 
 @Service
 public class UserService {
@@ -127,6 +132,8 @@ public class UserService {
             throw new RuntimeException("User not found");
         }
 
+        Map<String, String> changedFields = new LinkedHashMap<>();
+
         if (dto.getUsername() != null &&
                 !dto.getUsername().equals(user.getUsername())) {
 
@@ -138,10 +145,13 @@ public class UserService {
                 throw new RuntimeException("Username already taken");
             }
 
+            changedFields.put("Username", dto.getUsername());
             user.setUsername(dto.getUsername());
         }
 
-        if (dto.getName() != null && !dto.getName().isEmpty()) {
+        if (dto.getName() != null && !dto.getName().isEmpty()
+                && !dto.getName().equals(user.getName())) {
+            changedFields.put("Full Name", dto.getName());
             user.setName(dto.getName());
         }
 
@@ -150,6 +160,7 @@ public class UserService {
                 if (userRepository.existsByEmailAndUidNot(dto.getEmail(), dto.getUid())) {
                     throw new RuntimeException("Email already in use by another account");
                 }
+                changedFields.put("Email", dto.getEmail());
                 user.setEmail(dto.getEmail());
             }
         }
@@ -159,17 +170,41 @@ public class UserService {
                 if (userRepository.existsByPhoneAndUidNot(dto.getPhone(), dto.getUid())) {
                     throw new RuntimeException("Phone number already in use by another account");
                 }
+                changedFields.put("Phone", dto.getPhone());
                 user.setPhone(dto.getPhone());
                 user.setPhoneLinked(true);
             }
         }
 
-        if (dto.getGender() != null && !dto.getGender().isEmpty()) {
-            user.setGender(dto.getGender());
+        if (Boolean.TRUE.equals(dto.getPhoneVerified())) {
+            user.setPhoneVerified(true);
+            user.setPhoneLinked(true);
         }
 
-        if (dto.getDob() != null && !dto.getDob().isEmpty()) {
+        if (dto.getGender() != null && !dto.getGender().isEmpty()
+                && !dto.getGender().equals(user.getGender())) {
+            int genderChanges = getChangesThisMonth(user.getGenderChangesThisMonth(), user.getGenderLastChangedAt());
+            if (genderChanges >= 1) {
+                throw new RuntimeException("You can only change your gender once per month");
+            }
+            int updatedCount = isSameMonth(user.getGenderLastChangedAt()) ? genderChanges + 1 : 1;
+            changedFields.put("Gender", dto.getGender());
+            user.setGender(dto.getGender());
+            user.setGenderChangesThisMonth(updatedCount);
+            user.setGenderLastChangedAt(new Date());
+        }
+
+        if (dto.getDob() != null && !dto.getDob().isEmpty()
+                && !dto.getDob().equals(user.getDob())) {
+            int dobChanges = getChangesThisMonth(user.getDobChangesThisMonth(), user.getDobLastChangedAt());
+            if (dobChanges >= 2) {
+                throw new RuntimeException("You can only change your date of birth 2 times per month");
+            }
+            int updatedCount = isSameMonth(user.getDobLastChangedAt()) ? dobChanges + 1 : 1;
+            changedFields.put("Date of Birth", dto.getDob());
             user.setDob(dto.getDob());
+            user.setDobChangesThisMonth(updatedCount);
+            user.setDobLastChangedAt(new Date());
         }
 
         if (dto.getProfileImageUrl() != null && !dto.getProfileImageUrl().isEmpty()) {
@@ -203,9 +238,34 @@ public class UserService {
 
         if (isProfileComplete && !wasProfileComplete && savedUser.getEmail() != null) {
             emailService.sendWelcomeEmail(savedUser.getEmail(), savedUser.getName());
+        } else if (!changedFields.isEmpty() && savedUser.getEmail() != null && wasProfileComplete) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, hh:mm a z");
+            sdf.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
+            String updatedAt = sdf.format(new Date());
+            emailService.sendProfileUpdateNotification(
+                    savedUser.getEmail(),
+                    savedUser.getName() != null ? savedUser.getName() : "there",
+                    changedFields,
+                    updatedAt);
         }
 
         return mapToUserResponse(savedUser);
+    }
+
+    private boolean isSameMonth(Date date) {
+        if (date == null)
+            return false;
+        Calendar now = Calendar.getInstance();
+        Calendar then = Calendar.getInstance();
+        then.setTime(date);
+        return now.get(Calendar.YEAR) == then.get(Calendar.YEAR)
+                && now.get(Calendar.MONTH) == then.get(Calendar.MONTH);
+    }
+
+    private int getChangesThisMonth(int storedCount, Date lastChangedAt) {
+        if (!isSameMonth(lastChangedAt))
+            return 0;
+        return storedCount;
     }
 
     public UserResponse registerUser(RegisterRequest request) {
