@@ -252,6 +252,46 @@ public class UserService {
         return mapToUserResponse(savedUser);
     }
 
+    public void updatePassword(String uid, String currentPassword, String newPassword) {
+        User user = getUserByUid(uid);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new RuntimeException("Incorrect current password");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setEmailPasswordLinked(true);
+        user.setUpdatedAt(new Date());
+        userRepository.save(user);
+
+        if (user.getEmail() != null) {
+            Map<String, String> changedFields = new LinkedHashMap<>();
+            changedFields.put("Password", "Updated");
+            SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, hh:mm a z");
+            sdf.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
+            String updatedAt = sdf.format(new Date());
+            emailService.sendProfileUpdateNotification(user.getEmail(),
+                    user.getName() != null ? user.getName() : "there", changedFields, updatedAt);
+        }
+    }
+
+    public void resetPassword(String email, String newPassword) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setEmailPasswordLinked(true);
+        user.setUpdatedAt(new Date());
+        userRepository.save(user);
+
+        Map<String, String> changedFields = new LinkedHashMap<>();
+        changedFields.put("Password", "Reset");
+        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy, hh:mm a z");
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Kolkata"));
+        String updatedAt = sdf.format(new Date());
+        emailService.sendProfileUpdateNotification(user.getEmail(), user.getName() != null ? user.getName() : "there",
+                changedFields, updatedAt);
+    }
+
     private boolean isSameMonth(Date date) {
         if (date == null)
             return false;

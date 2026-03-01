@@ -2,6 +2,7 @@ package com.backend.aura.modules.user.controller;
 
 import com.backend.aura.modules.auth.firebase.context.AuthenticatedUserContext;
 import com.backend.aura.modules.common.dto.ErrorResponse;
+import com.backend.aura.modules.user.dto.request.UpdatePasswordRequest;
 import com.backend.aura.modules.user.dto.request.UpdateProfileRequest;
 import com.backend.aura.modules.user.dto.response.UserResponse;
 import com.backend.aura.modules.user.dto.response.UsernameAvailabilityResponse;
@@ -108,6 +109,30 @@ public class UserController {
             return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
             log.debug("USER_CTRL - PUT /profile RESPONSE: 400 Error | message: {}", e.getMessage());
+            log.debug("------------------------------------------------------------");
+            return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+        }
+    }
+
+    @PostMapping("/password/change")
+    public ResponseEntity<?> changePassword(@RequestBody UpdatePasswordRequest request) {
+
+        log.debug("------------------------------------------------------------");
+        log.debug("USER_CTRL - POST /password/change | uid: {}", request.getUid());
+
+        if (request.getUid() == null || request.getUid().isEmpty()) {
+            log.debug("USER_CTRL - /password/change RESPONSE: 400 Missing uid");
+            log.debug("------------------------------------------------------------");
+            return ResponseEntity.badRequest().body(new ErrorResponse("Missing user id"));
+        }
+
+        try {
+            userService.updatePassword(request.getUid(), request.getCurrentPassword(), request.getNewPassword());
+            log.debug("USER_CTRL - /password/change RESPONSE: 200 OK");
+            log.debug("------------------------------------------------------------");
+            return ResponseEntity.ok(Map.of("message", "Password updated successfully"));
+        } catch (RuntimeException e) {
+            log.debug("USER_CTRL - /password/change RESPONSE: 400 Error | message: {}", e.getMessage());
             log.debug("------------------------------------------------------------");
             return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
         }

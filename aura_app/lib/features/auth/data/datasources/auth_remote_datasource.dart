@@ -59,4 +59,66 @@ class AuthRemoteDataSource {
       throw Exception('Registration failed: ${e.toString()}');
     }
   }
+
+  Future<void> changePassword({
+    required String uid,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await _dio.post(
+        ApiEndpoints.changePassword,
+        data: {
+          'uid': uid,
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        },
+      );
+    } on DioException catch (e) {
+      final errorMessage =
+          e.response?.data?['error'] ?? 'Password update failed: ${e.message}';
+      throw Exception(errorMessage);
+    } catch (e) {
+      throw Exception('Password update failed: ${e.toString()}');
+    }
+  }
+
+  Future<void> forgotPassword(String email) async {
+    try {
+      await _dio.post(
+        ApiEndpoints.forgotPassword,
+        data: {'email': email.trim()},
+      );
+    } on DioException catch (e) {
+      final errorMessage =
+          e.response?.data?['error'] ??
+          'Failed to send reset email: ${e.message}';
+      throw Exception(errorMessage);
+    } catch (e) {
+      throw Exception('Failed to send reset email: ${e.toString()}');
+    }
+  }
+
+  Future<void> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    try {
+      await _dio.post(
+        ApiEndpoints.resetPassword,
+        data: {
+          'email': email.trim(),
+          'otp': otp.trim(),
+          'newPassword': newPassword,
+        },
+      );
+    } on DioException catch (e) {
+      final errorMessage =
+          e.response?.data?['error'] ?? 'Password reset failed: ${e.message}';
+      throw Exception(errorMessage);
+    } catch (e) {
+      throw Exception('Password reset failed: ${e.toString()}');
+    }
+  }
 }

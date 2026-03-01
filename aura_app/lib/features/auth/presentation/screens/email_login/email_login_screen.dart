@@ -429,6 +429,35 @@ class _EmailLoginScreenState extends ConsumerState<EmailLoginScreen>
                                         },
                                       ),
                                     ),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: TextButton(
+                                        onPressed: () {
+                                          Navigator.pushNamed(
+                                            context,
+                                            AppRoutes.forgotPassword,
+                                          );
+                                        },
+                                        style: TextButton.styleFrom(
+                                          padding: EdgeInsets.only(
+                                            top: responsive.h(1.5),
+                                            bottom: 0,
+                                          ),
+                                          minimumSize: Size.zero,
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        child: Text(
+                                          'Forgot Password?',
+                                          style: TextStyle(
+                                            color: AppColors.textLight
+                                                .withValues(alpha: 0.8),
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),

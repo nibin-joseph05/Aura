@@ -9,6 +9,10 @@ class ApiEndpoints {
   static const verifyEmailSend = "/api/user/verify-email/send";
   static const verifyEmailConfirm = "/api/user/verify-email/confirm";
 
+  static const changePassword = "/api/user/password/change";
+  static const forgotPassword = "/api/auth/password/forgot";
+  static const resetPassword = "/api/auth/password/reset";
+
   static const dailyActivities = "/api/daily-activities";
   static const syncDailyActivities = "/api/daily-activities/sync";
 

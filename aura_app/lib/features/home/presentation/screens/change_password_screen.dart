@@ -1,10 +1,12 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
+import '../../../../core/routes/app_routes.dart';
+import '../../../auth/data/datasources/auth_remote_datasource.dart';
+import '../../../user/presentation/providers/user_provider.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -36,20 +38,15 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
-
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null || user.email == null) {
-        _showError('No authenticated user found');
-        return;
-      }
+      final user = ref.read(userProvider).user;
+      if (user == null) throw Exception('User not found');
 
-      final cred = EmailAuthProvider.credential(
-        email: user.email!,
-        password: _currentController.text,
+      await AuthRemoteDataSource().changePassword(
+        uid: user.uid,
+        currentPassword: _currentController.text,
+        newPassword: _newController.text,
       );
-      await user.reauthenticateWithCredential(cred);
-      await user.updatePassword(_newController.text);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -64,10 +61,12 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         );
         Navigator.pop(context);
       }
-    } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? 'Failed to change password');
     } catch (e) {
-      _showError('Failed to change password');
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+      _showError(errorMessage);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -86,29 +85,25 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   }
 
   Future<void> _sendPasswordResetEmail() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user?.email == null) {
+    final email = ref.read(userProvider).user?.email;
+    if (email == null || email.isEmpty) {
       _showError('No email associated with this account');
       return;
     }
 
     setState(() => _isLoading = true);
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(email: user!.email!);
+      await AuthRemoteDataSource().forgotPassword(email);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Password reset email sent to ${user.email}'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        Navigator.pop(context);
+        Navigator.pushNamed(context, AppRoutes.resetPassword, arguments: email);
       }
     } catch (e) {
-      _showError('Failed to send reset email');
+      String errorMessage = e.toString();
+      if (errorMessage.startsWith('Exception: ')) {
+        errorMessage = errorMessage.substring(11);
+      }
+      _showError(errorMessage);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

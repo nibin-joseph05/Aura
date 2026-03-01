@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../../features/auth/domain/models/auth_success_payload.dart';
 import '../../features/auth/presentation/screens/otp/otp_screen.dart';
 import '../../features/auth/presentation/screens/email_login/email_login_screen.dart';
+import '../../features/auth/presentation/screens/email_login/forgot_password_screen.dart';
+import '../../features/auth/presentation/screens/email_login/reset_password_screen.dart';
 import '../../features/user/presentation/screens/profile_complete/profile_complete_screen.dart';
 import '../../features/user/presentation/screens/edit_profile_screen.dart';
 import '../../features/user/presentation/screens/user_profile_screen.dart';
@@ -56,6 +58,11 @@ class AppRouter {
       case AppRoutes.otpSuccess:
         final payload = settings.arguments as AuthSuccessPayload;
         return _build(SuccessScreen(payload: payload), settings);
+      case AppRoutes.forgotPassword:
+        return _build(const ForgotPasswordScreen(), settings);
+      case AppRoutes.resetPassword:
+        final email = settings.arguments as String;
+        return _build(ResetPasswordScreen(email: email), settings);
       case AppRoutes.privacyPolicy:
         return _build(const PrivacyPolicyScreen(), settings);
       case AppRoutes.profileComplete:

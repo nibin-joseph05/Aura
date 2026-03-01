@@ -138,6 +138,18 @@ public class EmailService {
     }
 
     @Async
+    public void sendPasswordResetEmail(String email, String otp) {
+        Context context = new Context();
+        context.setVariable("appName", appName);
+        context.setVariable("logoUrl", logoUrl);
+        context.setVariable("otp", otp);
+
+        String htmlContent = templateEngine.process("password-reset-email", context);
+
+        sendHtmlEmail(email, "Reset Your Password - Aura", htmlContent);
+    }
+
+    @Async
     public void sendProfileUpdateNotification(String toEmail, String userName,
             java.util.Map<String, String> changedFields, String updatedAt) {
         Context context = new Context();

@@ -8,6 +8,10 @@ import com.backend.aura.modules.user.dto.response.UserResponse;
 import com.backend.aura.modules.user.model.User;
 import com.backend.aura.modules.user.model.enums.AccountStatus;
 import com.backend.aura.modules.user.service.UserService;
+import com.backend.aura.modules.auth.dto.PasswordForgotRequest;
+import com.backend.aura.modules.auth.dto.PasswordResetRequest;
+import com.backend.aura.modules.mail.service.EmailService;
+import com.backend.aura.modules.user.service.EmailOtpStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +26,13 @@ public class FirebaseAuthController {
     private static final Logger log = LoggerFactory.getLogger(FirebaseAuthController.class);
 
     private final UserService userService;
+    private final EmailOtpStore otpStore;
+    private final EmailService emailService;
 
-    public FirebaseAuthController(UserService userService) {
+    public FirebaseAuthController(UserService userService, EmailOtpStore otpStore, EmailService emailService) {
         this.userService = userService;
+        this.otpStore = otpStore;
+        this.emailService = emailService;
     }
 
     @GetMapping("/me")
@@ -169,6 +177,53 @@ public class FirebaseAuthController {
             return ResponseEntity.ok(Map.of("user", user));
         } catch (RuntimeException e) {
             log.debug("AUTH_CTRL - /register RESPONSE: 400 | error: {}", e.getMessage());
+            log.debug("------------------------------------------------------------");
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/password/forgot")
+    public ResponseEntity<?> forgotPassword(@RequestBody PasswordForgotRequest request) {
+        log.debug("------------------------------------------------------------");
+        log.debug("AUTH_CTRL - POST /api/auth/password/forgot | email: {}", request.getEmail());
+
+        if (request.getEmail() == null || request.getEmail().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email is required"));
+        }
+
+        User user = userService.findByIdentifier(request.getEmail().trim());
+        if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "No account found with this email"));
+        }
+
+        String otp = otpStore.generateAndStore(user.getEmail().trim());
+        emailService.sendPasswordResetEmail(user.getEmail().trim(), otp);
+
+        log.debug("AUTH_CTRL - /password/forgot RESPONSE: 200 OK | email: {}", user.getEmail());
+        log.debug("------------------------------------------------------------");
+        return ResponseEntity.ok(Map.of("message", "Password reset email sent"));
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<?> resetPassword(@RequestBody PasswordResetRequest request) {
+        log.debug("------------------------------------------------------------");
+        log.debug("AUTH_CTRL - POST /api/auth/password/reset | email: {}", request.getEmail());
+
+        if (request.getEmail() == null || request.getOtp() == null || request.getNewPassword() == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Email, OTP, and new password are required"));
+        }
+
+        if (!otpStore.verify(request.getEmail().trim(), request.getOtp().trim())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid or expired OTP"));
+        }
+
+        try {
+            userService.resetPassword(request.getEmail().trim(), request.getNewPassword());
+            log.debug("AUTH_CTRL - /password/reset RESPONSE: 200 OK");
+            log.debug("------------------------------------------------------------");
+            return ResponseEntity.ok(Map.of("message", "Password reset successfully"));
+        } catch (RuntimeException e) {
+            log.debug("AUTH_CTRL - /password/reset RESPONSE: 400 | error: {}", e.getMessage());
             log.debug("------------------------------------------------------------");
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }

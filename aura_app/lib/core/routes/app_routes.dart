@@ -7,6 +7,8 @@ class AppRoutes {
   static const register = '/register';
   static const otp = '/otp';
   static const otpSuccess = '/otp-success';
+  static const forgotPassword = '/forgot-password';
+  static const resetPassword = '/reset-password';
   static const privacyPolicy = '/privacy-policy';
   static const profileComplete = '/profile-complete';
   static const String home = '/home';
