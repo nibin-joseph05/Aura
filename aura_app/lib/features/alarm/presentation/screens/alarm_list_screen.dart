@@ -73,10 +73,9 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                                 padding: const EdgeInsets.all(16),
                                 itemCount: state.alarms.length,
                                 itemBuilder: (context, index) {
-                                  // Fix: capture alarm in local variable to avoid closure bug
                                   final alarm = state.alarms[index];
                                   final alarmId =
-                                      alarm.id; // capture id, not index
+                                      alarm.id;
                                   return AlarmCard(
                                     key: ValueKey(alarmId),
                                     alarm: alarm,
@@ -93,14 +92,45 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                                       );
                                     },
                                     onDelete: () {
-                                      ref
-                                          .read(alarmProvider.notifier)
-                                          .deleteAlarm(alarmId);
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Alarm deleted'),
+                                      showDialog(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text('Delete Alarm'),
+                                          content: const Text(
+                                            'Are you sure you want to delete this alarm?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(ctx),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                ref
+                                                    .read(
+                                                      alarmProvider.notifier,
+                                                    )
+                                                    .deleteAlarm(alarmId);
+                                                Navigator.pop(ctx);
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Alarm deleted',
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              child: const Text(
+                                                'Delete',
+                                                style: TextStyle(
+                                                  color: AppColors.error,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       );
                                     },

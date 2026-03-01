@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/local_notification_service.dart';
 import '../../data/model/alarm_model.dart';
 import '../../data/repository/alarm_repository.dart';
 import '../../data/service/alarm_native_service.dart';
@@ -105,6 +106,7 @@ class AlarmNotifier extends StateNotifier<AlarmState> {
         await _scheduleNativeAlarm(alarm);
       } else {
         await AlarmNativeService.cancelAlarm(alarm.id);
+        await LocalNotificationService.instance.cancel(alarm.id.hashCode);
       }
       state = state.copyWith(alarms: _repository.getAllAlarms());
       return true;
@@ -122,6 +124,7 @@ class AlarmNotifier extends StateNotifier<AlarmState> {
         await _scheduleNativeAlarm(alarm);
       } else {
         await AlarmNativeService.cancelAlarm(id);
+        await LocalNotificationService.instance.cancel(id.hashCode);
       }
     }
     state = state.copyWith(alarms: _repository.getAllAlarms());
@@ -129,6 +132,7 @@ class AlarmNotifier extends StateNotifier<AlarmState> {
 
   Future<void> deleteAlarm(String id) async {
     await AlarmNativeService.cancelAlarm(id);
+    await LocalNotificationService.instance.cancel(id.hashCode);
     await _repository.deleteAlarm(id);
     state = state.copyWith(alarms: _repository.getAllAlarms());
   }
@@ -172,5 +176,21 @@ class AlarmNotifier extends StateNotifier<AlarmState> {
       dismissType: alarm.dismissType,
       mathDifficulty: alarm.mathDifficulty,
     );
+
+    final preAlarmTime = alarm.nextTriggerTime!.subtract(
+      const Duration(minutes: 10),
+    );
+
+    await LocalNotificationService.instance.cancel(alarm.id.hashCode);
+
+    if (preAlarmTime.isAfter(DateTime.now())) {
+      await LocalNotificationService.instance.schedule(
+        id: alarm.id.hashCode,
+        title: 'Upcoming Alarm',
+        body:
+            'Your alarm ${alarm.label.isNotEmpty ? "'${alarm.label}' " : ''}will ring in 10 minutes. Tap to turn it off early.',
+        scheduledTime: preAlarmTime,
+      );
+    }
   }
 }

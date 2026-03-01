@@ -27,7 +27,9 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   bool _vibrate = true;
   int _snoozeMinutes = 5;
   String _tone = 'default';
-  List<String> _availableTones = ['default'];
+  List<Map<String, String>> _availableTones = [
+    {'title': 'Default', 'uri': 'default'},
+  ];
   bool _isPreviewing = false;
   Timer? _previewTimer;
 
@@ -43,6 +45,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     if (widget.editAlarmId != null) {
       _isEditing = true;
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadAlarm());
+    } else {
+      _repeatDays = [DateTime.now().weekday - 1];
     }
   }
 
@@ -236,7 +240,10 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: DropdownButton<String>(
-                                      value: _availableTones.contains(_tone)
+                                      value:
+                                          _availableTones.any(
+                                            (t) => t['uri'] == _tone,
+                                          )
                                           ? _tone
                                           : 'default',
                                       isExpanded: true,
@@ -253,12 +260,12 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                         fontSize: 15,
                                       ),
                                       items: _availableTones.map((t) {
-                                        return DropdownMenuItem(
-                                          value: t,
+                                        final uri = t['uri'] ?? 'default';
+                                        final title = t['title'] ?? 'Unknown';
+                                        return DropdownMenuItem<String>(
+                                          value: uri,
                                           child: Text(
-                                            t == 'default'
-                                                ? 'Default Alarm'
-                                                : t,
+                                            title,
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         );
@@ -270,7 +277,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                // Preview button
+
                                 GestureDetector(
                                   onTap: _previewTone,
                                   child: Container(
@@ -610,7 +617,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       mathDifficulty: 1,
     );
 
-    _previewTimer = Timer(const Duration(seconds: 5), () async {
+    _previewTimer = Timer(const Duration(seconds: 4), () async {
       await AlarmNativeService.stopAlarmSound();
       await AlarmNativeService.cancelAlarm(previewId);
       if (mounted) setState(() => _isPreviewing = false);

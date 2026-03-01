@@ -1,8 +1,8 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/foundation.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
-/// A central service for scheduling and showing local notifications.
-/// Used for daily activity reminders and other in-app alerts.
 class LocalNotificationService {
   LocalNotificationService._();
   static final LocalNotificationService instance = LocalNotificationService._();
@@ -23,6 +23,7 @@ class LocalNotificationService {
 
   Future<void> initialize() async {
     if (_initialized) return;
+    tz.initializeTimeZones();
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -32,7 +33,10 @@ class LocalNotificationService {
       requestSoundPermission: false,
     );
     await _plugin.initialize(
-      const InitializationSettings(android: androidSettings, iOS: iosSettings),
+      settings: const InitializationSettings(
+        android: androidSettings,
+        iOS: iosSettings,
+      ),
     );
 
     await _plugin
@@ -44,7 +48,6 @@ class LocalNotificationService {
     _initialized = true;
   }
 
-  /// Show an immediate activity reminder notification.
   Future<void> showActivityReminder({
     required int id,
     required String activityName,
@@ -53,12 +56,12 @@ class LocalNotificationService {
     await _ensureInitialized();
     try {
       await _plugin.show(
-        id,
-        '⏰ Activity Reminder',
-        description?.isNotEmpty == true
+        id: id,
+        title: '⏰ Activity Reminder',
+        body: description?.isNotEmpty == true
             ? '$activityName — $description'
             : 'Time for: $activityName',
-        NotificationDetails(
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             _activityChannel.id,
             _activityChannel.name,
@@ -82,7 +85,6 @@ class LocalNotificationService {
     }
   }
 
-  /// Shows a notification immediately (used for test/preview).
   Future<void> showImmediate({
     required int id,
     required String title,
@@ -93,10 +95,10 @@ class LocalNotificationService {
     await _ensureInitialized();
     try {
       await _plugin.show(
-        id,
-        title,
-        body,
-        NotificationDetails(
+        id: id,
+        title: title,
+        body: body,
+        notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             channelId,
             channelName,
@@ -116,12 +118,49 @@ class LocalNotificationService {
     }
   }
 
-  /// Cancel a specific notification.
-  Future<void> cancel(int id) async {
-    await _plugin.cancel(id);
+  Future<void> schedule({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledTime,
+    String channelId = 'alarm_reminders',
+    String channelName = 'Alarm Reminders',
+  }) async {
+    await _ensureInitialized();
+    try {
+      final tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
+      if (tzTime.isBefore(tz.TZDateTime.now(tz.local))) return;
+
+      await _plugin.zonedSchedule(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: tzTime,
+        notificationDetails: NotificationDetails(
+          android: AndroidNotificationDetails(
+            channelId,
+            channelName,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: false,
+            presentSound: true,
+          ),
+        ),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+    } catch (e) {
+      debugPrint('[LocalNotification] schedule error: $e');
+    }
   }
 
-  /// Cancel all notifications.
+  Future<void> cancel(int id) async {
+    await _plugin.cancel(id: id);
+  }
+
   Future<void> cancelAll() async {
     await _plugin.cancelAll();
   }

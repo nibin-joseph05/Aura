@@ -4,10 +4,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../theme/app_colors.dart';
 import '../../ui/responsive/responsive.dart';
-
-/// A dismissable banner that encourages users to re-enable push notifications.
-/// Shows periodically on the home screen when notification permissions are
-/// denied or not determined. Users can snooze for 3 days.
 class NotificationEncourageCard extends StatefulWidget {
   const NotificationEncourageCard({super.key});
 
@@ -73,7 +69,7 @@ class _NotificationEncourageCardState extends State<NotificationEncourageCard>
         settings.authorizationStatus == AuthorizationStatus.provisional) {
       _dismiss();
     } else {
-      await FirebaseMessaging.instance.getNotificationSettings(); // refresh
+      await FirebaseMessaging.instance.getNotificationSettings(); 
     }
   }
 

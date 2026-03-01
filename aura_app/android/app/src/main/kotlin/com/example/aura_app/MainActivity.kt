@@ -21,8 +21,6 @@ class MainActivity : FlutterActivity() {
             when (call.method) {
                 "scheduleAlarm" -> {
                     val alarmId = call.argument<String>("alarmId")!!
-                    // Dart int can arrive as Int or Long depending on platform — Number handles
-                    // both
                     val rawMillis = call.argument<Number>("triggerTimeMillis")
                     if (rawMillis == null) {
                         result.error("MISSING_ARG", "triggerTimeMillis required", null)
@@ -91,18 +89,20 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun getSystemAlarmTones(): List<String> {
-        val tones = mutableListOf("default")
+    private fun getSystemAlarmTones(): List<Map<String, String>> {
+        val tones = mutableListOf<Map<String, String>>()
+        tones.add(mapOf("title" to "Default", "uri" to "default"))
         try {
             val manager = RingtoneManager(this)
             manager.setType(RingtoneManager.TYPE_ALARM)
             val cursor = manager.cursor
             while (cursor.moveToNext()) {
-                val title = cursor.getString(RingtoneManager.TITLE_COLUMN_INDEX)
-                tones.add(title)
+                val title = manager.getRingtone(cursor.position).getTitle(this) ?: "Unknown"
+                val uriStr = manager.getRingtoneUri(cursor.position).toString()
+                tones.add(mapOf("title" to title, "uri" to uriStr))
             }
         } catch (e: Exception) {
-            // fallback to just default
+            e.printStackTrace()
         }
         return tones
     }

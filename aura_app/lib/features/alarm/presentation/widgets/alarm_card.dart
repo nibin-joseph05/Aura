@@ -118,6 +118,12 @@ class AlarmCard extends StatelessWidget {
                 onChanged: onToggle,
                 activeColor: AppColors.primary,
               ),
+              IconButton(
+                onPressed: onDelete,
+                icon: const Icon(Icons.delete_outline),
+                color: AppColors.error,
+                tooltip: 'Delete Alarm',
+              ),
             ],
           ),
         ),

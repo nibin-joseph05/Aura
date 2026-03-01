@@ -62,24 +62,35 @@ class AlarmNativeService {
   static Future<void> requestExactAlarmPermission() async {
     try {
       await _channel.invokeMethod('requestExactAlarmPermission');
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
-  static Future<List<String>> getAvailableTones() async {
+  static Future<List<Map<String, String>>> getAvailableTones() async {
     try {
       final result = await _channel.invokeMethod<List>('getAvailableTones');
-      return result?.cast<String>() ?? ['default'];
+      if (result == null)
+        return [
+          {'title': 'Default', 'uri': 'default'},
+        ];
+
+      return result.map((dynamic item) {
+        final map = Map<String, dynamic>.from(item as Map);
+        return {
+          'title': map['title']?.toString() ?? 'Unknown',
+          'uri': map['uri']?.toString() ?? 'default',
+        };
+      }).toList();
     } catch (e) {
-      return ['default'];
+      return [
+        {'title': 'Default', 'uri': 'default'},
+      ];
     }
   }
 
   static Future<void> stopAlarmSound() async {
     try {
       await _channel.invokeMethod('stopAlarmSound');
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   static Future<void> snoozeAlarm(String alarmId, int snoozeMinutes) async {
@@ -88,8 +99,6 @@ class AlarmNativeService {
         'alarmId': alarmId,
         'snoozeMinutes': snoozeMinutes,
       });
-    } catch (e) {
-      
-    }
+    } catch (e) {}
   }
 }

@@ -47,7 +47,7 @@ class FcmHandler {
         ?.createNotificationChannel(_channel);
 
     await _localNotifications.initialize(
-      const InitializationSettings(
+      settings: const InitializationSettings(
         android: AndroidInitializationSettings('@mipmap/ic_launcher'),
         iOS: DarwinInitializationSettings(),
       ),
@@ -93,10 +93,10 @@ class FcmHandler {
     }
 
     _localNotifications.show(
-      message.hashCode,
-      title ?? 'Aura',
-      body ?? '',
-      NotificationDetails(
+      id: message.hashCode,
+      title: title ?? 'Aura',
+      body: body ?? '',
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _channel.id,
           _channel.name,

@@ -138,7 +138,7 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       pendingSyncCount: pending.length,
     );
 
-    // Notify user that activity has been added
+
     await LocalNotificationService.instance.showActivityReminder(
       id: now.millisecondsSinceEpoch % 100000,
       activityName: title,
@@ -234,7 +234,7 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       pendingSyncCount: pending.length,
     );
 
-    // Show completion notification when fully done
+    
     if (updatedTimes.length >= activity.targetCompletions) {
       await LocalNotificationService.instance.showImmediate(
         id: activity.id.hashCode % 100000,

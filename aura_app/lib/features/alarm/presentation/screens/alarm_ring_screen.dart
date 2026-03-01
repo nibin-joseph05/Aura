@@ -15,16 +15,29 @@ class AlarmRingScreen extends ConsumerStatefulWidget {
   ConsumerState<AlarmRingScreen> createState() => _AlarmRingScreenState();
 }
 
-class _AlarmRingScreenState extends ConsumerState<AlarmRingScreen> {
+class _AlarmRingScreenState extends ConsumerState<AlarmRingScreen>
+    with SingleTickerProviderStateMixin {
   AlarmModel? _alarm;
   String? _mathProblem;
   int? _mathAnswer;
   final _answerController = TextEditingController();
   String? _errorMessage;
 
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+
   @override
   void initState() {
     super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat(reverse: true);
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadAlarm());
   }
 
@@ -86,6 +99,7 @@ class _AlarmRingScreenState extends ConsumerState<AlarmRingScreen> {
 
   @override
   void dispose() {
+    _animationController.dispose();
     _answerController.dispose();
     super.dispose();
   }
@@ -110,10 +124,31 @@ class _AlarmRingScreenState extends ConsumerState<AlarmRingScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(),
-                Icon(
-                  Icons.alarm,
-                  size: 80,
-                  color: Colors.white.withValues(alpha: 0.9),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    AnimatedBuilder(
+                      animation: _scaleAnimation,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _scaleAnimation.value,
+                          child: Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Icon(
+                      Icons.alarm,
+                      size: 60,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
                 Text(
@@ -151,9 +186,12 @@ class _AlarmRingScreenState extends ConsumerState<AlarmRingScreen> {
                     controller: _answerController,
                     keyboardType: TextInputType.number,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 24),
+                    style: const TextStyle(fontSize: 24, color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Answer',
+                      hintStyle: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
                       errorText: _errorMessage,
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.15),
@@ -168,7 +206,7 @@ class _AlarmRingScreenState extends ConsumerState<AlarmRingScreen> {
                   ElevatedButton(
                     onPressed: _checkAnswer,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: AppColors.accent,
                       minimumSize: const Size(double.infinity, 56),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -183,7 +221,7 @@ class _AlarmRingScreenState extends ConsumerState<AlarmRingScreen> {
                   ElevatedButton(
                     onPressed: _dismissAlarm,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
+                      backgroundColor: AppColors.accent,
                       minimumSize: const Size(double.infinity, 56),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),

@@ -28,7 +28,8 @@ class AlarmService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val alarmId = intent?.getStringExtra(AlarmReceiver.EXTRA_ALARM_ID) ?: return START_NOT_STICKY
+        val alarmId =
+                intent?.getStringExtra(AlarmReceiver.EXTRA_ALARM_ID) ?: return START_NOT_STICKY
         val label = intent.getStringExtra(AlarmReceiver.EXTRA_LABEL) ?: "Alarm"
         val tone = intent.getStringExtra(AlarmReceiver.EXTRA_TONE) ?: "default"
         val vibrate = intent.getBooleanExtra(AlarmReceiver.EXTRA_VIBRATE, true)
@@ -48,93 +49,107 @@ class AlarmService : Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Alarm",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Alarm notifications"
-                setSound(null, null)
-            }
+            val channel =
+                    NotificationChannel(CHANNEL_ID, "Alarm", NotificationManager.IMPORTANCE_HIGH)
+                            .apply {
+                                description = "Alarm notifications"
+                                setSound(null, null)
+                            }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }
     }
 
     private fun createNotification(label: String, alarmId: String): Notification {
-        val fullScreenIntent = Intent(this, AlarmRingActivity::class.java).apply {
-            putExtra(AlarmReceiver.EXTRA_ALARM_ID, alarmId)
-            putExtra(AlarmReceiver.EXTRA_LABEL, label)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        val fullScreenPendingIntent = PendingIntent.getActivity(
-            this, 0, fullScreenIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
+        val fullScreenIntent =
+                Intent(this, AlarmRingActivity::class.java).apply {
+                    putExtra(AlarmReceiver.EXTRA_ALARM_ID, alarmId)
+                    putExtra(AlarmReceiver.EXTRA_LABEL, label)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
+        val fullScreenPendingIntent =
+                PendingIntent.getActivity(
+                        this,
+                        0,
+                        fullScreenIntent,
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Alarm")
-            .setContentText(label.ifEmpty { "Time to wake up!" })
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setCategory(NotificationCompat.CATEGORY_ALARM)
-            .setFullScreenIntent(fullScreenPendingIntent, true)
-            .setOngoing(true)
-            .build()
+                .setContentTitle("Alarm")
+                .setContentText(label.ifEmpty { "Time to wake up!" })
+                .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setFullScreenIntent(fullScreenPendingIntent, true)
+                .setOngoing(true)
+                .build()
     }
 
     private fun playAlarmSound(tone: String) {
         try {
-            val alarmUri = if (tone == "default") {
-                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-                    ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            } else {
-                RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-            }
+            val alarmUri =
+                    if (tone == "default") {
+                        RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+                    } else {
+                        try {
+                            android.net.Uri.parse(tone)
+                        } catch (e: Exception) {
+                            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+                        }
+                    }
 
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(this@AlarmService, alarmUri)
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_ALARM)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build()
-                )
-                isLooping = true
-                prepare()
-                start()
-            }
+            mediaPlayer =
+                    MediaPlayer().apply {
+                        setDataSource(this@AlarmService, alarmUri)
+                        setAudioAttributes(
+                                AudioAttributes.Builder()
+                                        .setUsage(AudioAttributes.USAGE_ALARM)
+                                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                                        .build()
+                        )
+                        isLooping = true
+                        prepare()
+                        start()
+                    }
         } catch (e: Exception) {
             Log.e("AlarmService", "Failed to play alarm: ${e.message}")
         }
     }
 
     private fun startVibration() {
-        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val manager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            manager.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            getSystemService(VIBRATOR_SERVICE) as Vibrator
-        }
+        vibrator =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    val manager =
+                            getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                    manager.defaultVibrator
+                } else {
+                    @Suppress("DEPRECATION") getSystemService(VIBRATOR_SERVICE) as Vibrator
+                }
 
         val pattern = longArrayOf(0, 500, 500)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             vibrator?.vibrate(VibrationEffect.createWaveform(pattern, 0))
         } else {
-            @Suppress("DEPRECATION")
-            vibrator?.vibrate(pattern, 0)
+            @Suppress("DEPRECATION") vibrator?.vibrate(pattern, 0)
         }
     }
 
-    private fun launchRingActivity(alarmId: String, label: String, dismissType: String, mathDifficulty: Int) {
-        val intent = Intent(this, AlarmRingActivity::class.java).apply {
-            putExtra(AlarmReceiver.EXTRA_ALARM_ID, alarmId)
-            putExtra(AlarmReceiver.EXTRA_LABEL, label)
-            putExtra(AlarmReceiver.EXTRA_DISMISS_TYPE, dismissType)
-            putExtra(AlarmReceiver.EXTRA_MATH_DIFFICULTY, mathDifficulty)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
+    private fun launchRingActivity(
+            alarmId: String,
+            label: String,
+            dismissType: String,
+            mathDifficulty: Int
+    ) {
+        val intent =
+                Intent(this, AlarmRingActivity::class.java).apply {
+                    putExtra(AlarmReceiver.EXTRA_ALARM_ID, alarmId)
+                    putExtra(AlarmReceiver.EXTRA_LABEL, label)
+                    putExtra(AlarmReceiver.EXTRA_DISMISS_TYPE, dismissType)
+                    putExtra(AlarmReceiver.EXTRA_MATH_DIFFICULTY, mathDifficulty)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                }
         startActivity(intent)
     }
 

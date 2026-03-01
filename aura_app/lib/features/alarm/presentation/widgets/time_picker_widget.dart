@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class TimePickerWidget extends StatefulWidget {
-  final int hour; // 0-23
-  final int minute; // 0-59
+  final int hour; 
+  final int minute; 
   final ValueChanged<int> onHourChanged;
   final ValueChanged<int> onMinuteChanged;
 
@@ -59,7 +59,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
   }
 
   void _onHour12Changed(int index) {
-    final h12 = index + 1; // 1-12
+    final h12 = index + 1; 
     _display12Hour = h12;
     widget.onHourChanged(_to24(h12, _isPm));
   }
@@ -83,15 +83,16 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Hour wheel (1-12)
           SizedBox(
             width: 80,
             height: 180,
             child: ListWheelScrollView.useDelegate(
               itemExtent: 56,
               perspective: 0.003,
-              diameterRatio: 1.3,
-              physics: const FixedExtentScrollPhysics(),
+              diameterRatio: 1.5,
+              physics: const FixedExtentScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
               controller: _hourController,
               onSelectedItemChanged: _onHour12Changed,
               childDelegate: ListWheelChildBuilderDelegate(
@@ -107,7 +108,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
               ),
             ),
           ),
-          // Colon
+         
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
@@ -119,15 +120,17 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
               ),
             ),
           ),
-          // Minute wheel (0-59)
+        
           SizedBox(
             width: 80,
             height: 180,
             child: ListWheelScrollView.useDelegate(
               itemExtent: 56,
               perspective: 0.003,
-              diameterRatio: 1.3,
-              physics: const FixedExtentScrollPhysics(),
+              diameterRatio: 1.5,
+              physics: const FixedExtentScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
               controller: _minuteController,
               onSelectedItemChanged: widget.onMinuteChanged,
               childDelegate: ListWheelChildBuilderDelegate(
@@ -143,7 +146,6 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
             ),
           ),
           const SizedBox(width: 12),
-          // AM/PM toggle
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
