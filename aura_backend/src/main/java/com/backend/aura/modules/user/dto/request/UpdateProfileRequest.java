@@ -17,4 +17,5 @@ public class UpdateProfileRequest {
     private String password;
     private Boolean isPrivate;
     private Boolean phoneVerified;
+    private String fcmToken;
 }

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/network/http/api_endpoints.dart';
 import '../../../../core/network/http/dio_client.dart';
+import '../../../../core/network/push/fcm_handler.dart';
 
 class AuthRemoteDataSource {
   final Dio _dio = DioClient().dio;
@@ -11,10 +12,17 @@ class AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      final response = await _dio.post(
-        ApiEndpoints.login,
-        data: {'identifier': identifier.trim(), 'password': password},
-      );
+      final requestData = {
+        'identifier': identifier.trim(),
+        'password': password,
+      };
+      final fcmToken = await FcmHandler.instance.getToken();
+
+      if (fcmToken != null) {
+        requestData['fcmToken'] = fcmToken;
+      }
+
+      final response = await _dio.post(ApiEndpoints.login, data: requestData);
       return response.data;
     } on DioException catch (e) {
       final errorMessage =
@@ -47,6 +55,11 @@ class AuthRemoteDataSource {
       if (dob != null && dob.isNotEmpty) data['dob'] = dob;
       if (profileImageUrl != null && profileImageUrl.isNotEmpty) {
         data['profileImageUrl'] = profileImageUrl;
+      }
+
+      final fcmToken = await FcmHandler.instance.getToken();
+      if (fcmToken != null) {
+        data['fcmToken'] = fcmToken;
       }
 
       final response = await _dio.post(ApiEndpoints.register, data: data);

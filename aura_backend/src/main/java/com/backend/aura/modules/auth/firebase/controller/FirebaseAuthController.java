@@ -12,6 +12,9 @@ import com.backend.aura.modules.auth.dto.PasswordForgotRequest;
 import com.backend.aura.modules.auth.dto.PasswordResetRequest;
 import com.backend.aura.modules.mail.service.EmailService;
 import com.backend.aura.modules.user.service.EmailOtpStore;
+import com.backend.aura.modules.notification.model.Notification;
+import com.backend.aura.modules.notification.repository.NotificationRepository;
+import com.backend.aura.modules.notification.service.PushNotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +31,16 @@ public class FirebaseAuthController {
     private final UserService userService;
     private final EmailOtpStore otpStore;
     private final EmailService emailService;
+    private final NotificationRepository notificationRepository;
+    private final PushNotificationService pushNotificationService;
 
-    public FirebaseAuthController(UserService userService, EmailOtpStore otpStore, EmailService emailService) {
+    public FirebaseAuthController(UserService userService, EmailOtpStore otpStore, EmailService emailService,
+            NotificationRepository notificationRepository, PushNotificationService pushNotificationService) {
         this.userService = userService;
         this.otpStore = otpStore;
         this.emailService = emailService;
+        this.notificationRepository = notificationRepository;
+        this.pushNotificationService = pushNotificationService;
     }
 
     @GetMapping("/me")
@@ -145,6 +153,25 @@ public class FirebaseAuthController {
                 user.getEmail(),
                 userService.mapUserToResponse(user));
 
+        if (request.getFcmToken() != null && !request.getFcmToken().isEmpty()
+                && !request.getFcmToken().equals(user.getFcmToken())) {
+            log.debug("AUTH_CTRL - /login | Persisting new FCM Token to database...");
+            user.setFcmToken(request.getFcmToken());
+            userService.saveUser(user);
+        }
+
+        if (user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
+            Notification notif = Notification.builder()
+                    .title("New Login Detected")
+                    .body("Your account was just logged into.")
+                    .type(Notification.NotificationType.AUTH_ALERT)
+                    .targetUserId(user.getUid())
+                    .isBroadcast(false)
+                    .build();
+            notificationRepository.save(notif);
+            pushNotificationService.sendToUser(user.getFcmToken(), notif.getTitle(), notif.getBody(), null);
+        }
+
         log.debug("AUTH_CTRL - /login RESPONSE: 200 OK | email: {}", user.getEmail());
         log.debug("------------------------------------------------------------");
         return ResponseEntity.ok(response);
@@ -172,6 +199,20 @@ public class FirebaseAuthController {
 
         try {
             UserResponse user = userService.registerUser(request);
+
+            User savedUser = userService.findByIdentifier(request.getEmail().trim());
+            if (savedUser != null && savedUser.getFcmToken() != null && !savedUser.getFcmToken().isEmpty()) {
+                Notification notif = Notification.builder()
+                        .title("Welcome to Aura!")
+                        .body("Your account has been successfully created.")
+                        .type(Notification.NotificationType.ACCOUNT_ALERT)
+                        .targetUserId(savedUser.getUid())
+                        .isBroadcast(false)
+                        .build();
+                notificationRepository.save(notif);
+                pushNotificationService.sendToUser(savedUser.getFcmToken(), notif.getTitle(), notif.getBody(), null);
+            }
+
             log.debug("AUTH_CTRL - /register RESPONSE: 200 OK | uid: {}", user.getUid());
             log.debug("------------------------------------------------------------");
             return ResponseEntity.ok(Map.of("user", user));
@@ -225,6 +266,20 @@ public class FirebaseAuthController {
 
         try {
             userService.resetPassword(request.getEmail().trim(), request.getNewPassword());
+
+            User user = userService.findByIdentifier(request.getEmail().trim());
+            if (user != null && user.getFcmToken() != null && !user.getFcmToken().isEmpty()) {
+                Notification notif = Notification.builder()
+                        .title("Password Reset Successful")
+                        .body("Your password has been changed.")
+                        .type(Notification.NotificationType.AUTH_ALERT)
+                        .targetUserId(user.getUid())
+                        .isBroadcast(false)
+                        .build();
+                notificationRepository.save(notif);
+                pushNotificationService.sendToUser(user.getFcmToken(), notif.getTitle(), notif.getBody(), null);
+            }
+
             log.debug("AUTH_CTRL - /password/reset RESPONSE: 200 OK");
             log.debug("------------------------------------------------------------");
             return ResponseEntity.ok(Map.of("message", "Password reset successfully"));

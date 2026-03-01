@@ -211,6 +211,12 @@ public class UserService {
             user.setProfileImageUrl(dto.getProfileImageUrl());
         }
 
+        if (dto.getFcmToken() != null && !dto.getFcmToken().isEmpty()
+                && !dto.getFcmToken().equals(user.getFcmToken())) {
+            changedFields.put("FCM Token", "Refreshed");
+            user.setFcmToken(dto.getFcmToken());
+        }
+
         if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
             user.setEmailPasswordLinked(true);
@@ -351,6 +357,9 @@ public class UserService {
         }
         if (request.getProfileImageUrl() != null && !request.getProfileImageUrl().isEmpty()) {
             user.setProfileImageUrl(request.getProfileImageUrl());
+        }
+        if (request.getFcmToken() != null && !request.getFcmToken().isEmpty()) {
+            user.setFcmToken(request.getFcmToken());
         }
 
         boolean profileComplete = user.getName() != null && !user.getName().isEmpty() &&

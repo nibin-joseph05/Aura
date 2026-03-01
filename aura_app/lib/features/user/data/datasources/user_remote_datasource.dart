@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/network/http/api_endpoints.dart';
 import '../../../../core/network/http/dio_client.dart';
+import '../../../../core/network/push/fcm_handler.dart';
 import '../models/user_model.dart';
 
 class UserRemoteDataSource {
@@ -76,7 +77,7 @@ class UserRemoteDataSource {
     bool? phoneVerified,
   }) async {
     try {
-      final data = {
+      final data = <String, dynamic>{
         'uid': uid,
         if (name != null) 'name': name,
         if (username != null) 'username': username,
@@ -88,25 +89,37 @@ class UserRemoteDataSource {
         if (password != null) 'password': '***',
         if (phoneVerified == true) 'phoneVerified': true,
       };
+
+      final requestData = <String, dynamic>{
+        'uid': uid,
+        if (name != null) 'name': name,
+        if (username != null) 'username': username,
+        if (email != null) 'email': email,
+        if (phone != null) 'phone': phone,
+        if (gender != null) 'gender': gender,
+        if (dob != null) 'dob': dob,
+        if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
+        if (password != null) 'password': password,
+        if (phoneVerified == true) 'phoneVerified': true,
+      };
+
       dev.log(
         'USER_DS - PUT ${ApiEndpoints.updateProfile} | data: $data',
         name: 'API',
       );
 
+      final fcmToken = await FcmHandler.instance.getToken();
+      if (fcmToken != null) {
+        requestData['fcmToken'] = fcmToken;
+        dev.log(
+          'USER_DS - PUT /profile | Injected fcmToken $fcmToken',
+          name: 'API',
+        );
+      }
+
       final response = await _dio.put(
         ApiEndpoints.updateProfile,
-        data: {
-          'uid': uid,
-          if (name != null) 'name': name,
-          if (username != null) 'username': username,
-          if (email != null) 'email': email,
-          if (phone != null) 'phone': phone,
-          if (gender != null) 'gender': gender,
-          if (dob != null) 'dob': dob,
-          if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
-          if (password != null) 'password': password,
-          if (phoneVerified == true) 'phoneVerified': true,
-        },
+        data: requestData,
       );
       dev.log(
         'USER_DS - PUT /profile RESPONSE: ${response.statusCode} | profileCompleted: ${response.data['profileCompleted']}',

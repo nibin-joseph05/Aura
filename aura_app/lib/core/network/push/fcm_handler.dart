@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
+import 'package:permission_handler/permission_handler.dart';
+
 import '../../../app.dart';
 import '../../widgets/notifications/in_app_notification_overlay.dart';
 
@@ -31,6 +33,10 @@ class FcmHandler {
 
   Future<void> initialize() async {
     await _messaging.requestPermission(alert: true, badge: true, sound: true);
+
+    if (await Permission.notification.status.isDenied) {
+      await Permission.notification.request();
+    }
 
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -64,17 +70,22 @@ class FcmHandler {
   Future<String?> getToken() => _messaging.getToken();
 
   void _handleForegroundMessage(RemoteMessage message) {
-    final notification = message.notification;
-    if (notification == null) return;
+    String? title =
+        message.notification?.title ?? message.data['title'] as String?;
+    String? body =
+        message.notification?.body ?? message.data['body'] as String?;
 
-    debugPrint('[FCM] Foreground message: ${notification.title}');
+    if (title == null && body == null) return;
 
-    final ctx = navigatorKey.currentContext;
-    if (ctx != null) {
+    debugPrint('[FCM] Foreground message: $title');
+
+    final overlayState = navigatorKey.currentState?.overlay;
+    if (overlayState != null) {
       InAppNotificationOverlay.show(
-        ctx,
-        title: notification.title ?? 'Aura',
-        body: notification.body ?? '',
+        null,
+        overlayState: overlayState,
+        title: title ?? 'Aura',
+        body: body ?? '',
         onTap: () {
           _handleMessageOpen(message);
         },
@@ -82,9 +93,9 @@ class FcmHandler {
     }
 
     _localNotifications.show(
-      notification.hashCode,
-      notification.title ?? 'Aura',
-      notification.body ?? '',
+      message.hashCode,
+      title ?? 'Aura',
+      body ?? '',
       NotificationDetails(
         android: AndroidNotificationDetails(
           _channel.id,

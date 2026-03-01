@@ -195,6 +195,14 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
         icon = Icons.check_circle_outline_rounded;
         iconColor = AppColors.success;
         break;
+      case 'AUTH_ALERT':
+        icon = Icons.security_rounded;
+        iconColor = AppColors.info;
+        break;
+      case 'ACCOUNT_ALERT':
+        icon = Icons.manage_accounts_rounded;
+        iconColor = AppColors.primary;
+        break;
       default:
         icon = isBroadcast
             ? Icons.campaign_rounded

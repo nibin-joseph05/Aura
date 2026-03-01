@@ -2,6 +2,8 @@ package com.backend.aura.modules.notification.service;
 
 import com.backend.aura.core.logging.AuraLogger;
 import com.backend.aura.modules.notification.model.Notification;
+import com.google.firebase.messaging.AndroidConfig;
+import com.google.firebase.messaging.AndroidNotification;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.MulticastMessage;
@@ -20,6 +22,17 @@ public class PushNotificationService {
         try {
             Message message = Message.builder()
                     .setToken(fcmToken)
+                    .setNotification(com.google.firebase.messaging.Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build())
+                    .setAndroidConfig(AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH)
+                            .setNotification(AndroidNotification.builder()
+                                    .setChannelId("aura_high_importance")
+                                    .setPriority(AndroidNotification.Priority.HIGH)
+                                    .build())
+                            .build())
                     .putData("title", title)
                     .putData("body", body)
                     .putData("deepLink", deepLink != null ? deepLink : "")
@@ -42,6 +55,17 @@ public class PushNotificationService {
         try {
             MulticastMessage message = MulticastMessage.builder()
                     .addAllTokens(fcmTokens)
+                    .setNotification(com.google.firebase.messaging.Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build())
+                    .setAndroidConfig(AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH)
+                            .setNotification(AndroidNotification.builder()
+                                    .setChannelId("aura_high_importance")
+                                    .setPriority(AndroidNotification.Priority.HIGH)
+                                    .build())
+                            .build())
                     .putData("title", title)
                     .putData("body", body)
                     .putData("deepLink", deepLink != null ? deepLink : "")
@@ -60,6 +84,17 @@ public class PushNotificationService {
         try {
             Message message = Message.builder()
                     .setTopic(topic)
+                    .setNotification(com.google.firebase.messaging.Notification.builder()
+                            .setTitle(title)
+                            .setBody(body)
+                            .build())
+                    .setAndroidConfig(AndroidConfig.builder()
+                            .setPriority(AndroidConfig.Priority.HIGH)
+                            .setNotification(AndroidNotification.builder()
+                                    .setChannelId("aura_high_importance")
+                                    .setPriority(AndroidNotification.Priority.HIGH)
+                                    .build())
+                            .build())
                     .putData("title", title)
                     .putData("body", body)
                     .putData("deepLink", deepLink != null ? deepLink : "")

@@ -46,7 +46,7 @@ public class Notification {
     }
 
     public enum NotificationType {
-        SYSTEM, SOS_ALERT, ANNOUNCEMENT, REMINDER, WELLNESS
+        SYSTEM, SOS_ALERT, ANNOUNCEMENT, REMINDER, WELLNESS, AUTH_ALERT, ACCOUNT_ALERT
     }
 
     public enum NotificationStatus {

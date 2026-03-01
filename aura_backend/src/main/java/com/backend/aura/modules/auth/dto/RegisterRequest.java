@@ -9,6 +9,7 @@ public class RegisterRequest {
     private String gender;
     private String dob;
     private String profileImageUrl;
+    private String fcmToken;
 
     public String getName() {
         return name;
@@ -72,5 +73,13 @@ public class RegisterRequest {
 
     public void setProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
+    }
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
     }
 }
