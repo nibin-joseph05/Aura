@@ -5,4 +5,5 @@ import lombok.Data;
 @Data
 public class PasswordForgotRequest {
     private String email;
+    private boolean force;
 }

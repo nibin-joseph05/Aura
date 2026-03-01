@@ -15,6 +15,7 @@ class AppTextField extends StatelessWidget {
   final bool readOnly;
   final bool showVerifiedBadge;
   final Function(String)? onChanged;
+  final int? maxLength;
 
   const AppTextField({
     super.key,
@@ -30,6 +31,7 @@ class AppTextField extends StatelessWidget {
     this.readOnly = false,
     this.showVerifiedBadge = false,
     this.onChanged,
+    this.maxLength,
   });
 
   @override
@@ -50,6 +52,7 @@ class AppTextField extends StatelessWidget {
               controller: controller,
               obscureText: obscureText,
               keyboardType: keyboardType,
+              maxLength: maxLength,
               cursorColor: Colors.white,
               onChanged: onChanged,
               style: TextStyle(

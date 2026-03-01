@@ -19,22 +19,73 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _emailController = TextEditingController();
   bool _isLoading = false;
+  String? _emailError;
+
+  void _validateEmail(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        _emailError = 'Please enter your email';
+      } else if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+        _emailError = 'Please enter a valid email address';
+      } else {
+        _emailError = null;
+      }
+    });
+  }
 
   void _showError(String message) {
     AppSnackbar.showError(context: context, message: message);
   }
 
-  Future<void> _handleForgot() async {
+  Future<bool> _showUnverifiedDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1E1E2A),
+            title: const Text(
+              'Email Not Verified',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: const Text(
+              'Your email address is not verified. Are you sure you want to send the password reset code to this email?',
+              style: TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.white38),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Send Anyway',
+                  style: TextStyle(color: AppColors.accent),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> _handleForgot({bool force = false}) async {
     final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      _showError('Please enter your email');
+
+    _validateEmail(email);
+    if (_emailError != null) {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _emailError = null;
+    });
 
     try {
-      await AuthRemoteDataSource().forgotPassword(email);
+      await AuthRemoteDataSource().forgotPassword(email, force: force);
       if (mounted) {
         AppSnackbar.showSuccess(
           context: context,
@@ -44,10 +95,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       }
     } catch (e) {
       String errorMessage = e.toString();
+
+      if (errorMessage.contains('unverified_email')) {
+        if (mounted) setState(() => _isLoading = false);
+        final proceed = await _showUnverifiedDialog();
+        if (proceed) {
+          _handleForgot(force: true);
+        }
+        return;
+      }
+
       if (errorMessage.startsWith('Exception: ')) {
         errorMessage = errorMessage.substring(11);
       }
-      _showError(errorMessage);
+
+      if (errorMessage.toLowerCase().contains("no account found") ||
+          errorMessage.toLowerCase().contains("email")) {
+        setState(() => _emailError = errorMessage);
+      } else {
+        _showError(errorMessage);
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -73,86 +140,91 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ? 16.0
         : 15.0;
 
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: AppColors.primaryGradient,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const AppHeader(
-                title: "Forgot Password",
-                textColor: AppColors.textLight,
-              ),
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: responsive.w(7),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.lock_reset,
-                            size: responsive.h(12),
-                            color: AppColors.textLight,
-                          ),
-                          SizedBox(height: responsive.h(4)),
-                          Text(
-                            "Reset Password",
-                            style: TextStyle(
+          child: SafeArea(
+            child: Column(
+              children: [
+                const AppHeader(
+                  title: "Forgot Password",
+                  textColor: AppColors.textLight,
+                ),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: responsive.w(7),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.lock_reset,
+                              size: responsive.h(12),
                               color: AppColors.textLight,
-                              fontSize: titleSize,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
                             ),
-                          ),
-                          SizedBox(height: responsive.h(2)),
-                          Text(
-                            "Enter the email associated with your account to receive a one-time password.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: AppColors.textLight.withValues(
-                                alpha: 0.75,
+                            SizedBox(height: responsive.h(4)),
+                            Text(
+                              "Reset Password",
+                              style: TextStyle(
+                                color: AppColors.textLight,
+                                fontSize: titleSize,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
                               ),
-                              fontSize: subtitleSize,
-                              height: 1.4,
                             ),
-                          ),
-                          SizedBox(height: responsive.h(4)),
-                          AppTextField(
-                            controller: _emailController,
-                            responsive: responsive,
-                            hint: "Email address",
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
-                          ),
-                          SizedBox(height: responsive.h(4)),
-                          _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: AppColors.primary,
-                                )
-                              : PrimaryButton(
-                                  label: "Send OTP",
-                                  onPressed: _handleForgot,
-                                  responsive: responsive,
+                            SizedBox(height: responsive.h(2)),
+                            Text(
+                              "Enter the email associated with your account to receive a one-time password.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppColors.textLight.withValues(
+                                  alpha: 0.75,
                                 ),
-                        ],
+                                fontSize: subtitleSize,
+                                height: 1.4,
+                              ),
+                            ),
+                            SizedBox(height: responsive.h(4)),
+                            AppTextField(
+                              controller: _emailController,
+                              responsive: responsive,
+                              hint: "Email address",
+                              icon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              errorText: _emailError,
+                              onChanged: _validateEmail,
+                            ),
+                            SizedBox(height: responsive.h(4)),
+                            _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: AppColors.primary,
+                                  )
+                                : PrimaryButton(
+                                    label: "Send OTP",
+                                    onPressed: _handleForgot,
+                                    responsive: responsive,
+                                  ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

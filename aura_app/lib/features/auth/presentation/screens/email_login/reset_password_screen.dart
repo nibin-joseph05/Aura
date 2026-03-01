@@ -27,6 +27,58 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   bool _obscureConfirm = true;
   bool _isLoading = false;
 
+  String? _otpError;
+  String? _passwordError;
+  String? _confirmError;
+
+  void _validateOtp(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        _otpError = 'OTP is required';
+      } else if (value.length != 6) {
+        _otpError = 'OTP must be exactly 6 digits';
+      } else {
+        _otpError = null;
+      }
+    });
+  }
+
+  void _validatePassword(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        _passwordError = 'Password is required';
+      } else if (value.length < 8) {
+        _passwordError = 'Password must be at least 8 characters';
+      } else if (!RegExp(r'[A-Z]').hasMatch(value)) {
+        _passwordError = 'Include at least one uppercase letter';
+      } else if (!RegExp(r'[a-z]').hasMatch(value)) {
+        _passwordError = 'Include at least one lowercase letter';
+      } else if (!RegExp(r'[0-9]').hasMatch(value)) {
+        _passwordError = 'Include at least one number';
+      } else if (!RegExp(r'[!@#\$%\^&\*(),.?":{}|<>]').hasMatch(value)) {
+        _passwordError = 'Include at least one special character';
+      } else {
+        _passwordError = null;
+      }
+
+      if (_confirmController.text.isNotEmpty) {
+        _validateConfirm(_confirmController.text);
+      }
+    });
+  }
+
+  void _validateConfirm(String value) {
+    setState(() {
+      if (value.isEmpty) {
+        _confirmError = 'Confirm your password';
+      } else if (value != _passwordController.text) {
+        _confirmError = 'Passwords do not match';
+      } else {
+        _confirmError = null;
+      }
+    });
+  }
+
   void _showError(String message) {
     AppSnackbar.showError(context: context, message: message);
   }
@@ -36,13 +88,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     final password = _passwordController.text;
     final confirm = _confirmController.text;
 
-    if (otp.isEmpty || password.isEmpty || confirm.isEmpty) {
-      _showError('All fields are required');
-      return;
-    }
+    _validateOtp(otp);
+    _validatePassword(password);
+    _validateConfirm(confirm);
 
-    if (password != confirm) {
-      _showError('Passwords do not match');
+    if (_otpError != null || _passwordError != null || _confirmError != null) {
+      _showError('Please fix the errors before proceeding');
       return;
     }
 
@@ -59,9 +110,10 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           context: context,
           message: 'Password reset successfully. You can now login.',
         );
-        Navigator.popUntil(
+        Navigator.pushNamedAndRemoveUntil(
           context,
-          (route) => route.settings.name == AppRoutes.emailLogin,
+          AppRoutes.emailLogin,
+          (route) => false,
         );
       }
     } catch (e) {
@@ -97,9 +149,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         ? 16.0
         : 15.0;
 
-    return Scaffold(
-      resizeToAvoidBottomInset: true,
-      body: Container(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: AppColors.primaryGradient,
@@ -159,6 +213,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             hint: "6-Digit OTP",
                             icon: Icons.pin_outlined,
                             keyboardType: TextInputType.number,
+                            maxLength: 6,
+                            errorText: _otpError,
+                            onChanged: _validateOtp,
                           ),
                           SizedBox(height: responsive.h(2)),
                           AppTextField(
@@ -167,6 +224,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             hint: "New Password",
                             icon: Icons.lock_outline,
                             obscureText: _obscurePassword,
+                            errorText: _passwordError,
+                            onChanged: _validatePassword,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword
@@ -188,6 +247,8 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             hint: "Confirm Password",
                             icon: Icons.lock_outline,
                             obscureText: _obscureConfirm,
+                            errorText: _confirmError,
+                            onChanged: _validateConfirm,
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscureConfirm
@@ -222,6 +283,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           ),
         ),
       ),
+      )
     );
   }
 }

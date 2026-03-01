@@ -83,11 +83,11 @@ class AuthRemoteDataSource {
     }
   }
 
-  Future<void> forgotPassword(String email) async {
+  Future<void> forgotPassword(String email, {bool force = false}) async {
     try {
       await _dio.post(
         ApiEndpoints.forgotPassword,
-        data: {'email': email.trim()},
+        data: {'email': email.trim(), 'force': force},
       );
     } on DioException catch (e) {
       final errorMessage =

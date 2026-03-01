@@ -260,6 +260,9 @@ public class UserService {
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new RuntimeException("Incorrect current password");
         }
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new RuntimeException("New password cannot be the same as current password");
+        }
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setEmailPasswordLinked(true);
         user.setUpdatedAt(new Date());
@@ -278,6 +281,9 @@ public class UserService {
 
     public void resetPassword(String email, String newPassword) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+        if (user.getPassword() != null && passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new RuntimeException("New password cannot be the same as current password");
+        }
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setEmailPasswordLinked(true);
         user.setUpdatedAt(new Date());

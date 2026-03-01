@@ -59,7 +59,12 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             ),
           ),
         );
-        Navigator.pop(context);
+        ref.read(userProvider.notifier).clearUser();
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.emailLogin,
+          (route) => false,
+        );
       }
     } catch (e) {
       String errorMessage = e.toString();
@@ -84,7 +89,41 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     );
   }
 
-  Future<void> _sendPasswordResetEmail() async {
+  Future<bool> _showUnverifiedDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: const Color(0xFF1E1E2A),
+            title: const Text(
+              'Email Not Verified',
+              style: TextStyle(color: Colors.white),
+            ),
+            content: const Text(
+              'Your email address is not verified. Are you sure you want to send the password reset code to this email?',
+              style: TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(color: Colors.white38),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text(
+                  'Send Anyway',
+                  style: TextStyle(color: AppColors.accent),
+                ),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> _sendPasswordResetEmail({bool force = false}) async {
     final email = ref.read(userProvider).user?.email;
     if (email == null || email.isEmpty) {
       _showError('No email associated with this account');
@@ -93,13 +132,23 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
     setState(() => _isLoading = true);
     try {
-      await AuthRemoteDataSource().forgotPassword(email);
+      await AuthRemoteDataSource().forgotPassword(email, force: force);
       if (mounted) {
         Navigator.pop(context);
         Navigator.pushNamed(context, AppRoutes.resetPassword, arguments: email);
       }
     } catch (e) {
       String errorMessage = e.toString();
+
+      if (errorMessage.contains('unverified_email')) {
+        if (mounted) setState(() => _isLoading = false);
+        final proceed = await _showUnverifiedDialog();
+        if (proceed) {
+          _sendPasswordResetEmail(force: true);
+        }
+        return;
+      }
+
       if (errorMessage.startsWith('Exception: ')) {
         errorMessage = errorMessage.substring(11);
       }

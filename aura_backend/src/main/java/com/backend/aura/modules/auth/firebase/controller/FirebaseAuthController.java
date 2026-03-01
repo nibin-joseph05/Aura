@@ -196,6 +196,12 @@ public class FirebaseAuthController {
             return ResponseEntity.badRequest().body(Map.of("error", "No account found with this email"));
         }
 
+        if (!user.isEmailVerified() && !request.isForce()) {
+            return ResponseEntity.status(409).body(Map.of(
+                    "error", "unverified_email",
+                    "message", "Email is not verified. Are you sure you want to send the reset link?"));
+        }
+
         String otp = otpStore.generateAndStore(user.getEmail().trim());
         emailService.sendPasswordResetEmail(user.getEmail().trim(), otp);
 
