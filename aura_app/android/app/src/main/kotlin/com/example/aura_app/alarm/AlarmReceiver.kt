@@ -13,15 +13,18 @@ class AlarmReceiver : BroadcastReceiver() {
         val vibrate = intent.getBooleanExtra(EXTRA_VIBRATE, true)
         val dismissType = intent.getStringExtra(EXTRA_DISMISS_TYPE) ?: "button"
         val mathDifficulty = intent.getIntExtra(EXTRA_MATH_DIFFICULTY, 1)
+        val snoozeMinutes = intent.getIntExtra(EXTRA_SNOOZE_MINUTES, 5)
 
-        val serviceIntent = Intent(context, AlarmService::class.java).apply {
-            putExtra(EXTRA_ALARM_ID, alarmId)
-            putExtra(EXTRA_LABEL, label)
-            putExtra(EXTRA_TONE, tone)
-            putExtra(EXTRA_VIBRATE, vibrate)
-            putExtra(EXTRA_DISMISS_TYPE, dismissType)
-            putExtra(EXTRA_MATH_DIFFICULTY, mathDifficulty)
-        }
+        val serviceIntent =
+                Intent(context, AlarmService::class.java).apply {
+                    putExtra(EXTRA_ALARM_ID, alarmId)
+                    putExtra(EXTRA_LABEL, label)
+                    putExtra(EXTRA_TONE, tone)
+                    putExtra(EXTRA_VIBRATE, vibrate)
+                    putExtra(EXTRA_DISMISS_TYPE, dismissType)
+                    putExtra(EXTRA_MATH_DIFFICULTY, mathDifficulty)
+                    putExtra(EXTRA_SNOOZE_MINUTES, snoozeMinutes)
+                }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent)
@@ -37,5 +40,6 @@ class AlarmReceiver : BroadcastReceiver() {
         const val EXTRA_VIBRATE = "vibrate"
         const val EXTRA_DISMISS_TYPE = "dismiss_type"
         const val EXTRA_MATH_DIFFICULTY = "math_difficulty"
+        const val EXTRA_SNOOZE_MINUTES = "snooze_minutes"
     }
 }

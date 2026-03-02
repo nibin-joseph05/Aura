@@ -27,6 +27,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
   bool _vibrate = true;
   int _snoozeMinutes = 5;
   String _tone = 'default';
+  String _toneName = 'Default';
   List<Map<String, String>> _availableTones = [
     {'title': 'Default', 'uri': 'default'},
   ];
@@ -54,17 +55,28 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     try {
       final tones = await AlarmNativeService.getAvailableTones();
       if (mounted) {
-        setState(() => _availableTones = tones);
+        setState(() {
+          _availableTones = tones;
+          final match = _availableTones.firstWhere(
+            (t) => t['uri'] == _tone,
+            orElse: () => {'title': 'Default', 'uri': 'default'},
+          );
+          _toneName = match['title'] ?? 'Default';
+        });
       }
     } catch (_) {}
   }
 
   void _loadAlarm() {
     final state = ref.read(alarmProvider);
-    final alarm = state.alarms.firstWhere(
+    final alarmIndex = state.alarms.indexWhere(
       (a) => a.id == widget.editAlarmId,
-      orElse: () => throw Exception('Alarm not found'),
     );
+    if (alarmIndex == -1) {
+      if (mounted) Navigator.pop(context);
+      return;
+    }
+    final alarm = state.alarms[alarmIndex];
     setState(() {
       _hour = alarm.hour;
       _minute = alarm.minute;
@@ -76,13 +88,18 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       _vibrate = alarm.vibrate;
       _snoozeMinutes = alarm.snoozeMinutes;
       _tone = alarm.tone;
+      final toneEntry = _availableTones.firstWhere(
+        (t) => t['uri'] == alarm.tone,
+        orElse: () => {'title': 'Default', 'uri': 'default'},
+      );
+      _toneName = toneEntry['title'] ?? 'Default';
     });
   }
 
   @override
   void dispose() {
     _previewTimer?.cancel();
-    AlarmNativeService.stopAlarmSound();
+    if (_isPreviewing) AlarmNativeService.stopAlarmSound();
     _labelController.dispose();
     super.dispose();
   }
@@ -106,12 +123,22 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 actions: [
                   TextButton(
                     onPressed: _saveAlarm,
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ),
@@ -121,7 +148,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 child: GestureDetector(
                   onTap: () => FocusScope.of(context).unfocus(),
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -131,11 +158,12 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                           onHourChanged: (h) => setState(() => _hour = h),
                           onMinuteChanged: (m) => setState(() => _minute = m),
                         ),
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 20),
                         _buildCard(
+                          icon: Icons.label_outline_rounded,
+                          title: 'Label',
                           children: [
-                            _buildSectionHeader('Label'),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 10),
                             TextField(
                               controller: _labelController,
                               onChanged: (v) => _label = v,
@@ -149,7 +177,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                   color: Colors.white.withValues(alpha: 0.35),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.08),
+                                fillColor: Colors.white.withValues(alpha: 0.07),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,
@@ -162,14 +190,14 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         _buildCard(
+                          icon: Icons.repeat_rounded,
+                          title: 'Repeat',
                           children: [
-                            _buildSectionHeader('Repeat'),
-                            const SizedBox(height: 10),
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: List.generate(7, (index) {
                                 final isSelected = _repeatDays.contains(index);
                                 return GestureDetector(
@@ -184,33 +212,35 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                   },
                                   child: AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
-                                    width: 44,
-                                    height: 44,
+                                    width: 40,
+                                    height: 40,
                                     decoration: BoxDecoration(
                                       color: isSelected
                                           ? AppColors.accent
-                                          : Colors.white.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(12),
+                                          : Colors.white.withValues(
+                                              alpha: 0.08,
+                                            ),
+                                      borderRadius: BorderRadius.circular(10),
                                       border: Border.all(
                                         color: isSelected
                                             ? AppColors.accent
                                             : Colors.white.withValues(
-                                                alpha: 0.2,
+                                                alpha: 0.12,
                                               ),
                                       ),
                                     ),
                                     child: Center(
                                       child: Text(
-                                        _days[index].substring(0, 2),
+                                        _days[index].substring(0, 1),
                                         style: TextStyle(
                                           color: isSelected
                                               ? Colors.white
                                               : Colors.white.withValues(
-                                                  alpha: 0.7,
+                                                  alpha: 0.5,
                                                 ),
                                           fontWeight: isSelected
                                               ? FontWeight.w700
-                                              : FontWeight.w500,
+                                              : FontWeight.w400,
                                           fontSize: 13,
                                         ),
                                       ),
@@ -219,78 +249,94 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                 );
                               }),
                             ),
+                            if (_repeatDays.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                _buildRepeatSummary(),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: AppColors.accent.withValues(
+                                    alpha: 0.8,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         _buildCard(
+                          icon: Icons.music_note_rounded,
+                          title: 'Alarm Tone',
                           children: [
-                            _buildSectionHeader('Alarm Tone'),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.08,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: DropdownButton<String>(
-                                      value:
-                                          _availableTones.any(
-                                            (t) => t['uri'] == _tone,
-                                          )
-                                          ? _tone
-                                          : 'default',
-                                      isExpanded: true,
-                                      dropdownColor: const Color(0xFF1a1a2e),
-                                      underline: const SizedBox.shrink(),
-                                      icon: Icon(
-                                        Icons.music_note_rounded,
-                                        color: Colors.white.withValues(
-                                          alpha: 0.5,
-                                        ),
-                                      ),
+                            const SizedBox(height: 10),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 12,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.07),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.music_note_rounded,
+                                    color: AppColors.accent,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      _toneName,
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 15,
                                       ),
-                                      items: _availableTones.map((t) {
-                                        final uri = t['uri'] ?? 'default';
-                                        final title = t['title'] ?? 'Unknown';
-                                        return DropdownMenuItem<String>(
-                                          value: uri,
-                                          child: Text(
-                                            title,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (v) => setState(
-                                        () => _tone = v ?? 'default',
-                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildToneButton(
+                                    icon: Icons.tune_rounded,
+                                    label: 'System Tones',
+                                    onTap: _showSystemTonePicker,
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
-
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _buildToneButton(
+                                    icon: Icons.folder_open_rounded,
+                                    label: 'Custom Tone',
+                                    onTap: _pickCustomTone,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
                                 GestureDetector(
                                   onTap: _previewTone,
-                                  child: Container(
-                                    width: 44,
-                                    height: 44,
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: 48,
+                                    height: 48,
                                     decoration: BoxDecoration(
-                                      color: AppColors.accent.withValues(
-                                        alpha: 0.15,
-                                      ),
+                                      color: _isPreviewing
+                                          ? AppColors.accent
+                                          : AppColors.accent.withValues(
+                                              alpha: 0.15,
+                                            ),
                                       borderRadius: BorderRadius.circular(12),
                                       border: Border.all(
                                         color: AppColors.accent.withValues(
-                                          alpha: 0.3,
+                                          alpha: 0.4,
                                         ),
                                       ),
                                     ),
@@ -298,8 +344,10 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                       _isPreviewing
                                           ? Icons.stop_rounded
                                           : Icons.play_arrow_rounded,
-                                      color: AppColors.accent,
-                                      size: 22,
+                                      color: _isPreviewing
+                                          ? Colors.white
+                                          : AppColors.accent,
+                                      size: 24,
                                     ),
                                   ),
                                 ),
@@ -307,29 +355,30 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         _buildCard(
+                          icon: Icons.lock_clock_rounded,
+                          title: 'Dismiss Method',
                           children: [
-                            _buildSectionHeader('Dismiss Type'),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 6),
                             _buildDismissOption(
                               'button',
-                              'Button',
-                              'Simple dismiss button',
+                              'Button Dismiss',
+                              'Simple one-tap dismiss',
                               Icons.touch_app_rounded,
                             ),
                             _buildDismissOption(
                               'math',
-                              'Math Problem',
-                              'Solve to dismiss',
+                              'Math Challenge',
+                              'Solve a problem to dismiss',
                               Icons.calculate_rounded,
                             ),
                             if (_dismissType == 'math') ...[
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 14),
                               Row(
                                 children: [
                                   Text(
-                                    'Difficulty: ',
+                                    'Difficulty',
                                     style: TextStyle(
                                       color: Colors.white.withValues(
                                         alpha: 0.7,
@@ -337,74 +386,83 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                       fontSize: 13,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: SliderTheme(
-                                      data: SliderThemeData(
-                                        activeTrackColor: AppColors.accent,
-                                        inactiveTrackColor: Colors.white
-                                            .withValues(alpha: 0.15),
-                                        thumbColor: AppColors.accent,
-                                        overlayColor: AppColors.accent
-                                            .withValues(alpha: 0.2),
+                                  const Spacer(),
+                                  ...[
+                                    'Easy',
+                                    'Medium',
+                                    'Hard',
+                                  ].asMap().entries.map((e) {
+                                    final isActive =
+                                        _mathDifficulty == e.key + 1;
+                                    return GestureDetector(
+                                      onTap: () => setState(
+                                        () => _mathDifficulty = e.key + 1,
                                       ),
-                                      child: Slider(
-                                        value: _mathDifficulty.toDouble(),
-                                        min: 1,
-                                        max: 3,
-                                        divisions: 2,
-                                        label: _mathDifficulty == 1
-                                            ? 'Easy'
-                                            : _mathDifficulty == 2
-                                            ? 'Medium'
-                                            : 'Hard',
-                                        onChanged: (v) => setState(
-                                          () => _mathDifficulty = v.round(),
+                                      child: AnimatedContainer(
+                                        duration: const Duration(
+                                          milliseconds: 150,
+                                        ),
+                                        margin: const EdgeInsets.only(left: 6),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 6,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isActive
+                                              ? AppColors.accent
+                                              : Colors.white.withValues(
+                                                  alpha: 0.07,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          e.value,
+                                          style: TextStyle(
+                                            color: isActive
+                                                ? Colors.white
+                                                : Colors.white.withValues(
+                                                    alpha: 0.5,
+                                                  ),
+                                            fontSize: 12,
+                                            fontWeight: isActive
+                                                ? FontWeight.w700
+                                                : FontWeight.w400,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ),
-                                  Text(
-                                    _mathDifficulty == 1
-                                        ? 'Easy'
-                                        : _mathDifficulty == 2
-                                        ? 'Medium'
-                                        : 'Hard',
-                                    style: TextStyle(
-                                      color: AppColors.accent,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                    ),
-                                  ),
+                                    );
+                                  }),
                                 ],
                               ),
                             ],
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 14),
                         _buildCard(
+                          icon: Icons.tune_rounded,
+                          title: 'Options',
                           children: [
-                            _buildSectionHeader('Options'),
-                            const SizedBox(height: 4),
                             _buildToggleRow(
                               Icons.vibration_rounded,
                               'Vibrate',
                               _vibrate,
                               (v) => setState(() => _vibrate = v),
                             ),
-                            const Divider(color: Colors.white12, height: 1),
+                            const Divider(color: Colors.white10, height: 1),
                             Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(
                                 children: [
                                   Icon(
                                     Icons.snooze_rounded,
-                                    color: Colors.white.withValues(alpha: 0.6),
+                                    color: Colors.white.withValues(alpha: 0.5),
                                     size: 20,
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
-                                    'Snooze',
+                                    'Snooze duration',
                                     style: TextStyle(
                                       color: Colors.white.withValues(
                                         alpha: 0.9,
@@ -420,7 +478,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: Colors.white.withValues(
-                                        alpha: 0.08,
+                                        alpha: 0.07,
                                       ),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
@@ -448,7 +506,6 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
@@ -461,29 +518,70 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     );
   }
 
-  Widget _buildCard({required List<Widget> children}) {
+  Widget _buildCard({
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: AppColors.accent),
+              const SizedBox(width: 8),
+              Text(
+                title.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.4),
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+          ...children,
+        ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
-        color: Colors.white.withValues(alpha: 0.5),
-        letterSpacing: 0.8,
+  Widget _buildToneButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.07),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: Colors.white.withValues(alpha: 0.6), size: 20),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: 11,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -501,20 +599,21 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         child: Row(
           children: [
-            Container(
-              width: 36,
-              height: 36,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: 38,
+              height: 38,
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.accent.withValues(alpha: 0.2)
-                    : Colors.white.withValues(alpha: 0.06),
+                    : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
                 color: isSelected
                     ? AppColors.accent
-                    : Colors.white.withValues(alpha: 0.4),
+                    : Colors.white.withValues(alpha: 0.35),
                 size: 18,
               ),
             ),
@@ -527,7 +626,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                     title,
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -541,7 +640,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 ],
               ),
             ),
-            Container(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
               width: 22,
               height: 22,
               decoration: BoxDecoration(
@@ -549,13 +649,13 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 border: Border.all(
                   color: isSelected
                       ? AppColors.accent
-                      : Colors.white.withValues(alpha: 0.3),
+                      : Colors.white.withValues(alpha: 0.25),
                   width: 2,
                 ),
                 color: isSelected ? AppColors.accent : Colors.transparent,
               ),
               child: isSelected
-                  ? const Icon(Icons.check, size: 14, color: Colors.white)
+                  ? const Icon(Icons.check, size: 12, color: Colors.white)
                   : null,
             ),
           ],
@@ -574,7 +674,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white.withValues(alpha: 0.6), size: 20),
+          Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -589,11 +689,116 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
             value: value,
             onChanged: onChanged,
             activeColor: AppColors.accent,
-            inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
+            inactiveTrackColor: Colors.white.withValues(alpha: 0.12),
           ),
         ],
       ),
     );
+  }
+
+  String _buildRepeatSummary() {
+    final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    if (_repeatDays.length == 7) return 'Every day';
+    if (_repeatDays.length == 5 &&
+        !_repeatDays.contains(5) &&
+        !_repeatDays.contains(6))
+      return 'Weekdays only';
+    if (_repeatDays.length == 2 &&
+        _repeatDays.contains(5) &&
+        _repeatDays.contains(6))
+      return 'Weekends only';
+    final sorted = List<int>.from(_repeatDays)..sort();
+    return sorted.map((d) => days[d]).join(', ');
+  }
+
+  void _showSystemTonePicker() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1a1a2e),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Column(
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              'Select Alarm Tone',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Flexible(
+            child: ListView.builder(
+              padding: const EdgeInsets.only(bottom: 16),
+              itemCount: _availableTones.length,
+              itemBuilder: (ctx, index) {
+                final t = _availableTones[index];
+                final isSelected = (t['uri'] ?? 'default') == _tone;
+                return ListTile(
+                  leading: Icon(
+                    isSelected
+                        ? Icons.music_note_rounded
+                        : Icons.music_note_outlined,
+                    color: isSelected
+                        ? AppColors.accent
+                        : Colors.white.withValues(alpha: 0.4),
+                    size: 20,
+                  ),
+                  title: Text(
+                    t['title'] ?? 'Unknown',
+                    style: TextStyle(
+                      color: isSelected
+                          ? Colors.white
+                          : Colors.white.withValues(alpha: 0.7),
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? Icon(
+                          Icons.check_circle_rounded,
+                          color: AppColors.accent,
+                          size: 20,
+                        )
+                      : null,
+                  onTap: () {
+                    setState(() {
+                      _tone = t['uri'] ?? 'default';
+                      _toneName = t['title'] ?? 'Default';
+                    });
+                    Navigator.pop(ctx);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickCustomTone() async {
+    final uri = await AlarmNativeService.pickCustomRingtone();
+    if (uri != null && mounted) {
+      setState(() {
+        _tone = uri;
+        _toneName = 'Custom Tone';
+      });
+    }
   }
 
   Future<void> _previewTone() async {
@@ -605,21 +810,10 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     }
 
     setState(() => _isPreviewing = true);
+    await AlarmNativeService.playAlarmSound(_tone);
 
-    final previewId = 'preview_${DateTime.now().millisecondsSinceEpoch}';
-    await AlarmNativeService.scheduleAlarm(
-      alarmId: previewId,
-      triggerTime: DateTime.now().add(const Duration(seconds: 1)),
-      label: 'Tone Preview',
-      tone: _tone,
-      vibrate: false,
-      dismissType: 'button',
-      mathDifficulty: 1,
-    );
-
-    _previewTimer = Timer(const Duration(seconds: 4), () async {
+    _previewTimer = Timer(const Duration(seconds: 8), () async {
       await AlarmNativeService.stopAlarmSound();
-      await AlarmNativeService.cancelAlarm(previewId);
       if (mounted) setState(() => _isPreviewing = false);
     });
   }
@@ -630,7 +824,11 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
 
     if (_isEditing) {
       final state = ref.read(alarmProvider);
-      final alarm = state.alarms.firstWhere((a) => a.id == widget.editAlarmId);
+      final alarm = state.alarms.firstWhere(
+        (a) => a.id == widget.editAlarmId,
+        orElse: () =>
+            state.alarms.first, // fallback; _loadAlarm already checked
+      );
       alarm.hour = _hour;
       alarm.minute = _minute;
       alarm.label = _label;

@@ -11,6 +11,10 @@ class AlarmNativeService {
     required bool vibrate,
     required String dismissType,
     required int mathDifficulty,
+    int snoozeMinutes = 5,
+    int hour = 0,
+    int minute = 0,
+    List<int> repeatDays = const [],
   }) async {
     try {
       final result = await _channel.invokeMethod<bool>('scheduleAlarm', {
@@ -21,6 +25,10 @@ class AlarmNativeService {
         'vibrate': vibrate,
         'dismissType': dismissType,
         'mathDifficulty': mathDifficulty,
+        'snoozeMinutes': snoozeMinutes,
+        'hour': hour,
+        'minute': minute,
+        'repeatDays': repeatDays,
       });
       return result ?? false;
     } catch (e) {
@@ -91,6 +99,21 @@ class AlarmNativeService {
     try {
       await _channel.invokeMethod('stopAlarmSound');
     } catch (e) {}
+  }
+
+  static Future<void> playAlarmSound(String tone) async {
+    try {
+      await _channel.invokeMethod('playAlarmSound', {'tone': tone});
+    } catch (e) {}
+  }
+
+  static Future<String?> pickCustomRingtone() async {
+    try {
+      final result = await _channel.invokeMethod<String?>('pickCustomRingtone');
+      return result;
+    } catch (e) {
+      return null;
+    }
   }
 
   static Future<void> snoozeAlarm(String alarmId, int snoozeMinutes) async {

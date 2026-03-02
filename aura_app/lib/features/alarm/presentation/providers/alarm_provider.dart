@@ -175,6 +175,10 @@ class AlarmNotifier extends StateNotifier<AlarmState> {
       vibrate: alarm.vibrate,
       dismissType: alarm.dismissType,
       mathDifficulty: alarm.mathDifficulty,
+      snoozeMinutes: alarm.snoozeMinutes,
+      hour: alarm.hour,
+      minute: alarm.minute,
+      repeatDays: alarm.repeatDays,
     );
 
     final preAlarmTime = alarm.nextTriggerTime!.subtract(
