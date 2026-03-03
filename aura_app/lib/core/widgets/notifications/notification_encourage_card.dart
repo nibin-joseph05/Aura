@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../theme/app_colors.dart';
 import '../../ui/responsive/responsive.dart';
+
 class NotificationEncourageCard extends StatefulWidget {
   const NotificationEncourageCard({super.key});
 
@@ -69,7 +70,7 @@ class _NotificationEncourageCardState extends State<NotificationEncourageCard>
         settings.authorizationStatus == AuthorizationStatus.provisional) {
       _dismiss();
     } else {
-      await FirebaseMessaging.instance.getNotificationSettings(); 
+      await FirebaseMessaging.instance.getNotificationSettings();
     }
   }
 

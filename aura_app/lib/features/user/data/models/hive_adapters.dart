@@ -1,6 +1,6 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import 'user_model.dart';
-import '../../../daily_activity/data/models/daily_activity_model.dart';
+import '../../../daily_activity/data/models/user_activity_model.dart';
 import '../../../sos/data/models/trusted_contact.dart';
 import '../../../sos/data/models/sos_settings.dart';
 import '../../../sos/data/models/sos_event_status.dart';
@@ -15,8 +15,8 @@ void registerHiveAdapters() {
   if (!Hive.isAdapterRegistered(UserModelAdapter().typeId)) {
     Hive.registerAdapter(UserModelAdapter());
   }
-  if (!Hive.isAdapterRegistered(DailyActivityModelAdapter().typeId)) {
-    Hive.registerAdapter(DailyActivityModelAdapter());
+  if (!Hive.isAdapterRegistered(UserActivityModelAdapter().typeId)) {
+    Hive.registerAdapter(UserActivityModelAdapter());
   }
   if (!Hive.isAdapterRegistered(TrustedContactAdapter().typeId)) {
     Hive.registerAdapter(TrustedContactAdapter());
@@ -49,4 +49,3 @@ void registerHiveAdapters() {
     Hive.registerAdapter(AlarmModelAdapter());
   }
 }
-

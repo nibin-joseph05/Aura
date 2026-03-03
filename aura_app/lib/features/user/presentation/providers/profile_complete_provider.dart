@@ -227,23 +227,26 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
   String? validateName(String name) {
     if (name.isEmpty) return "Name is required";
     if (name.length < 2) return "Name must be at least 2 characters";
-    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(name))
+    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(name)) {
       return "Name can only contain letters";
+    }
     return null;
   }
 
   String? validateUsername(String username) {
     if (username.isEmpty) return "Username is required";
     if (username.length < 3) return "Username must be at least 3 characters";
-    if (!RegExp(r'^[a-zA-Z_]+$').hasMatch(username))
+    if (!RegExp(r'^[a-zA-Z_]+$').hasMatch(username)) {
       return "Only letters and underscores allowed";
+    }
     return null;
   }
 
   String? validateEmail(String email) {
     if (email.isEmpty) return "Email is required";
-    if (!RegExp(r'^[\w\.-]+@[\w-]+\.[\w-]{2,4}$').hasMatch(email))
+    if (!RegExp(r'^[\w\.-]+@[\w-]+\.[\w-]{2,4}$').hasMatch(email)) {
       return "Please enter a valid email";
+    }
     return null;
   }
 
@@ -257,13 +260,16 @@ class ProfileCompleteNotifier extends StateNotifier<ProfileCompleteState> {
   String? validatePassword(String password) {
     if (password.isEmpty) return "Password is required";
     if (password.length < 8) return "Minimum 8 characters required";
-    if (!RegExp(r'[A-Z]').hasMatch(password))
+    if (!RegExp(r'[A-Z]').hasMatch(password)) {
       return "Must contain uppercase letter";
-    if (!RegExp(r'[a-z]').hasMatch(password))
+    }
+    if (!RegExp(r'[a-z]').hasMatch(password)) {
       return "Must contain lowercase letter";
+    }
     if (!RegExp(r'[0-9]').hasMatch(password)) return "Must contain number";
-    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password))
+    if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) {
       return "Must contain special character";
+    }
     return null;
   }
 

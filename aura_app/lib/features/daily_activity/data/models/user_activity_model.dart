@@ -1,9 +1,9 @@
 import 'package:hive/hive.dart';
 
-part 'daily_activity_model.g.dart';
+part 'user_activity_model.g.dart';
 
 @HiveType(typeId: 1)
-class DailyActivityModel {
+class UserActivityModel {
   @HiveField(0)
   final String id;
 
@@ -37,7 +37,25 @@ class DailyActivityModel {
   @HiveField(10)
   final List<DateTime> completionTimes;
 
-  DailyActivityModel({
+  @HiveField(11)
+  final bool isAlarmEnabled;
+
+  @HiveField(12)
+  final bool isPushEnabled;
+
+  @HiveField(13)
+  final String categoryName;
+
+  @HiveField(14)
+  final String activityTypeIcon;
+
+  @HiveField(15)
+  final bool isGymActivity;
+
+  @HiveField(16)
+  final String activityTypeId;
+
+  UserActivityModel({
     required this.id,
     required this.date,
     required this.activityType,
@@ -49,6 +67,12 @@ class DailyActivityModel {
     this.intervalMinutes,
     this.targetCompletions = 1,
     this.completionTimes = const [],
+    this.isAlarmEnabled = false,
+    this.isPushEnabled = false,
+    this.categoryName = '',
+    this.activityTypeIcon = '',
+    this.isGymActivity = false,
+    required this.activityTypeId,
   });
 
   bool get isRepeating => targetCompletions > 1;
@@ -71,8 +95,8 @@ class DailyActivityModel {
     return DateTime.now().isAfter(next);
   }
 
-  factory DailyActivityModel.fromJson(Map<String, dynamic> json) {
-    return DailyActivityModel(
+  factory UserActivityModel.fromJson(Map<String, dynamic> json) {
+    return UserActivityModel(
       id: json['id'],
       date: DateTime.parse(json['date']),
       activityType: json['activityType'],
@@ -92,6 +116,12 @@ class DailyActivityModel {
               ?.map((e) => DateTime.parse(e as String))
               .toList() ??
           [],
+      isAlarmEnabled: json['isAlarmEnabled'] ?? false,
+      isPushEnabled: json['isPushEnabled'] ?? false,
+      categoryName: json['categoryName'] ?? '',
+      activityTypeIcon: json['activityTypeIcon'] ?? '',
+      isGymActivity: json['isGymActivity'] ?? false,
+      activityTypeId: json['activityTypeId'] ?? '',
     );
   }
 
@@ -109,10 +139,16 @@ class DailyActivityModel {
       'completionTimes': completionTimes
           .map((t) => t.toIso8601String())
           .toList(),
+      'isAlarmEnabled': isAlarmEnabled,
+      'isPushEnabled': isPushEnabled,
+      'categoryName': categoryName,
+      'activityTypeIcon': activityTypeIcon,
+      'isGymActivity': isGymActivity,
+      'activityTypeId': activityTypeId,
     };
   }
 
-  DailyActivityModel copyWith({
+  UserActivityModel copyWith({
     String? id,
     DateTime? date,
     String? activityType,
@@ -124,8 +160,14 @@ class DailyActivityModel {
     int? intervalMinutes,
     int? targetCompletions,
     List<DateTime>? completionTimes,
+    bool? isAlarmEnabled,
+    bool? isPushEnabled,
+    String? categoryName,
+    String? activityTypeIcon,
+    bool? isGymActivity,
+    String? activityTypeId,
   }) {
-    return DailyActivityModel(
+    return UserActivityModel(
       id: id ?? this.id,
       date: date ?? this.date,
       activityType: activityType ?? this.activityType,
@@ -137,6 +179,12 @@ class DailyActivityModel {
       intervalMinutes: intervalMinutes ?? this.intervalMinutes,
       targetCompletions: targetCompletions ?? this.targetCompletions,
       completionTimes: completionTimes ?? this.completionTimes,
+      isAlarmEnabled: isAlarmEnabled ?? this.isAlarmEnabled,
+      isPushEnabled: isPushEnabled ?? this.isPushEnabled,
+      categoryName: categoryName ?? this.categoryName,
+      activityTypeIcon: activityTypeIcon ?? this.activityTypeIcon,
+      isGymActivity: isGymActivity ?? this.isGymActivity,
+      activityTypeId: activityTypeId ?? this.activityTypeId,
     );
   }
 }

@@ -24,6 +24,10 @@ public class UserActivityResponse {
     private String repeatDays;
     private LocalDate startDate;
     private LocalDate endDate;
+    private Integer intervalMinutes;
+    private Integer targetCompletions;
+    private Boolean isAlarmEnabled;
+    private Boolean isPushEnabled;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -43,6 +47,10 @@ public class UserActivityResponse {
         response.setRepeatDays(activity.getRepeatDays());
         response.setStartDate(activity.getStartDate());
         response.setEndDate(activity.getEndDate());
+        response.setIntervalMinutes(activity.getIntervalMinutes());
+        response.setTargetCompletions(activity.getTargetCompletions());
+        response.setIsAlarmEnabled(activity.getIsAlarmEnabled());
+        response.setIsPushEnabled(activity.getIsPushEnabled());
         response.setIsActive(activity.getIsActive());
         response.setCreatedAt(activity.getCreatedAt());
         response.setUpdatedAt(activity.getUpdatedAt());

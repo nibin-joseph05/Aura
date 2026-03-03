@@ -231,8 +231,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                                   ),
                                   responsive: responsive,
                                   validator: (v) {
-                                    if (v == null || v.isEmpty)
+                                    if (v == null || v.isEmpty) {
                                       return 'Enter current password';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -246,20 +247,26 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                                   ),
                                   responsive: responsive,
                                   validator: (v) {
-                                    if (v == null || v.isEmpty)
+                                    if (v == null || v.isEmpty) {
                                       return 'Enter new password';
-                                    if (v.length < 8)
+                                    }
+                                    if (v.length < 8) {
                                       return 'Password must be at least 8 characters';
-                                    if (!RegExp(r'[A-Z]').hasMatch(v))
+                                    }
+                                    if (!RegExp(r'[A-Z]').hasMatch(v)) {
                                       return 'Include at least one uppercase letter';
-                                    if (!RegExp(r'[a-z]').hasMatch(v))
+                                    }
+                                    if (!RegExp(r'[a-z]').hasMatch(v)) {
                                       return 'Include at least one lowercase letter';
-                                    if (!RegExp(r'[0-9]').hasMatch(v))
+                                    }
+                                    if (!RegExp(r'[0-9]').hasMatch(v)) {
                                       return 'Include at least one number';
+                                    }
                                     if (!RegExp(
                                       r'[!@#\$%\^&\*(),.?":{}|<>]',
-                                    ).hasMatch(v))
+                                    ).hasMatch(v)) {
                                       return 'Include at least one special character';
+                                    }
                                     return null;
                                   },
                                 ),
@@ -273,8 +280,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                                   ),
                                   responsive: responsive,
                                   validator: (v) {
-                                    if (v != _newController.text)
+                                    if (v != _newController.text) {
                                       return 'Passwords do not match';
+                                    }
                                     return null;
                                   },
                                 ),

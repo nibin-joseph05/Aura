@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/model/walking_session_model.dart';
 
- 
- 
 class RouteVisualization extends StatelessWidget {
   final List<RoutePoint> routePoints;
   final double height;
@@ -73,7 +71,6 @@ class _RoutePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (points.length < 2) return;
 
-     
     double minLat = double.infinity, maxLat = -double.infinity;
     double minLng = double.infinity, maxLng = -double.infinity;
 
@@ -84,7 +81,6 @@ class _RoutePainter extends CustomPainter {
       maxLng = math.max(maxLng, p.longitude);
     }
 
-     
     final latRange = maxLat - minLat == 0 ? 0.001 : maxLat - minLat;
     final lngRange = maxLng - minLng == 0 ? 0.001 : maxLng - minLng;
 
@@ -94,12 +90,11 @@ class _RoutePainter extends CustomPainter {
 
     Offset toScreen(RoutePoint p) {
       final x = padding + ((p.longitude - minLng) / lngRange) * drawWidth;
-       
+
       final y = padding + (1 - (p.latitude - minLat) / latRange) * drawHeight;
       return Offset(x, y);
     }
 
-     
     final gridPaint = Paint()
       ..color = Colors.white.withValues(alpha: 0.05)
       ..strokeWidth = 0.5;
@@ -119,7 +114,6 @@ class _RoutePainter extends CustomPainter {
       );
     }
 
-     
     final path = Path();
     final firstPoint = toScreen(points.first);
     path.moveTo(firstPoint.dx, firstPoint.dy);
@@ -127,14 +121,13 @@ class _RoutePainter extends CustomPainter {
     for (int i = 1; i < points.length; i++) {
       final current = toScreen(points[i]);
       final prev = toScreen(points[i - 1]);
-       
+
       final midX = (prev.dx + current.dx) / 2;
       final midY = (prev.dy + current.dy) / 2;
       path.quadraticBezierTo(prev.dx, prev.dy, midX, midY);
     }
     path.lineTo(toScreen(points.last).dx, toScreen(points.last).dy);
 
-     
     final shadowPaint = Paint()
       ..color = lineColor.withValues(alpha: 0.2)
       ..strokeWidth = 6
@@ -144,7 +137,6 @@ class _RoutePainter extends CustomPainter {
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
     canvas.drawPath(path, shadowPaint);
 
-     
     final linePaint = Paint()
       ..color = lineColor
       ..strokeWidth = 3
@@ -153,11 +145,9 @@ class _RoutePainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
     canvas.drawPath(path, linePaint);
 
-     
     final startPos = toScreen(points.first);
     final endPos = toScreen(points.last);
 
-     
     canvas.drawCircle(startPos, 6, Paint()..color = startColor);
     canvas.drawCircle(
       startPos,
@@ -168,7 +158,6 @@ class _RoutePainter extends CustomPainter {
         ..strokeWidth = 2,
     );
 
-     
     canvas.drawCircle(endPos, 6, Paint()..color = endColor);
     canvas.drawCircle(
       endPos,

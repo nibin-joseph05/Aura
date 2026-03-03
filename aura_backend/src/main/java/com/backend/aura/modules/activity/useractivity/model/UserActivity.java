@@ -42,6 +42,18 @@ public class UserActivity {
     @Column(name = "repeat_days")
     private String repeatDays;
 
+    @Column(name = "interval_minutes")
+    private Integer intervalMinutes;
+
+    @Column(name = "target_completions", nullable = false)
+    private Integer targetCompletions = 1;
+
+    @Column(name = "is_alarm_enabled", nullable = false)
+    private Boolean isAlarmEnabled = false;
+
+    @Column(name = "is_push_enabled", nullable = false)
+    private Boolean isPushEnabled = false;
+
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
@@ -67,6 +79,12 @@ public class UserActivity {
             repeatType = RepeatType.NONE;
         if (startDate == null)
             startDate = LocalDate.now();
+        if (targetCompletions == null)
+            targetCompletions = 1;
+        if (isAlarmEnabled == null)
+            isAlarmEnabled = false;
+        if (isPushEnabled == null)
+            isPushEnabled = false;
     }
 
     @PreUpdate

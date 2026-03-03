@@ -82,16 +82,18 @@ class EditProfileNotifier extends StateNotifier<EditProfileState> {
   String? _validateName(String name) {
     if (name.isEmpty) return 'Full name is required';
     if (name.length < 2) return 'Name must be at least 2 characters';
-    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(name))
+    if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(name)) {
       return 'Name can only contain letters';
+    }
     return null;
   }
 
   String? _validateUsername(String username) {
     if (username.isEmpty) return 'Username is required';
     if (username.length < 3) return 'Username must be at least 3 characters';
-    if (!RegExp(r'^[a-zA-Z_]+$').hasMatch(username))
+    if (!RegExp(r'^[a-zA-Z_]+$').hasMatch(username)) {
       return 'Only letters and underscores allowed';
+    }
     return null;
   }
 

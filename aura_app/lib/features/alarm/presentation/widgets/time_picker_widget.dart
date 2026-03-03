@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
 class TimePickerWidget extends StatefulWidget {
-  final int hour; 
-  final int minute; 
+  final int hour;
+  final int minute;
   final ValueChanged<int> onHourChanged;
   final ValueChanged<int> onMinuteChanged;
 
@@ -59,7 +59,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
   }
 
   void _onHour12Changed(int index) {
-    final h12 = index + 1; 
+    final h12 = index + 1;
     _display12Hour = h12;
     widget.onHourChanged(_to24(h12, _isPm));
   }
@@ -108,7 +108,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
               ),
             ),
           ),
-         
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: Text(
@@ -120,7 +120,7 @@ class _TimePickerWidgetState extends State<TimePickerWidget> {
               ),
             ),
           ),
-        
+
           SizedBox(
             width: 80,
             height: 180,

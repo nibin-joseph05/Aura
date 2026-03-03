@@ -50,6 +50,15 @@ public class ActivityType {
     @Column(name = "icon")
     private String icon;
 
+    @Column(name = "color")
+    private String color;
+
+    @Column(name = "default_interval_minutes")
+    private Integer defaultIntervalMinutes;
+
+    @Column(name = "default_target_completions", nullable = false)
+    private Integer defaultTargetCompletions = 1;
+
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
@@ -77,6 +86,8 @@ public class ActivityType {
             requiresCalories = false;
         if (isGymActivity == null)
             isGymActivity = false;
+        if (defaultTargetCompletions == null)
+            defaultTargetCompletions = 1;
     }
 
     @PreUpdate

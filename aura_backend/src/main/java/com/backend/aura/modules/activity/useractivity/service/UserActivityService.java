@@ -69,6 +69,24 @@ public class UserActivityService {
         activity.setRepeatDays(request.getRepeatDays());
         activity.setStartDate(request.getStartDate() != null ? request.getStartDate() : LocalDate.now());
         activity.setEndDate(request.getEndDate());
+        activity.setEndDate(request.getEndDate());
+
+        if (request.getIntervalMinutes() != null) {
+            activity.setIntervalMinutes(request.getIntervalMinutes());
+        } else {
+            activity.setIntervalMinutes(activityType.getDefaultIntervalMinutes());
+        }
+
+        if (request.getTargetCompletions() != null) {
+            activity.setTargetCompletions(request.getTargetCompletions());
+        } else {
+            activity.setTargetCompletions(
+                    activityType.getDefaultTargetCompletions() != null ? activityType.getDefaultTargetCompletions()
+                            : 1);
+        }
+
+        activity.setIsAlarmEnabled(request.getIsAlarmEnabled() != null ? request.getIsAlarmEnabled() : false);
+        activity.setIsPushEnabled(request.getIsPushEnabled() != null ? request.getIsPushEnabled() : false);
         activity.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
 
         UserActivity saved = activityRepository.save(activity);
@@ -102,6 +120,18 @@ public class UserActivityService {
         }
         if (request.getEndDate() != null) {
             activity.setEndDate(request.getEndDate());
+        }
+        if (request.getIntervalMinutes() != null) {
+            activity.setIntervalMinutes(request.getIntervalMinutes());
+        }
+        if (request.getTargetCompletions() != null) {
+            activity.setTargetCompletions(request.getTargetCompletions());
+        }
+        if (request.getIsAlarmEnabled() != null) {
+            activity.setIsAlarmEnabled(request.getIsAlarmEnabled());
+        }
+        if (request.getIsPushEnabled() != null) {
+            activity.setIsPushEnabled(request.getIsPushEnabled());
         }
         if (request.getIsActive() != null) {
             activity.setIsActive(request.getIsActive());

@@ -16,5 +16,8 @@ public class ActivityTypeRequest {
     private Boolean requiresCalories;
     private Boolean isGymActivity;
     private String icon;
+    private String color;
+    private Integer defaultIntervalMinutes;
+    private Integer defaultTargetCompletions;
     private Boolean isActive;
 }

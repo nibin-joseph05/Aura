@@ -20,6 +20,9 @@ public class ActivityTypeResponse {
     private Boolean requiresCalories;
     private Boolean isGymActivity;
     private String icon;
+    private String color;
+    private Integer defaultIntervalMinutes;
+    private Integer defaultTargetCompletions;
     private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -38,6 +41,9 @@ public class ActivityTypeResponse {
         response.setRequiresCalories(type.getRequiresCalories());
         response.setIsGymActivity(type.getIsGymActivity());
         response.setIcon(type.getIcon());
+        response.setColor(type.getColor());
+        response.setDefaultIntervalMinutes(type.getDefaultIntervalMinutes());
+        response.setDefaultTargetCompletions(type.getDefaultTargetCompletions());
         response.setIsActive(type.getIsActive());
         response.setCreatedAt(type.getCreatedAt());
         response.setUpdatedAt(type.getUpdatedAt());

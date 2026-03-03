@@ -6,7 +6,7 @@ import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/widgets/buttons/floating_action_btn.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../../core/widgets/wrappers/app_bottom_sheet.dart';
-import '../../data/models/daily_activity_model.dart';
+import '../../data/models/user_activity_model.dart';
 import '../providers/daily_activity_provider.dart';
 
 final selectedActivityTypeProvider = StateProvider<String>((ref) => 'Exercise');
@@ -256,7 +256,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   }
 
   Widget _buildActivityCard(
-    DailyActivityModel activity,
+    UserActivityModel activity,
     Responsive responsive,
     Brightness brightness,
   ) {
@@ -518,17 +518,29 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
       context: context,
       title: 'Add New Activity',
       child: _AddActivityContent(
-        onAdd: (type, title, description, intervalMinutes, targetCompletions) {
-          ref
-              .read(dailyActivityProvider.notifier)
-              .addActivity(
-                activityType: type,
-                title: title,
-                description: description,
-                intervalMinutes: intervalMinutes,
-                targetCompletions: targetCompletions,
-              );
-        },
+        onAdd:
+            (
+              type,
+              title,
+              description,
+              intervalMinutes,
+              targetCompletions,
+              isAlarmEnabled,
+              isPushEnabled,
+            ) {
+              ref
+                  .read(dailyActivityProvider.notifier)
+                  .addActivity(
+                    activityType: type,
+                    activityTypeId: type,
+                    title: title,
+                    description: description,
+                    intervalMinutes: intervalMinutes,
+                    targetCompletions: targetCompletions,
+                    isAlarmEnabled: isAlarmEnabled,
+                    isPushEnabled: isPushEnabled,
+                  );
+            },
       ),
     );
   }
@@ -541,6 +553,8 @@ class _AddActivityContent extends ConsumerStatefulWidget {
     String? description,
     int? intervalMinutes,
     int targetCompletions,
+    bool isAlarmEnabled,
+    bool isPushEnabled,
   )
   onAdd;
 
@@ -558,6 +572,8 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
   int _targetCompletions = 1;
   int _intervalHours = 2;
   int _intervalMinutes = 0;
+  bool _isAlarmEnabled = true;
+  bool _isPushEnabled = true;
 
   @override
   void dispose() {
@@ -670,6 +686,8 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
           ),
           SizedBox(height: responsive.space(20)),
           _buildRepeatSection(responsive, brightness),
+          SizedBox(height: responsive.space(20)),
+          _buildNotificationSection(responsive, brightness),
           SizedBox(height: responsive.space(24)),
           SizedBox(
             width: double.infinity,
@@ -687,8 +705,16 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                         : null,
                     totalMin != null && totalMin > 0 ? totalMin : null,
                     _isRepeating ? _targetCompletions : 1,
+                    _isAlarmEnabled,
+                    _isPushEnabled,
                   );
                   Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter an activity title'),
+                    ),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -758,7 +784,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                   _isRepeating = v;
                   if (v && _targetCompletions < 2) _targetCompletions = 2;
                 }),
-                activeColor: AppColors.accent,
+                activeThumbColor: AppColors.accent,
                 inactiveTrackColor: AppColors.iconButtonFill(brightness),
               ),
             ],
@@ -854,6 +880,88 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationSection(
+    Responsive responsive,
+    Brightness brightness,
+  ) {
+    return Container(
+      padding: EdgeInsets.all(responsive.space(16)),
+      decoration: BoxDecoration(
+        color: AppColors.containerFill(brightness),
+        borderRadius: BorderRadius.circular(responsive.radius(14)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.notifications_active_rounded,
+                    color: _isPushEnabled
+                        ? AppColors.accent
+                        : AppColors.onSurfaceFaint(brightness),
+                    size: responsive.icon(20),
+                  ),
+                  SizedBox(width: responsive.space(10)),
+                  Text(
+                    'Push Notifications',
+                    style: TextStyle(
+                      color: AppColors.onSurface(brightness),
+                      fontSize: responsive.text(15),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              Switch(
+                value: _isPushEnabled,
+                onChanged: (v) => setState(() => _isPushEnabled = v),
+                activeThumbColor: AppColors.accent,
+                inactiveTrackColor: AppColors.iconButtonFill(brightness),
+              ),
+            ],
+          ),
+          SizedBox(height: responsive.space(16)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.alarm_rounded,
+                    color: _isAlarmEnabled
+                        ? AppColors.accent
+                        : AppColors.onSurfaceFaint(brightness),
+                    size: responsive.icon(20),
+                  ),
+                  SizedBox(width: responsive.space(10)),
+                  Text(
+                    'Alarm Notifications',
+                    style: TextStyle(
+                      color: AppColors.onSurface(brightness),
+                      fontSize: responsive.text(15),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              Switch(
+                value: _isAlarmEnabled,
+                onChanged: (v) => setState(() => _isAlarmEnabled = v),
+                activeThumbColor: AppColors.accent,
+                inactiveTrackColor: AppColors.iconButtonFill(brightness),
+              ),
+            ],
+          ),
         ],
       ),
     );

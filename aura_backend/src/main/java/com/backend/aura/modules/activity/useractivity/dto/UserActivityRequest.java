@@ -16,5 +16,9 @@ public class UserActivityRequest {
     private String repeatDays;
     private LocalDate startDate;
     private LocalDate endDate;
+    private Integer intervalMinutes;
+    private Integer targetCompletions;
+    private Boolean isAlarmEnabled;
+    private Boolean isPushEnabled;
     private Boolean isActive;
 }

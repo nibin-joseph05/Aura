@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
-import '../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../core/widgets/inputs/otp_input_field.dart';
 import '../../data/datasources/email_verification_service.dart';
 import '../providers/user_provider.dart';

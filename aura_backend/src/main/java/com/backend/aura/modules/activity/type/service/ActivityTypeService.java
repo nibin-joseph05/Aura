@@ -87,6 +87,10 @@ public class ActivityTypeService {
         type.setRequiresCalories(request.getRequiresCalories() != null ? request.getRequiresCalories() : false);
         type.setIsGymActivity(request.getIsGymActivity() != null ? request.getIsGymActivity() : false);
         type.setIcon(request.getIcon());
+        type.setColor(request.getColor());
+        type.setDefaultIntervalMinutes(request.getDefaultIntervalMinutes());
+        type.setDefaultTargetCompletions(
+                request.getDefaultTargetCompletions() != null ? request.getDefaultTargetCompletions() : 1);
         type.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
 
         ActivityType saved = typeRepository.save(type);
@@ -134,6 +138,15 @@ public class ActivityTypeService {
         }
         if (request.getIcon() != null) {
             type.setIcon(request.getIcon());
+        }
+        if (request.getColor() != null) {
+            type.setColor(request.getColor());
+        }
+        if (request.getDefaultIntervalMinutes() != null) {
+            type.setDefaultIntervalMinutes(request.getDefaultIntervalMinutes());
+        }
+        if (request.getDefaultTargetCompletions() != null) {
+            type.setDefaultTargetCompletions(request.getDefaultTargetCompletions());
         }
         if (request.getIsActive() != null) {
             type.setIsActive(request.getIsActive());

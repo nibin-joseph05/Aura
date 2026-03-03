@@ -76,10 +76,11 @@ class AlarmNativeService {
   static Future<List<Map<String, String>>> getAvailableTones() async {
     try {
       final result = await _channel.invokeMethod<List>('getAvailableTones');
-      if (result == null)
+      if (result == null) {
         return [
           {'title': 'Default', 'uri': 'default'},
         ];
+      }
 
       return result.map((dynamic item) {
         final map = Map<String, dynamic>.from(item as Map);

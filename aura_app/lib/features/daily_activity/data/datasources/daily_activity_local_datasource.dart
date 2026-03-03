@@ -1,33 +1,33 @@
 import 'package:hive_flutter/hive_flutter.dart';
 
-import '../models/daily_activity_model.dart';
+import '../models/user_activity_model.dart';
 
 class DailyActivityLocalDataSource {
-  static const String _boxName = 'daily_activities';
+  static const String _boxName = 'user_activities';
 
-  Future<Box<DailyActivityModel>> _openBox() async {
-    return Hive.openBox<DailyActivityModel>(_boxName);
+  Future<Box<UserActivityModel>> _openBox() async {
+    return Hive.openBox<UserActivityModel>(_boxName);
   }
 
-  Future<void> save(DailyActivityModel activity) async {
+  Future<void> save(UserActivityModel activity) async {
     final box = await _openBox();
     await box.put(activity.id, activity);
   }
 
-  Future<void> saveAll(List<DailyActivityModel> activities) async {
+  Future<void> saveAll(List<UserActivityModel> activities) async {
     final box = await _openBox();
-    final Map<String, DailyActivityModel> entries = {
+    final Map<String, UserActivityModel> entries = {
       for (var a in activities) a.id: a,
     };
     await box.putAll(entries);
   }
 
-  Future<List<DailyActivityModel>> getAll() async {
+  Future<List<UserActivityModel>> getAll() async {
     final box = await _openBox();
     return box.values.toList();
   }
 
-  Future<List<DailyActivityModel>> getByDate(DateTime date) async {
+  Future<List<UserActivityModel>> getByDate(DateTime date) async {
     final box = await _openBox();
     final startOfDay = DateTime(date.year, date.month, date.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
@@ -40,7 +40,7 @@ class DailyActivityLocalDataSource {
     }).toList();
   }
 
-  Future<List<DailyActivityModel>> getPendingSync() async {
+  Future<List<UserActivityModel>> getPendingSync() async {
     final box = await _openBox();
     return box.values.where((activity) => !activity.isSynced).toList();
   }

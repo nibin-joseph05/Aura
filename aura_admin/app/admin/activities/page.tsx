@@ -25,6 +25,9 @@ interface ActivityType {
     requiresCalories: boolean;
     isGymActivity: boolean;
     icon: string;
+    color: string;
+    defaultIntervalMinutes: number | null;
+    defaultTargetCompletions: number;
     isActive: boolean;
 }
 
@@ -47,6 +50,9 @@ export default function ActivityTypesPage() {
         requiresDistance: false,
         requiresCalories: false,
         isGymActivity: false,
+        color: "#3b82f6",
+        defaultIntervalMinutes: null as number | null,
+        defaultTargetCompletions: 1,
     });
     const [saving, setSaving] = useState(false);
 
@@ -117,6 +123,9 @@ export default function ActivityTypesPage() {
             requiresDistance: type.requiresDistance,
             requiresCalories: type.requiresCalories,
             isGymActivity: type.isGymActivity,
+            color: type.color || "#3b82f6",
+            defaultIntervalMinutes: type.defaultIntervalMinutes,
+            defaultTargetCompletions: type.defaultTargetCompletions || 1,
         });
         setShowAddModal(true);
     };
@@ -125,7 +134,7 @@ export default function ActivityTypesPage() {
         setShowAddModal(false);
         setEditingType(null);
         setFormData({
-            categoryId: "", name: "", description: "", icon: "",
+            categoryId: "", name: "", description: "", icon: "", color: "#3b82f6", defaultIntervalMinutes: null, defaultTargetCompletions: 1,
             allowAlarm: false, allowNotes: true, requiresDuration: false,
             requiresDistance: false, requiresCalories: false, isGymActivity: false,
         });
@@ -191,7 +200,9 @@ export default function ActivityTypesPage() {
                             }}
                         >
                             <div className="flex items-start gap-3 mb-3">
-                                <span className="text-2xl">{type.icon || "📋"}</span>
+                                <div className="flex items-center justify-center w-12 h-12 rounded-xl text-2xl" style={{ backgroundColor: `${type.color}20` || `${appColors.primary}20` }}>
+                                    {type.icon || "📋"}
+                                </div>
                                 <div className="flex-1">
                                     <h3 style={{ color: isDark ? "#f3f4f6" : "#1f2937" }} className="font-bold">
                                         {type.name}
@@ -215,6 +226,8 @@ export default function ActivityTypesPage() {
                                 {type.allowAlarm && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">⏰ Alarm</span>}
                                 {type.requiresDuration && <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">⏱️ Duration</span>}
                                 {type.isGymActivity && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">🏋️ Gym</span>}
+                                {type.defaultIntervalMinutes && <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400">⏳ Every {type.defaultIntervalMinutes}m</span>}
+                                {type.defaultTargetCompletions > 1 && <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400">🎯 {type.defaultTargetCompletions}x / day</span>}
                             </div>
 
                             <div
@@ -282,6 +295,24 @@ export default function ActivityTypesPage() {
                                 <div>
                                     <label style={{ color: isDark ? "#9ca3af" : "#6b7280" }} className="block text-sm mb-1">Icon</label>
                                     <input type="text" value={formData.icon} onChange={(e) => setFormData({ ...formData, icon: e.target.value })} className="w-full rounded-lg p-3" style={{ backgroundColor: isDark ? appColors.cardBg : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937", border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}` }} placeholder="🚶" />
+                                </div>
+                                <div>
+                                    <label style={{ color: isDark ? "#9ca3af" : "#6b7280" }} className="block text-sm mb-1">Color HEX</label>
+                                    <div className="flex gap-2">
+                                        <input type="color" value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} className="h-[46px] w-[46px] rounded cursor-pointer" />
+                                        <input type="text" value={formData.color} onChange={(e) => setFormData({ ...formData, color: e.target.value })} className="w-full rounded-lg px-3" style={{ backgroundColor: isDark ? appColors.cardBg : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937", border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}` }} placeholder="#3b82f6" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label style={{ color: isDark ? "#9ca3af" : "#6b7280" }} className="block text-sm mb-1">Default Interval (mins)</label>
+                                    <input type="number" min="0" value={formData.defaultIntervalMinutes || ""} onChange={(e) => setFormData({ ...formData, defaultIntervalMinutes: e.target.value ? parseInt(e.target.value) : null })} className="w-full rounded-lg p-3" style={{ backgroundColor: isDark ? appColors.cardBg : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937", border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}` }} placeholder="e.g., 60" />
+                                </div>
+                                <div>
+                                    <label style={{ color: isDark ? "#9ca3af" : "#6b7280" }} className="block text-sm mb-1">Default Target Completions</label>
+                                    <input type="number" min="1" value={formData.defaultTargetCompletions} onChange={(e) => setFormData({ ...formData, defaultTargetCompletions: parseInt(e.target.value) || 1 })} className="w-full rounded-lg p-3" style={{ backgroundColor: isDark ? appColors.cardBg : "#f3f4f6", color: isDark ? "#f3f4f6" : "#1f2937", border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}` }} />
                                 </div>
                             </div>
 

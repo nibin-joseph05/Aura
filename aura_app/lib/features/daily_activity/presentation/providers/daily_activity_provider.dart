@@ -4,11 +4,11 @@ import '../../../../core/network/connectivity/internet_status_provider.dart';
 import '../../../../core/services/local_notification_service.dart';
 import '../../data/datasources/daily_activity_local_datasource.dart';
 import '../../data/datasources/daily_activity_remote_datasource.dart';
-import '../../data/models/daily_activity_model.dart';
+import '../../data/models/user_activity_model.dart';
 
 class DailyActivityState {
-  final List<DailyActivityModel> activities;
-  final List<DailyActivityModel> todayActivities;
+  final List<UserActivityModel> activities;
+  final List<UserActivityModel> todayActivities;
   final bool isLoading;
   final bool isSyncing;
   final String? error;
@@ -24,8 +24,8 @@ class DailyActivityState {
   });
 
   DailyActivityState copyWith({
-    List<DailyActivityModel>? activities,
-    List<DailyActivityModel>? todayActivities,
+    List<UserActivityModel>? activities,
+    List<UserActivityModel>? todayActivities,
     bool? isLoading,
     bool? isSyncing,
     String? error,
@@ -110,22 +110,28 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
 
   Future<void> addActivity({
     required String activityType,
+    required String activityTypeId,
     required String title,
     String? description,
     int? intervalMinutes,
     int targetCompletions = 1,
+    bool isAlarmEnabled = false,
+    bool isPushEnabled = false,
   }) async {
     final now = DateTime.now();
-    final activity = DailyActivityModel(
+    final activity = UserActivityModel(
       id: '${now.millisecondsSinceEpoch}',
       date: now,
       activityType: activityType,
+      activityTypeId: activityTypeId,
       title: title,
       description: description,
       isSynced: false,
       createdAt: now,
       intervalMinutes: intervalMinutes,
       targetCompletions: targetCompletions,
+      isAlarmEnabled: isAlarmEnabled,
+      isPushEnabled: isPushEnabled,
     );
 
     await _localDataSource.save(activity);
@@ -138,7 +144,6 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       pendingSyncCount: pending.length,
     );
 
-
     await LocalNotificationService.instance.showActivityReminder(
       id: now.millisecondsSinceEpoch % 100000,
       activityName: title,
@@ -148,7 +153,7 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
     _trySyncActivity(activity);
   }
 
-  Future<void> _trySyncActivity(DailyActivityModel activity) async {
+  Future<void> _trySyncActivity(UserActivityModel activity) async {
     final isOnline = _ref.read(internetStatusProvider).valueOrNull ?? false;
     if (!isOnline) return;
 
@@ -234,7 +239,6 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       pendingSyncCount: pending.length,
     );
 
-    
     if (updatedTimes.length >= activity.targetCompletions) {
       await LocalNotificationService.instance.showImmediate(
         id: activity.id.hashCode % 100000,

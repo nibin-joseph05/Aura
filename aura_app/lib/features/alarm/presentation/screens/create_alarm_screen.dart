@@ -705,7 +705,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: AppColors.accent,
+            activeThumbColor: AppColors.accent,
             inactiveTrackColor: AppColors.iconButtonFill(brightness),
           ),
         ],
@@ -718,12 +718,14 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     if (_repeatDays.length == 7) return 'Every day';
     if (_repeatDays.length == 5 &&
         !_repeatDays.contains(5) &&
-        !_repeatDays.contains(6))
+        !_repeatDays.contains(6)) {
       return 'Weekdays only';
+    }
     if (_repeatDays.length == 2 &&
         _repeatDays.contains(5) &&
-        _repeatDays.contains(6))
+        _repeatDays.contains(6)) {
       return 'Weekends only';
+    }
     final sorted = List<int>.from(_repeatDays)..sort();
     return sorted.map((d) => days[d]).join(', ');
   }

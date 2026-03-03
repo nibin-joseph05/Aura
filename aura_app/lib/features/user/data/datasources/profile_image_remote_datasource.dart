@@ -14,7 +14,10 @@ class ProfileImageRemoteDataSource {
     required String userId,
   }) async {
     try {
-      dev.log('UPLOAD_DS - POST ${ApiEndpoints.uploadProfileImage} | userId: $userId | file: ${imageFile.path} | size: ${imageFile.lengthSync()} bytes', name: 'API');
+      dev.log(
+        'UPLOAD_DS - POST ${ApiEndpoints.uploadProfileImage} | userId: $userId | file: ${imageFile.path} | size: ${imageFile.lengthSync()} bytes',
+        name: 'API',
+      );
 
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(
@@ -30,7 +33,10 @@ class ProfileImageRemoteDataSource {
         options: Options(contentType: 'multipart/form-data'),
       );
 
-      dev.log('UPLOAD_DS - POST /profile-image RESPONSE: ${response.statusCode} | data: ${response.data}', name: 'API');
+      dev.log(
+        'UPLOAD_DS - POST /profile-image RESPONSE: ${response.statusCode} | data: ${response.data}',
+        name: 'API',
+      );
 
       if (response.statusCode == 200 && response.data['url'] != null) {
         return UploadProfileImageResponse.fromJson(response.data);
@@ -38,7 +44,10 @@ class ProfileImageRemoteDataSource {
 
       throw Exception(response.data['error'] ?? 'Upload failed');
     } on DioException catch (e) {
-      dev.log('UPLOAD_DS - POST /profile-image DIO ERROR: ${e.response?.statusCode} | ${e.response?.data}', name: 'API');
+      dev.log(
+        'UPLOAD_DS - POST /profile-image DIO ERROR: ${e.response?.statusCode} | ${e.response?.data}',
+        name: 'API',
+      );
       throw Exception(
         e.response?.data?['error'] ?? 'Failed to upload image: ${e.message}',
       );
@@ -50,7 +59,10 @@ class ProfileImageRemoteDataSource {
 
   Future<void> deleteProfileImage(String imageUrl) async {
     try {
-      dev.log('UPLOAD_DS - DELETE ${ApiEndpoints.uploadProfileImage} | url: $imageUrl', name: 'API');
+      dev.log(
+        'UPLOAD_DS - DELETE ${ApiEndpoints.uploadProfileImage} | url: $imageUrl',
+        name: 'API',
+      );
       await _dio.delete(
         ApiEndpoints.uploadProfileImage,
         queryParameters: {'url': imageUrl},

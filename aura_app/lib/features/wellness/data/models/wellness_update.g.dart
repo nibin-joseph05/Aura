@@ -27,8 +27,8 @@ class WellnessUpdateAdapter extends TypeAdapter<WellnessUpdate> {
       likesCount: fields[7] as int,
       likedByCurrentUser: fields[8] as bool,
       isApproved: fields[9] as bool,
+      commentsCount: fields[11] as int,
       createdAt: fields[10] as DateTime,
-      commentsCount: (fields[11] as int?) ?? 0,
     );
   }
 

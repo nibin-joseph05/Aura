@@ -154,136 +154,136 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: AppColors.primaryGradient,
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              const AppHeader(
-                title: "Reset Password",
-                textColor: AppColors.textLight,
-              ),
-              Expanded(
-                child: Center(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: responsive.w(7),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.password,
-                            size: responsive.h(10),
-                            color: AppColors.textLight,
-                          ),
-                          SizedBox(height: responsive.h(4)),
-                          Text(
-                            "Create New Password",
-                            style: TextStyle(
+          child: SafeArea(
+            child: Column(
+              children: [
+                const AppHeader(
+                  title: "Reset Password",
+                  textColor: AppColors.textLight,
+                ),
+                Expanded(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: responsive.w(7),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.password,
+                              size: responsive.h(10),
                               color: AppColors.textLight,
-                              fontSize: titleSize,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
                             ),
-                          ),
-                          SizedBox(height: responsive.h(2)),
-                          Text(
-                            "Enter the OTP sent to ${widget.email} and your new password.",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: AppColors.textLight.withValues(
-                                alpha: 0.75,
+                            SizedBox(height: responsive.h(4)),
+                            Text(
+                              "Create New Password",
+                              style: TextStyle(
+                                color: AppColors.textLight,
+                                fontSize: titleSize,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
                               ),
-                              fontSize: subtitleSize,
-                              height: 1.4,
                             ),
-                          ),
-                          SizedBox(height: responsive.h(4)),
-                          AppTextField(
-                            controller: _otpController,
-                            responsive: responsive,
-                            hint: "6-Digit OTP",
-                            icon: Icons.pin_outlined,
-                            keyboardType: TextInputType.number,
-                            maxLength: 6,
-                            errorText: _otpError,
-                            onChanged: _validateOtp,
-                          ),
-                          SizedBox(height: responsive.h(2)),
-                          AppTextField(
-                            controller: _passwordController,
-                            responsive: responsive,
-                            hint: "New Password",
-                            icon: Icons.lock_outline,
-                            obscureText: _obscurePassword,
-                            errorText: _passwordError,
-                            onChanged: _validatePassword,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
+                            SizedBox(height: responsive.h(2)),
+                            Text(
+                              "Enter the OTP sent to ${widget.email} and your new password.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
                                 color: AppColors.textLight.withValues(
-                                  alpha: 0.7,
+                                  alpha: 0.75,
                                 ),
-                              ),
-                              onPressed: () => setState(
-                                () => _obscurePassword = !_obscurePassword,
+                                fontSize: subtitleSize,
+                                height: 1.4,
                               ),
                             ),
-                          ),
-                          SizedBox(height: responsive.h(2)),
-                          AppTextField(
-                            controller: _confirmController,
-                            responsive: responsive,
-                            hint: "Confirm Password",
-                            icon: Icons.lock_outline,
-                            obscureText: _obscureConfirm,
-                            errorText: _confirmError,
-                            onChanged: _validateConfirm,
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscureConfirm
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                                color: AppColors.textLight.withValues(
-                                  alpha: 0.7,
+                            SizedBox(height: responsive.h(4)),
+                            AppTextField(
+                              controller: _otpController,
+                              responsive: responsive,
+                              hint: "6-Digit OTP",
+                              icon: Icons.pin_outlined,
+                              keyboardType: TextInputType.number,
+                              maxLength: 6,
+                              errorText: _otpError,
+                              onChanged: _validateOtp,
+                            ),
+                            SizedBox(height: responsive.h(2)),
+                            AppTextField(
+                              controller: _passwordController,
+                              responsive: responsive,
+                              hint: "New Password",
+                              icon: Icons.lock_outline,
+                              obscureText: _obscurePassword,
+                              errorText: _passwordError,
+                              onChanged: _validatePassword,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePassword
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: AppColors.textLight.withValues(
+                                    alpha: 0.7,
+                                  ),
                                 ),
-                              ),
-                              onPressed: () => setState(
-                                () => _obscureConfirm = !_obscureConfirm,
+                                onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword,
+                                ),
                               ),
                             ),
-                          ),
-                          SizedBox(height: responsive.h(4)),
-                          _isLoading
-                              ? const CircularProgressIndicator(
-                                  color: AppColors.primary,
-                                )
-                              : PrimaryButton(
-                                  label: "Reset Password",
-                                  onPressed: _handleReset,
-                                  responsive: responsive,
+                            SizedBox(height: responsive.h(2)),
+                            AppTextField(
+                              controller: _confirmController,
+                              responsive: responsive,
+                              hint: "Confirm Password",
+                              icon: Icons.lock_outline,
+                              obscureText: _obscureConfirm,
+                              errorText: _confirmError,
+                              onChanged: _validateConfirm,
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscureConfirm
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                  color: AppColors.textLight.withValues(
+                                    alpha: 0.7,
+                                  ),
                                 ),
-                        ],
+                                onPressed: () => setState(
+                                  () => _obscureConfirm = !_obscureConfirm,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: responsive.h(4)),
+                            _isLoading
+                                ? const CircularProgressIndicator(
+                                    color: AppColors.primary,
+                                  )
+                                : PrimaryButton(
+                                    label: "Reset Password",
+                                    onPressed: _handleReset,
+                                    responsive: responsive,
+                                  ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-      )
     );
   }
 }

@@ -2,12 +2,12 @@ import 'package:dio/dio.dart';
 
 import '../../../../core/network/http/api_endpoints.dart';
 import '../../../../core/network/http/dio_client.dart';
-import '../models/daily_activity_model.dart';
+import '../models/user_activity_model.dart';
 
 class DailyActivityRemoteDataSource {
   final Dio _dio = DioClient().dio;
 
-  Future<List<DailyActivityModel>> fetchActivities({DateTime? date}) async {
+  Future<List<UserActivityModel>> fetchActivities({DateTime? date}) async {
     try {
       final response = await _dio.get(
         ApiEndpoints.dailyActivities,
@@ -15,25 +15,25 @@ class DailyActivityRemoteDataSource {
       );
 
       final List<dynamic> data = response.data['activities'] ?? [];
-      return data.map((json) => DailyActivityModel.fromJson(json)).toList();
+      return data.map((json) => UserActivityModel.fromJson(json)).toList();
     } catch (e) {
       throw Exception('Failed to fetch activities: ${e.toString()}');
     }
   }
 
-  Future<DailyActivityModel> createActivity(DailyActivityModel activity) async {
+  Future<UserActivityModel> createActivity(UserActivityModel activity) async {
     try {
       final response = await _dio.post(
         ApiEndpoints.dailyActivities,
         data: activity.toJson(),
       );
-      return DailyActivityModel.fromJson(response.data);
+      return UserActivityModel.fromJson(response.data);
     } catch (e) {
       throw Exception('Failed to create activity: ${e.toString()}');
     }
   }
 
-  Future<void> syncActivities(List<DailyActivityModel> activities) async {
+  Future<void> syncActivities(List<UserActivityModel> activities) async {
     try {
       await _dio.post(
         ApiEndpoints.syncDailyActivities,
@@ -52,13 +52,13 @@ class DailyActivityRemoteDataSource {
     }
   }
 
-  Future<DailyActivityModel> updateActivity(DailyActivityModel activity) async {
+  Future<UserActivityModel> updateActivity(UserActivityModel activity) async {
     try {
       final response = await _dio.put(
         '${ApiEndpoints.dailyActivities}/${activity.id}',
         data: activity.toJson(),
       );
-      return DailyActivityModel.fromJson(response.data);
+      return UserActivityModel.fromJson(response.data);
     } catch (e) {
       throw Exception('Failed to update activity: ${e.toString()}');
     }

@@ -224,14 +224,16 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
                                       LengthLimitingTextInputFormatter(15),
                                     ],
                                     validator: (v) {
-                                      if (v == null || v.trim().isEmpty)
+                                      if (v == null || v.trim().isEmpty) {
                                         return 'Enter phone number';
+                                      }
                                       final digits = v.replaceAll(
                                         RegExp(r'[^0-9]'),
                                         '',
                                       );
-                                      if (digits.length < 10)
+                                      if (digits.length < 10) {
                                         return 'Enter a valid phone number';
+                                      }
                                       return null;
                                     },
                                     decoration: _inputDecoration(

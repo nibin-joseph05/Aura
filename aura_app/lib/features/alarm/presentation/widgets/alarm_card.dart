@@ -185,7 +185,7 @@ class AlarmCard extends StatelessWidget {
                     Switch(
                       value: isEnabled,
                       onChanged: onToggle,
-                      activeColor: AppColors.accent,
+                      activeThumbColor: AppColors.accent,
                       activeTrackColor: AppColors.accent.withValues(alpha: 0.3),
                       inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
                       inactiveThumbColor: Colors.white.withValues(alpha: 0.3),

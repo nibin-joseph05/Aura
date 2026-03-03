@@ -33,7 +33,7 @@ class DateOfBirthPicker extends StatelessWidget {
               surface: AppColors.splashDark,
               onSurface: Colors.white,
             ),
-            dialogBackgroundColor: AppColors.splashDark,
+            dialogTheme: DialogThemeData(backgroundColor: AppColors.splashDark),
           ),
           child: child!,
         );
