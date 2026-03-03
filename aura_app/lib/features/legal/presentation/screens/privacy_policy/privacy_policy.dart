@@ -13,9 +13,9 @@ class PrivacyPolicyScreen extends StatelessWidget {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(Theme.of(context).brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

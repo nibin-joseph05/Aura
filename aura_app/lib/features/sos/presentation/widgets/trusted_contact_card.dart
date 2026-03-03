@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../data/models/trusted_contact.dart';
 import '../providers/sos_provider.dart';
@@ -18,14 +19,15 @@ class TrustedContactCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return Container(
       margin: EdgeInsets.only(bottom: responsive.h(1.5)),
       padding: EdgeInsets.all(responsive.w(4)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: Row(
         children: [
@@ -34,13 +36,13 @@ class TrustedContactCard extends ConsumerWidget {
             height: 50,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.15),
+              color: AppColors.primary.withValues(alpha: 0.2),
             ),
             child: Center(
               child: Text(
                 contact.name.isNotEmpty ? contact.name[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.onSurface(brightness),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -54,8 +56,8 @@ class TrustedContactCard extends ConsumerWidget {
               children: [
                 Text(
                   contact.name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.onSurface(brightness),
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                   ),
@@ -64,7 +66,7 @@ class TrustedContactCard extends ConsumerWidget {
                 Text(
                   contact.phone,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: AppColors.onSurfaceMuted(brightness),
                     fontSize: 14,
                   ),
                 ),
@@ -75,7 +77,7 @@ class TrustedContactCard extends ConsumerWidget {
                     child: Text(
                       contact.relationship!,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: AppColors.onSurfaceFaint(brightness),
                         fontSize: 12,
                       ),
                     ),
@@ -96,25 +98,28 @@ class TrustedContactCard extends ConsumerWidget {
   }
 
   void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
+    final brightness = Theme.of(context).brightness;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: brightness == Brightness.dark
+            ? const Color(0xFF1A1A2E)
+            : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
+        title: Text(
           'Remove Contact',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.onSurface(brightness)),
         ),
         content: Text(
           'Are you sure you want to remove ${contact.name} from your trusted contacts?',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+          style: TextStyle(color: AppColors.onSurfaceMuted(brightness)),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               'Cancel',
-              style: TextStyle(color: Colors.white70),
+              style: TextStyle(color: AppColors.onSurfaceMuted(brightness)),
             ),
           ),
           TextButton(

@@ -11,16 +11,30 @@ class AppearanceSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final responsive = Responsive.of(context);
-    final themeNotifier = ref.watch(themeProvider.notifier);
-    final currentMode = themeNotifier.currentAppThemeMode;
+    final brightness = Theme.of(context).brightness;
+    final currentThemeMode = ref.watch(themeProvider);
+
+    AppThemeMode currentMode;
+    switch (currentThemeMode) {
+      case ThemeMode.light:
+        currentMode = AppThemeMode.light;
+        break;
+      case ThemeMode.dark:
+        currentMode = AppThemeMode.dark;
+        break;
+      default:
+        currentMode = AppThemeMode.system;
+    }
 
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1A2E),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: brightness == Brightness.dark
+            ? const Color(0xFF1A1A2E)
+            : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Padding(
         padding: EdgeInsets.all(responsive.w(5)),
@@ -33,16 +47,16 @@ class AppearanceSheet extends ConsumerWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: AppColors.onSurfaceFaint(brightness),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
             ),
             SizedBox(height: responsive.h(2)),
-            const Text(
+            Text(
               'Appearance',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.onSurface(brightness),
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
@@ -51,13 +65,14 @@ class AppearanceSheet extends ConsumerWidget {
             Text(
               'Choose your preferred theme',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: 14,
               ),
             ),
             SizedBox(height: responsive.h(3)),
             _buildThemeOption(
               responsive,
+              brightness: brightness,
               icon: Icons.light_mode,
               title: 'Light',
               subtitle: 'Always use light theme',
@@ -70,6 +85,7 @@ class AppearanceSheet extends ConsumerWidget {
             SizedBox(height: responsive.h(1.5)),
             _buildThemeOption(
               responsive,
+              brightness: brightness,
               icon: Icons.dark_mode,
               title: 'Dark',
               subtitle: 'Always use dark theme',
@@ -82,6 +98,7 @@ class AppearanceSheet extends ConsumerWidget {
             SizedBox(height: responsive.h(1.5)),
             _buildThemeOption(
               responsive,
+              brightness: brightness,
               icon: Icons.settings_suggest,
               title: 'System',
               subtitle: 'Follow device settings',
@@ -100,6 +117,7 @@ class AppearanceSheet extends ConsumerWidget {
 
   Widget _buildThemeOption(
     Responsive responsive, {
+    required Brightness brightness,
     required IconData icon,
     required String title,
     required String subtitle,
@@ -113,12 +131,12 @@ class AppearanceSheet extends ConsumerWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.accent.withValues(alpha: 0.15)
-              : Colors.white.withValues(alpha: 0.05),
+              : AppColors.containerFill(brightness),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
             color: isSelected
                 ? AppColors.accent.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.1),
+                : AppColors.containerBorder(brightness),
           ),
         ),
         child: Row(
@@ -128,12 +146,14 @@ class AppearanceSheet extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.accent.withValues(alpha: 0.2)
-                    : Colors.white.withValues(alpha: 0.1),
+                    : AppColors.iconButtonFill(brightness),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
-                color: isSelected ? AppColors.accent : Colors.white70,
+                color: isSelected
+                    ? AppColors.accent
+                    : AppColors.onSurfaceMuted(brightness),
                 size: 22,
               ),
             ),
@@ -145,7 +165,7 @@ class AppearanceSheet extends ConsumerWidget {
                   Text(
                     title,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.onSurface(brightness),
                       fontSize: responsive.isTablet ? 16 : 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -153,7 +173,7 @@ class AppearanceSheet extends ConsumerWidget {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white54,
+                      color: AppColors.onSurfaceMuted(brightness),
                       fontSize: responsive.isTablet ? 12 : 11,
                     ),
                   ),

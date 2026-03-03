@@ -35,6 +35,11 @@ class AppColors {
     Color(0xFF134B73),
   ];
 
+  static const List<Color> primaryGradientLight = [
+    Color(0xFFE3F2FD),
+    Color(0xFFBBDEFB),
+  ];
+
   static const List<Color> accentGradient = [
     Color(0xFF00BCD4),
     Color(0xFF2196F3),
@@ -46,4 +51,54 @@ class AppColors {
     splashLight,
     Color(0xFF1565C0),
   ];
+
+  static List<Color> backgroundGradient(Brightness brightness) =>
+      brightness == Brightness.dark ? primaryGradient : primaryGradientLight;
+
+  static Color onSurface(Brightness brightness) =>
+      brightness == Brightness.dark ? Colors.white : const Color(0xFF1A2744);
+
+  static Color onSurfaceMuted(Brightness brightness) =>
+      brightness == Brightness.dark
+      ? Colors.white60
+      : const Color(0xFF1A2744).withValues(alpha: 0.55);
+
+  static Color onSurfaceFaint(Brightness brightness) =>
+      brightness == Brightness.dark
+      ? Colors.white38
+      : const Color(0xFF1A2744).withValues(alpha: 0.35);
+
+  static Color containerFill(Brightness brightness) =>
+      brightness == Brightness.dark
+      ? Colors.white.withValues(alpha: 0.08)
+      : Colors.white.withValues(alpha: 0.75);
+
+  static Color containerBorder(Brightness brightness) =>
+      brightness == Brightness.dark
+      ? Colors.white.withValues(alpha: 0.12)
+      : Colors.black.withValues(alpha: 0.08);
+
+  static Color inputFill(Brightness brightness) => brightness == Brightness.dark
+      ? Colors.white.withValues(alpha: 0.05)
+      : Colors.white.withValues(alpha: 0.9);
+
+  static Color inputBorder(Brightness brightness) =>
+      brightness == Brightness.dark
+      ? Colors.white.withValues(alpha: 0.2)
+      : Colors.black.withValues(alpha: 0.18);
+
+  static Color dividerColor(Brightness brightness) =>
+      brightness == Brightness.dark
+      ? Colors.white.withValues(alpha: 0.08)
+      : Colors.black.withValues(alpha: 0.08);
+
+  static Color iconButtonFill(Brightness brightness) =>
+      brightness == Brightness.dark
+      ? Colors.white.withValues(alpha: 0.08)
+      : Colors.black.withValues(alpha: 0.06);
+
+  static Color iconButtonBorder(Brightness brightness) =>
+      brightness == Brightness.dark
+      ? Colors.white.withValues(alpha: 0.15)
+      : Colors.black.withValues(alpha: 0.1);
 }

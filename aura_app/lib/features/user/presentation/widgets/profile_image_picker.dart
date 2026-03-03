@@ -110,69 +110,78 @@ class _ProfileImagePickerState extends ConsumerState<ProfileImagePicker> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      builder: (ctx) {
+        final br = Theme.of(ctx).brightness;
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: AppColors.backgroundGradient(br),
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(height: widget.responsive.h(2)),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              SizedBox(height: widget.responsive.h(2)),
-              const Text(
-                'Choose Profile Photo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: widget.responsive.h(2)),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: Colors.white70),
-                title: const Text(
-                  'Take Photo',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () => _pickImage(ctx, ImageSource.camera),
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library, color: Colors.white70),
-                title: const Text(
-                  'Choose from Gallery',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () => _pickImage(ctx, ImageSource.gallery),
-              ),
-              if (state.hasImage ||
-                  (widget.initialImageUrl != null && !state.wasRemoved))
-                ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.redAccent),
-                  title: const Text(
-                    'Remove Photo',
-                    style: TextStyle(color: Colors.redAccent),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(height: widget.responsive.h(2)),
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.onSurfaceFaint(br),
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  onTap: () => _removeImage(ctx),
                 ),
-              SizedBox(height: widget.responsive.h(2)),
-            ],
+                SizedBox(height: widget.responsive.h(2)),
+                Text(
+                  'Choose Profile Photo',
+                  style: TextStyle(
+                    color: AppColors.onSurface(br),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: widget.responsive.h(2)),
+                ListTile(
+                  leading: Icon(
+                    Icons.camera_alt,
+                    color: AppColors.onSurfaceMuted(br),
+                  ),
+                  title: Text(
+                    'Take Photo',
+                    style: TextStyle(color: AppColors.onSurface(br)),
+                  ),
+                  onTap: () => _pickImage(ctx, ImageSource.camera),
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.photo_library,
+                    color: AppColors.onSurfaceMuted(br),
+                  ),
+                  title: Text(
+                    'Choose from Gallery',
+                    style: TextStyle(color: AppColors.onSurface(br)),
+                  ),
+                  onTap: () => _pickImage(ctx, ImageSource.gallery),
+                ),
+                if (state.hasImage ||
+                    (widget.initialImageUrl != null && !state.wasRemoved))
+                  ListTile(
+                    leading: const Icon(Icons.delete, color: Colors.redAccent),
+                    title: const Text(
+                      'Remove Photo',
+                      style: TextStyle(color: Colors.redAccent),
+                    ),
+                    onTap: () => _removeImage(ctx),
+                  ),
+                SizedBox(height: widget.responsive.h(2)),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -183,6 +192,7 @@ class _ProfileImagePickerState extends ConsumerState<ProfileImagePicker> {
         ? state.imageUrl
         : (state.imageUrl ?? widget.initialImageUrl);
     final displayUrl = _buildFullUrl(rawUrl);
+    final brightness = Theme.of(context).brightness;
 
     return GestureDetector(
       onTap: state.isUploading ? null : _showImageSourceDialog,
@@ -193,9 +203,9 @@ class _ProfileImagePickerState extends ConsumerState<ProfileImagePicker> {
             height: 110,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.08),
+              color: AppColors.iconButtonFill(Theme.of(context).brightness),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.25),
+                color: AppColors.iconButtonBorder(Theme.of(context).brightness),
                 width: 2,
               ),
             ),
@@ -212,14 +222,15 @@ class _ProfileImagePickerState extends ConsumerState<ProfileImagePicker> {
                                 ? loadingProgress.cumulativeBytesLoaded /
                                       loadingProgress.expectedTotalBytes!
                                 : null,
-                            color: Colors.white54,
+                            color: AppColors.accent,
                             strokeWidth: 2,
                           ),
                         );
                       },
-                      errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                      errorBuilder: (_, __, ___) =>
+                          _buildPlaceholder(brightness),
                     )
-                  : _buildPlaceholder(),
+                  : _buildPlaceholder(brightness),
             ),
           ),
           SizedBox(height: widget.responsive.h(0.8)),
@@ -228,14 +239,18 @@ class _ProfileImagePickerState extends ConsumerState<ProfileImagePicker> {
             children: [
               Icon(
                 Icons.camera_alt,
-                color: state.isUploading ? Colors.white38 : Colors.white70,
+                color: state.isUploading
+                    ? AppColors.onSurfaceFaint(Theme.of(context).brightness)
+                    : AppColors.onSurfaceMuted(Theme.of(context).brightness),
                 size: 14,
               ),
               SizedBox(width: widget.responsive.w(1.5)),
               Text(
                 state.isUploading ? 'Uploading...' : 'Tap to add photo',
                 style: TextStyle(
-                  color: state.isUploading ? Colors.white38 : Colors.white70,
+                  color: state.isUploading
+                      ? AppColors.onSurfaceFaint(Theme.of(context).brightness)
+                      : AppColors.onSurfaceMuted(Theme.of(context).brightness),
                   fontSize: 13,
                 ),
               ),
@@ -246,9 +261,13 @@ class _ProfileImagePickerState extends ConsumerState<ProfileImagePicker> {
     );
   }
 
-  Widget _buildPlaceholder() {
-    return const Center(
-      child: Icon(Icons.person, size: 44, color: Colors.white38),
+  Widget _buildPlaceholder(Brightness brightness) {
+    return Center(
+      child: Icon(
+        Icons.person,
+        size: 44,
+        color: AppColors.onSurfaceFaint(brightness),
+      ),
     );
   }
 }

@@ -34,9 +34,9 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(Theme.of(context).brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -50,9 +50,11 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
                   Stack(
                     children: [
                       IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.person_add_rounded,
-                          color: Colors.white,
+                          color: AppColors.onSurface(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
                         ),
                         onPressed: () {
                           Navigator.pushNamed(
@@ -92,12 +94,18 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
               ),
               Expanded(
                 child: state.isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.onSurface(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
+                        ),
                       )
                     : RefreshIndicator(
                         onRefresh: () async => _loadData(),
-                        color: Colors.white,
+                        color: AppColors.onSurface(
+                          isDark ? Brightness.dark : Brightness.light,
+                        ),
                         backgroundColor: AppColors.primary,
                         child: state.conversations.isEmpty
                             ? const EmptyStateWidget(

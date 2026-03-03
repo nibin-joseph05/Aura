@@ -149,14 +149,15 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         body: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: AppColors.primaryGradient,
+              colors: AppColors.backgroundGradient(brightness),
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -178,10 +179,10 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
                           Container(
                             padding: EdgeInsets.all(responsive.w(5)),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
+                              color: AppColors.containerFill(brightness),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.12),
+                                color: AppColors.containerBorder(brightness),
                               ),
                             ),
                             child: Column(
@@ -192,7 +193,7 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
                                       ? 'Verify OTP'
                                       : 'Update Phone Number',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.onSurface(brightness),
                                     fontSize: responsive.isTablet ? 20 : 18,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -203,7 +204,7 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
                                       ? 'Enter the 6-digit code sent to your phone'
                                       : 'Enter your new phone number with country code',
                                   style: TextStyle(
-                                    color: Colors.white60,
+                                    color: AppColors.onSurfaceMuted(brightness),
                                     fontSize: responsive.isTablet ? 13 : 12,
                                   ),
                                 ),
@@ -212,8 +213,8 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
                                   TextFormField(
                                     controller: _phoneController,
                                     keyboardType: TextInputType.phone,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: AppColors.onSurface(brightness),
                                       fontSize: 16,
                                     ),
                                     inputFormatters: [
@@ -243,8 +244,8 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
                                   TextFormField(
                                     controller: _otpController,
                                     keyboardType: TextInputType.number,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: AppColors.onSurface(brightness),
                                       fontSize: 24,
                                       letterSpacing: 8,
                                     ),
@@ -324,13 +325,18 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
   }
 
   InputDecoration _inputDecoration(String label, IconData icon) {
+    final brightness = Theme.of(context).brightness;
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Colors.white54),
-      prefixIcon: Icon(icon, color: Colors.white38, size: 20),
+      labelStyle: TextStyle(color: AppColors.onSurfaceMuted(brightness)),
+      prefixIcon: Icon(
+        icon,
+        color: AppColors.onSurfaceFaint(brightness),
+        size: 20,
+      ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+        borderSide: BorderSide(color: AppColors.inputBorder(brightness)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -346,7 +352,7 @@ class _ChangePhoneScreenState extends ConsumerState<ChangePhoneScreen> {
       ),
       errorStyle: const TextStyle(color: AppColors.error),
       filled: true,
-      fillColor: Colors.white.withValues(alpha: 0.05),
+      fillColor: AppColors.inputFill(brightness),
     );
   }
 }

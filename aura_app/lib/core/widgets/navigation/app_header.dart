@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../theme/app_colors.dart';
 import '../../ui/responsive/responsive.dart';
 
 class AppHeader extends ConsumerStatefulWidget {
@@ -7,7 +8,7 @@ class AppHeader extends ConsumerStatefulWidget {
   final String? subtitle;
   final VoidCallback? onBack;
   final List<Widget>? actions;
-  final Color textColor;
+  final Color? textColor;
   final bool showBack;
   final bool compact;
 
@@ -17,7 +18,7 @@ class AppHeader extends ConsumerStatefulWidget {
     this.subtitle,
     this.onBack,
     this.actions,
-    this.textColor = Colors.white,
+    this.textColor,
     this.showBack = true,
     this.compact = false,
   });
@@ -62,6 +63,9 @@ class _AppHeaderState extends ConsumerState<AppHeader>
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
+    final effectiveTextColor =
+        widget.textColor ?? AppColors.onSurface(brightness);
 
     final titleSize = widget.compact
         ? (responsive.isTablet ? 20.0 : 18.0)
@@ -95,7 +99,12 @@ class _AppHeaderState extends ConsumerState<AppHeader>
                 child: Row(
                   children: [
                     if (widget.showBack) ...[
-                      _buildBackButton(context, responsive),
+                      _buildBackButton(
+                        context,
+                        responsive,
+                        effectiveTextColor,
+                        brightness,
+                      ),
                       SizedBox(width: responsive.w(3)),
                     ],
                     Expanded(
@@ -108,7 +117,7 @@ class _AppHeaderState extends ConsumerState<AppHeader>
                             style: TextStyle(
                               fontSize: titleSize,
                               fontWeight: FontWeight.w700,
-                              color: widget.textColor,
+                              color: effectiveTextColor,
                               letterSpacing: 0.5,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -118,7 +127,9 @@ class _AppHeaderState extends ConsumerState<AppHeader>
                               widget.subtitle!,
                               style: TextStyle(
                                 fontSize: subtitleSize,
-                                color: widget.textColor.withValues(alpha: 0.7),
+                                color: effectiveTextColor.withValues(
+                                  alpha: 0.7,
+                                ),
                                 height: 1.1,
                               ),
                             ),
@@ -136,7 +147,12 @@ class _AppHeaderState extends ConsumerState<AppHeader>
     );
   }
 
-  Widget _buildBackButton(BuildContext context, Responsive responsive) {
+  Widget _buildBackButton(
+    BuildContext context,
+    Responsive responsive,
+    Color textColor,
+    Brightness brightness,
+  ) {
     final size = responsive.isTablet ? 24.0 : 20.0;
 
     return GestureDetector(
@@ -145,12 +161,12 @@ class _AppHeaderState extends ConsumerState<AppHeader>
         padding: EdgeInsets.all(responsive.isTablet ? 6 : 4),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: 0.1),
+          color: AppColors.iconButtonFill(brightness),
         ),
         child: Icon(
           Icons.arrow_back_ios_new_rounded,
           size: size,
-          color: widget.textColor,
+          color: textColor,
         ),
       ),
     );

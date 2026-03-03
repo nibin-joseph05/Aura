@@ -25,34 +25,44 @@ class MyAccountScreen extends ConsumerWidget {
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Logout',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        content: const Text(
-          'Are you sure you want to log out?',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white54),
+      builder: (ctx) {
+        final br = Theme.of(ctx).brightness;
+        return AlertDialog(
+          backgroundColor: br == Brightness.dark
+              ? const Color(0xFF1A1A2E)
+              : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Logout',
+            style: TextStyle(
+              color: AppColors.onSurface(br),
+              fontWeight: FontWeight.bold,
             ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text(
-              'Logout',
-              style: TextStyle(color: AppColors.error),
-            ),
+          content: Text(
+            'Are you sure you want to log out?',
+            style: TextStyle(color: AppColors.onSurfaceMuted(br)),
           ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(
+                'Cancel',
+                style: TextStyle(color: AppColors.onSurfaceFaint(br)),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        );
+      },
     );
     if (confirmed != true) return;
     await FirebaseAuth.instance.signOut();
@@ -82,12 +92,13 @@ class MyAccountScreen extends ConsumerWidget {
     final userState = ref.watch(userProvider);
     final user = userState.user;
     final profileImageUrl = _buildFullImageUrl(user?.profileImageUrl);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -138,7 +149,7 @@ class MyAccountScreen extends ConsumerWidget {
                             AppRoutes.changePhone,
                           ),
                         ),
-                      ]),
+                      ], brightness),
                       SizedBox(height: responsive.h(2)),
                       _buildMenuSection(responsive, 'Preferences', [
                         _MenuItemData(
@@ -171,7 +182,7 @@ class MyAccountScreen extends ConsumerWidget {
                           subtitle: 'Theme settings',
                           onTap: () => _showAppearanceSheet(context),
                         ),
-                      ]),
+                      ], brightness),
                       SizedBox(height: responsive.h(2)),
                       _buildMenuSection(responsive, 'Safety', [
                         _MenuItemData(
@@ -198,7 +209,7 @@ class MyAccountScreen extends ConsumerWidget {
                             );
                           },
                         ),
-                      ]),
+                      ], brightness),
                       SizedBox(height: responsive.h(2)),
                       _buildMenuSection(responsive, 'Support', [
                         _MenuItemData(
@@ -233,7 +244,7 @@ class MyAccountScreen extends ConsumerWidget {
                           onTap: () =>
                               Navigator.pushNamed(context, AppRoutes.about),
                         ),
-                      ]),
+                      ], brightness),
                       SizedBox(height: responsive.h(3)),
                       SizedBox(
                         width: double.infinity,
@@ -278,12 +289,13 @@ class MyAccountScreen extends ConsumerWidget {
     dynamic user,
     String? profileImageUrl,
   ) {
+    final brightness = Theme.of(context).brightness;
     return Container(
       padding: EdgeInsets.all(responsive.space(20)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: Row(
         children: [
@@ -306,7 +318,7 @@ class MyAccountScreen extends ConsumerWidget {
                         loadingBuilder: (context, child, loadingProgress) {
                           if (loadingProgress == null) return child;
                           return Container(
-                            color: Colors.white24,
+                            color: AppColors.iconButtonFill(brightness),
                             child: const Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
@@ -316,20 +328,20 @@ class MyAccountScreen extends ConsumerWidget {
                           );
                         },
                         errorBuilder: (_, __, ___) => Container(
-                          color: Colors.white24,
+                          color: AppColors.iconButtonFill(brightness),
                           child: Icon(
                             Icons.person,
                             size: responsive.isTablet ? 40 : 35,
-                            color: Colors.white,
+                            color: AppColors.onSurfaceMuted(brightness),
                           ),
                         ),
                       )
                     : Container(
-                        color: Colors.white24,
+                        color: AppColors.iconButtonFill(brightness),
                         child: Icon(
                           Icons.person,
                           size: responsive.isTablet ? 40 : 35,
-                          color: Colors.white,
+                          color: AppColors.onSurfaceMuted(brightness),
                         ),
                       ),
               ),
@@ -343,7 +355,7 @@ class MyAccountScreen extends ConsumerWidget {
                 Text(
                   user?.name ?? 'User',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.onSurface(brightness),
                     fontSize: responsive.isTablet ? 22 : 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -364,7 +376,7 @@ class MyAccountScreen extends ConsumerWidget {
                   Text(
                     user.email!,
                     style: TextStyle(
-                      color: Colors.white60,
+                      color: AppColors.onSurfaceMuted(brightness),
                       fontSize: responsive.isTablet ? 12 : 11,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -391,6 +403,7 @@ class MyAccountScreen extends ConsumerWidget {
     Responsive responsive,
     String title,
     List<_MenuItemData> items,
+    Brightness brightness,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,7 +416,7 @@ class MyAccountScreen extends ConsumerWidget {
           child: Text(
             title,
             style: TextStyle(
-              color: Colors.white54,
+              color: AppColors.onSurfaceMuted(brightness),
               fontSize: responsive.isTablet ? 14 : 12,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
@@ -412,16 +425,16 @@ class MyAccountScreen extends ConsumerWidget {
         ),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: AppColors.containerFill(brightness),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(color: AppColors.containerBorder(brightness)),
           ),
           child: Column(
             children: items.asMap().entries.map((entry) {
               final index = entry.key;
               final item = entry.value;
               final isLast = index == items.length - 1;
-              return _buildMenuItem(responsive, item, isLast);
+              return _buildMenuItem(responsive, item, isLast, brightness);
             }).toList(),
           ),
         ),
@@ -433,13 +446,14 @@ class MyAccountScreen extends ConsumerWidget {
     Responsive responsive,
     _MenuItemData item,
     bool isLast,
+    Brightness brightness,
   ) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: item.onTap,
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(isLast ? 0 : 0),
+          top: const Radius.circular(0),
           bottom: Radius.circular(isLast ? 16 : 0),
         ),
         child: Container(
@@ -452,7 +466,7 @@ class MyAccountScreen extends ConsumerWidget {
                 ? null
                 : Border(
                     bottom: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: AppColors.dividerColor(brightness),
                     ),
                   ),
           ),
@@ -478,7 +492,7 @@ class MyAccountScreen extends ConsumerWidget {
                     Text(
                       item.title,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.onSurface(brightness),
                         fontSize: responsive.isTablet ? 16 : 14,
                         fontWeight: FontWeight.w500,
                       ),
@@ -487,7 +501,7 @@ class MyAccountScreen extends ConsumerWidget {
                     Text(
                       item.subtitle,
                       style: TextStyle(
-                        color: Colors.white54,
+                        color: AppColors.onSurfaceMuted(brightness),
                         fontSize: responsive.isTablet ? 12 : 11,
                       ),
                     ),
@@ -496,7 +510,7 @@ class MyAccountScreen extends ConsumerWidget {
               ),
               Icon(
                 Icons.chevron_right,
-                color: Colors.white38,
+                color: AppColors.onSurfaceFaint(brightness),
                 size: responsive.isTablet ? 24 : 20,
               ),
             ],

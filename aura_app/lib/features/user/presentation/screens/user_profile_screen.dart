@@ -136,12 +136,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     final userState = ref.watch(userProvider);
     final imgState = ref.watch(profileImageProvider);
     final isOwnProfile = widget.userId == userState.user?.uid;
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(Theme.of(context).brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -162,11 +163,11 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: AppColors.iconButtonFill(brightness),
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.edit_rounded,
-                              color: Colors.white,
+                              color: AppColors.onSurface(brightness),
                               size: 18,
                             ),
                           ),
@@ -184,6 +185,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
                           userState,
                           isOwnProfile,
                           imgState,
+                          brightness,
                         ),
                       ),
               ),
@@ -199,6 +201,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     dynamic userState,
     bool isOwnProfile,
     ProfileImageState imgState,
+    Brightness brightness,
   ) {
     final user = isOwnProfile ? userState.user : null;
     final name = user?.name ?? _profile?['name'] ?? '';
@@ -228,7 +231,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
+                color: AppColors.containerBorder(brightness),
                 width: 3,
               ),
               boxShadow: [
@@ -244,16 +247,17 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
                   ? Image.network(
                       profileImageUrl,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => _buildAvatarPlaceholder(),
+                      errorBuilder: (_, __, ___) =>
+                          _buildAvatarPlaceholder(brightness),
                     )
-                  : _buildAvatarPlaceholder(),
+                  : _buildAvatarPlaceholder(brightness),
             ),
           ),
           SizedBox(height: responsive.h(1.5)),
           Text(
             name,
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.onSurface(brightness),
               fontSize: responsive.isTablet ? 24 : 20,
               fontWeight: FontWeight.bold,
             ),
@@ -262,7 +266,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
           Text(
             '@$username',
             style: TextStyle(
-              color: Colors.white60,
+              color: AppColors.onSurfaceMuted(brightness),
               fontSize: responsive.isTablet ? 15 : 13,
             ),
           ),
@@ -272,7 +276,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
               bio.toString(),
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white70,
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: responsive.isTablet ? 14 : 12,
                 height: 1.4,
               ),
@@ -282,33 +286,43 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _buildStatItem('Posts', postsCount, responsive),
-              _buildStatDivider(),
+              _buildStatItem('Posts', postsCount, responsive, brightness),
+              _buildStatDivider(brightness),
               GestureDetector(
                 onTap: () => Navigator.pushNamed(
                   context,
                   AppRoutes.followers,
                   arguments: widget.userId,
                 ),
-                child: _buildStatItem('Followers', followersCount, responsive),
+                child: _buildStatItem(
+                  'Followers',
+                  followersCount,
+                  responsive,
+                  brightness,
+                ),
               ),
-              _buildStatDivider(),
+              _buildStatDivider(brightness),
               GestureDetector(
                 onTap: () => Navigator.pushNamed(
                   context,
                   AppRoutes.following,
                   arguments: widget.userId,
                 ),
-                child: _buildStatItem('Following', followingCount, responsive),
+                child: _buildStatItem(
+                  'Following',
+                  followingCount,
+                  responsive,
+                  brightness,
+                ),
               ),
             ],
           ),
           SizedBox(height: responsive.h(2.5)),
           if (!isOwnProfile) ...[
-            _buildFollowButton(responsive),
+            _buildFollowButton(responsive, brightness),
             SizedBox(height: responsive.h(1)),
             if (_followStatus?['isMutual'] == true)
-              _buildMessageButton(responsive),
+              _buildMessageButton(responsive, brightness),
           ],
           SizedBox(height: responsive.h(3)),
         ],
@@ -316,13 +330,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     );
   }
 
-  Widget _buildStatItem(String label, dynamic count, Responsive responsive) {
+  Widget _buildStatItem(
+    String label,
+    dynamic count,
+    Responsive responsive,
+    Brightness brightness,
+  ) {
     return Column(
       children: [
         Text(
           '$count',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.onSurface(brightness),
             fontSize: responsive.isTablet ? 22 : 18,
             fontWeight: FontWeight.bold,
           ),
@@ -331,7 +350,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
         Text(
           label,
           style: TextStyle(
-            color: Colors.white60,
+            color: AppColors.onSurfaceMuted(brightness),
             fontSize: responsive.isTablet ? 13 : 11,
           ),
         ),
@@ -339,15 +358,15 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     );
   }
 
-  Widget _buildStatDivider() {
+  Widget _buildStatDivider(Brightness brightness) {
     return Container(
       width: 1,
       height: 30,
-      color: Colors.white.withValues(alpha: 0.15),
+      color: AppColors.containerBorder(brightness),
     );
   }
 
-  Widget _buildFollowButton(Responsive responsive) {
+  Widget _buildFollowButton(Responsive responsive, Brightness brightness) {
     final status = _followStatus?['status'] ?? 'NONE';
 
     String label;
@@ -357,13 +376,13 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     switch (status) {
       case 'ACCEPTED':
         label = 'Following';
-        bgColor = Colors.white.withValues(alpha: 0.1);
-        textColor = Colors.white;
+        bgColor = AppColors.iconButtonFill(brightness);
+        textColor = AppColors.onSurface(brightness);
         break;
       case 'PENDING':
         label = 'Requested';
-        bgColor = Colors.white.withValues(alpha: 0.05);
-        textColor = Colors.white54;
+        bgColor = AppColors.containerFill(brightness);
+        textColor = AppColors.onSurfaceMuted(brightness);
         break;
       default:
         label = 'Follow';
@@ -381,16 +400,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+            border: Border.all(color: AppColors.containerBorder(brightness)),
           ),
           child: Center(
             child: _isFollowLoading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: AppColors.onSurface(brightness),
                     ),
                   )
                 : Text(
@@ -407,7 +426,7 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     );
   }
 
-  Widget _buildMessageButton(Responsive responsive) {
+  Widget _buildMessageButton(Responsive responsive, Brightness brightness) {
     return SizedBox(
       width: double.infinity,
       child: GestureDetector(
@@ -440,15 +459,15 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
         child: Container(
           padding: EdgeInsets.symmetric(vertical: responsive.h(1.5)),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
+            color: AppColors.containerFill(brightness),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+            border: Border.all(color: AppColors.containerBorder(brightness)),
           ),
           child: Center(
             child: Text(
               'Message',
               style: TextStyle(
-                color: Colors.white70,
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: responsive.isTablet ? 16 : 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -459,10 +478,14 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     );
   }
 
-  Widget _buildAvatarPlaceholder() {
+  Widget _buildAvatarPlaceholder(Brightness brightness) {
     return Container(
-      color: Colors.white24,
-      child: const Icon(Icons.person, size: 40, color: Colors.white),
+      color: AppColors.iconButtonFill(brightness),
+      child: Icon(
+        Icons.person,
+        size: 40,
+        color: AppColors.onSurfaceFaint(brightness),
+      ),
     );
   }
 }

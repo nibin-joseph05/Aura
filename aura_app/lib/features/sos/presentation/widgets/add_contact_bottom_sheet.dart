@@ -142,14 +142,17 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1A2E),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: brightness == Brightness.dark
+            ? const Color(0xFF1A1A2E)
+            : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SingleChildScrollView(
         padding: EdgeInsets.all(responsive.w(5)),
@@ -164,7 +167,7 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: AppColors.onSurfaceFaint(brightness),
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -173,10 +176,10 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Add Trusted Contact',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.onSurface(brightness),
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -199,12 +202,14 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
               Text(
                 'This person will be notified during an SOS emergency',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: AppColors.onSurfaceMuted(brightness),
                   fontSize: 14,
                 ),
               ),
               SizedBox(height: responsive.h(3)),
               _buildTextField(
+                context: context,
+                brightness: brightness,
                 controller: _nameController,
                 label: 'Name',
                 icon: Icons.person_outline,
@@ -217,6 +222,8 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
               ),
               SizedBox(height: responsive.h(2)),
               _buildTextField(
+                context: context,
+                brightness: brightness,
                 controller: _phoneController,
                 label: 'Phone Number',
                 icon: Icons.phone_outlined,
@@ -234,6 +241,8 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
               ),
               SizedBox(height: responsive.h(2)),
               _buildTextField(
+                context: context,
+                brightness: brightness,
                 controller: _emailController,
                 label: 'Email (Optional)',
                 icon: Icons.email_outlined,
@@ -251,6 +260,8 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
               ),
               SizedBox(height: responsive.h(2)),
               _buildTextField(
+                context: context,
+                brightness: brightness,
                 controller: _relationshipController,
                 label: 'Relationship (Optional)',
                 icon: Icons.people_outline,
@@ -296,6 +307,8 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
   }
 
   Widget _buildTextField({
+    required BuildContext context,
+    required Brightness brightness,
     required TextEditingController controller,
     required String label,
     required IconData icon,
@@ -305,24 +318,24 @@ class _AddContactBottomSheetState extends ConsumerState<AddContactBottomSheet> {
   }) {
     return TextFormField(
       controller: controller,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: AppColors.onSurface(brightness)),
       keyboardType: keyboardType,
       validator: validator,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.7)),
+        labelStyle: TextStyle(color: AppColors.onSurfaceMuted(brightness)),
+        hintStyle: TextStyle(color: AppColors.onSurfaceFaint(brightness)),
+        prefixIcon: Icon(icon, color: AppColors.onSurfaceMuted(brightness)),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.1),
+        fillColor: AppColors.inputFill(brightness),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          borderSide: BorderSide(color: AppColors.inputBorder(brightness)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

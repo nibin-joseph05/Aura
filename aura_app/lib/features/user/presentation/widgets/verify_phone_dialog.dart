@@ -214,13 +214,16 @@ class _VerifyPhoneDialogState extends ConsumerState<VerifyPhoneDialog> {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
       padding: EdgeInsets.only(bottom: bottomPadding),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1A2E),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: brightness == Brightness.dark
+            ? const Color(0xFF1A1A2E)
+            : Colors.white,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: SafeArea(
         top: false,
@@ -236,7 +239,7 @@ class _VerifyPhoneDialogState extends ConsumerState<VerifyPhoneDialog> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.containerBorder(brightness),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -247,10 +250,10 @@ class _VerifyPhoneDialogState extends ConsumerState<VerifyPhoneDialog> {
                 size: 40,
               ),
               SizedBox(height: responsive.h(1.5)),
-              const Text(
+              Text(
                 'Verify Phone',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.onSurface(brightness),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -259,7 +262,10 @@ class _VerifyPhoneDialogState extends ConsumerState<VerifyPhoneDialog> {
               Text(
                 'A 6-digit OTP has been sent to\n${widget.phone}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                style: TextStyle(
+                  color: AppColors.onSurfaceMuted(brightness),
+                  fontSize: 13,
+                ),
               ),
               SizedBox(height: responsive.h(3)),
               if (_isLoading && !_codeSent)
@@ -334,7 +340,7 @@ class _VerifyPhoneDialogState extends ConsumerState<VerifyPhoneDialog> {
                         : 'Resend OTP',
                     style: TextStyle(
                       color: _resendSeconds > 0
-                          ? Colors.white38
+                          ? AppColors.onSurfaceFaint(brightness)
                           : AppColors.accent,
                       fontSize: 13,
                     ),

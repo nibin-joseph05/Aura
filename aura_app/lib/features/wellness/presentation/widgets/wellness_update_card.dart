@@ -56,14 +56,15 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return Container(
       margin: EdgeInsets.only(bottom: responsive.h(2)),
       padding: EdgeInsets.all(responsive.w(4)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -88,8 +89,8 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
                       _update.userName?.isNotEmpty == true
                           ? _update.userName![0].toUpperCase()
                           : '?',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.onSurface(brightness),
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -110,8 +111,8 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
                     children: [
                       Text(
                         _update.userName ?? 'Anonymous',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: AppColors.onSurface(brightness),
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -119,7 +120,7 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
                       Text(
                         _formatTime(_update.createdAt),
                         style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
+                          color: AppColors.onSurfaceMuted(brightness),
                           fontSize: 12,
                         ),
                       ),
@@ -133,12 +134,18 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: AppColors.iconButtonFill(brightness),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.iconButtonBorder(brightness),
+                  ),
                 ),
                 child: Text(
                   '${_update.category.emoji} ${_update.category.displayName}',
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(
+                    color: AppColors.onSurfaceMuted(brightness),
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
@@ -147,7 +154,7 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
           Text(
             _update.content,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.onSurface(brightness),
               fontSize: 15,
               height: 1.4,
             ),
@@ -178,14 +185,14 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
                           : Icons.favorite_border,
                       color: _update.likedByCurrentUser
                           ? Colors.red
-                          : Colors.white.withValues(alpha: 0.7),
+                          : AppColors.onSurfaceMuted(brightness),
                       size: 22,
                     ),
                     SizedBox(width: responsive.w(1)),
                     Text(
                       '${_update.likesCount}',
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: AppColors.onSurfaceMuted(brightness),
                         fontSize: 14,
                       ),
                     ),
@@ -197,14 +204,14 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard> {
                 children: [
                   Icon(
                     Icons.chat_bubble_outline_rounded,
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: AppColors.onSurfaceMuted(brightness),
                     size: 20,
                   ),
                   SizedBox(width: responsive.w(1)),
                   Text(
                     '${_update.commentsCount}',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
+                      color: AppColors.onSurfaceMuted(brightness),
                       fontSize: 14,
                     ),
                   ),

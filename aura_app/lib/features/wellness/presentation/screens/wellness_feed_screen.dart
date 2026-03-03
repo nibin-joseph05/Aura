@@ -17,12 +17,13 @@ class WellnessFeedScreen extends ConsumerWidget {
     final responsive = Responsive.of(context);
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final feedAsync = ref.watch(wellnessFeedProvider(selectedCategory));
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -31,7 +32,7 @@ class WellnessFeedScreen extends ConsumerWidget {
           child: Column(
             children: [
               _buildHeader(context, responsive),
-              _buildCategoryFilter(ref, responsive, selectedCategory),
+              _buildCategoryFilter(context, ref, responsive, selectedCategory),
               Expanded(
                 child: feedAsync.when(
                   data: (updates) {
@@ -58,32 +59,32 @@ class WellnessFeedScreen extends ConsumerWidget {
                       ),
                     );
                   },
-                  loading: () => const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
+                  loading: () => Center(
+                    child: CircularProgressIndicator(color: AppColors.accent),
                   ),
                   error: (e, _) => Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.error_outline,
-                          color: Colors.white70,
+                          color: AppColors.onSurfaceMuted(brightness),
                           size: 48,
                         ),
                         SizedBox(height: responsive.h(2)),
                         Text(
                           'Failed to load feed',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: AppColors.onSurfaceMuted(brightness),
                           ),
                         ),
                         TextButton(
                           onPressed: () => ref.invalidate(
                             wellnessFeedProvider(selectedCategory),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Retry',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(color: AppColors.accent),
                           ),
                         ),
                       ],
@@ -108,6 +109,7 @@ class WellnessFeedScreen extends ConsumerWidget {
   }
 
   Widget _buildCategoryFilter(
+    BuildContext context,
     WidgetRef ref,
     Responsive responsive,
     WellnessCategory? selected,
@@ -118,9 +120,10 @@ class WellnessFeedScreen extends ConsumerWidget {
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: responsive.w(4)),
         children: [
-          _buildFilterChip(ref, null, 'All', selected == null),
+          _buildFilterChip(context, ref, null, 'All', selected == null),
           ...WellnessCategory.values.map(
             (cat) => _buildFilterChip(
+              context,
               ref,
               cat,
               '${cat.emoji} ${cat.displayName}',
@@ -133,11 +136,13 @@ class WellnessFeedScreen extends ConsumerWidget {
   }
 
   Widget _buildFilterChip(
+    BuildContext context,
     WidgetRef ref,
     WellnessCategory? category,
     String label,
     bool isSelected,
   ) {
+    final brightness = Theme.of(context).brightness;
     return Padding(
       padding: const EdgeInsets.only(right: 8),
       child: GestureDetector(
@@ -147,14 +152,21 @@ class WellnessFeedScreen extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.2),
+                ? AppColors.accent
+                : AppColors.iconButtonFill(brightness),
             borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected
+                  ? AppColors.accent
+                  : AppColors.iconButtonBorder(brightness),
+            ),
           ),
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? AppColors.primary : Colors.white,
+              color: isSelected
+                  ? Colors.white
+                  : AppColors.onSurfaceMuted(brightness),
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/app_config.dart';
 import '../../../../core/constants/asset_constants.dart';
 import '../../../../core/routes/app_routes.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../../notification/presentation/providers/notification_provider.dart';
 import '../../../user/presentation/providers/profile_image_provider.dart';
@@ -37,6 +38,7 @@ class HomeHeader extends ConsumerWidget {
     final userState = ref.watch(userProvider);
     final imgState = ref.watch(profileImageProvider);
     final user = userState.user;
+    final brightness = Theme.of(context).brightness;
 
     final String? rawPath = imgState.imageUrl ?? user?.profileImageUrl;
     final profileImageUrl = _buildFullImageUrl(
@@ -73,7 +75,7 @@ class HomeHeader extends ConsumerWidget {
                     Text(
                       'Hi, $firstName',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.onSurface(brightness),
                         fontSize: responsive.isTablet ? 24 : 20,
                         fontWeight: FontWeight.bold,
                       ),
@@ -81,7 +83,7 @@ class HomeHeader extends ConsumerWidget {
                     Text(
                       'Welcome to Aura',
                       style: TextStyle(
-                        color: Colors.white70,
+                        color: AppColors.onSurfaceMuted(brightness),
                         fontSize: responsive.isTablet ? 14 : 12,
                       ),
                     ),
@@ -92,12 +94,14 @@ class HomeHeader extends ConsumerWidget {
                 icon: Icons.chat_bubble_outline_rounded,
                 onTap: () => Navigator.pushNamed(context, '/chat'),
                 responsive: responsive,
+                brightness: brightness,
               ),
               SizedBox(width: responsive.w(1.5)),
               _buildNotificationIcon(
                 onTap: () => Navigator.pushNamed(context, '/notifications'),
                 responsive: responsive,
                 unreadCount: unreadCount,
+                brightness: brightness,
               ),
               SizedBox(width: responsive.w(2)),
               GestureDetector(
@@ -106,7 +110,7 @@ class HomeHeader extends ConsumerWidget {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: AppColors.iconButtonBorder(brightness),
                       width: 2,
                     ),
                     boxShadow: [
@@ -129,7 +133,9 @@ class HomeHeader extends ConsumerWidget {
                                   (context, child, loadingProgress) {
                                     if (loadingProgress == null) return child;
                                     return Container(
-                                      color: Colors.white24,
+                                      color: AppColors.iconButtonFill(
+                                        brightness,
+                                      ),
                                       child: const Center(
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
@@ -139,9 +145,9 @@ class HomeHeader extends ConsumerWidget {
                                     );
                                   },
                               errorBuilder: (_, __, ___) =>
-                                  _buildPlaceholder(responsive),
+                                  _buildPlaceholder(responsive, brightness),
                             )
-                          : _buildPlaceholder(responsive),
+                          : _buildPlaceholder(responsive, brightness),
                     ),
                   ),
                 ),
@@ -155,10 +161,10 @@ class HomeHeader extends ConsumerWidget {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Colors.white.withValues(alpha: 0.0),
-                Colors.white.withValues(alpha: 0.3),
-                Colors.white.withValues(alpha: 0.3),
-                Colors.white.withValues(alpha: 0.0),
+                AppColors.dividerColor(brightness).withValues(alpha: 0.0),
+                AppColors.dividerColor(brightness),
+                AppColors.dividerColor(brightness),
+                AppColors.dividerColor(brightness).withValues(alpha: 0.0),
               ],
               stops: const [0.0, 0.2, 0.8, 1.0],
             ),
@@ -168,13 +174,13 @@ class HomeHeader extends ConsumerWidget {
     );
   }
 
-  Widget _buildPlaceholder(Responsive responsive) {
+  Widget _buildPlaceholder(Responsive responsive, Brightness brightness) {
     return Container(
-      color: Colors.white24,
+      color: AppColors.iconButtonFill(brightness),
       child: Icon(
         Icons.person,
         size: responsive.isTablet ? 24 : 20,
-        color: Colors.white,
+        color: AppColors.onSurfaceMuted(brightness),
       ),
     );
   }
@@ -183,6 +189,7 @@ class HomeHeader extends ConsumerWidget {
     required IconData icon,
     required VoidCallback onTap,
     required Responsive responsive,
+    required Brightness brightness,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -191,12 +198,12 @@ class HomeHeader extends ConsumerWidget {
         height: responsive.isTablet ? 40 : 34,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: 0.08),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+          color: AppColors.iconButtonFill(brightness),
+          border: Border.all(color: AppColors.iconButtonBorder(brightness)),
         ),
         child: Icon(
           icon,
-          color: Colors.white,
+          color: AppColors.onSurface(brightness),
           size: responsive.isTablet ? 20 : 17,
         ),
       ),
@@ -207,6 +214,7 @@ class HomeHeader extends ConsumerWidget {
     required VoidCallback onTap,
     required Responsive responsive,
     required int unreadCount,
+    required Brightness brightness,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -218,12 +226,12 @@ class HomeHeader extends ConsumerWidget {
             height: responsive.isTablet ? 40 : 34,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withValues(alpha: 0.08),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+              color: AppColors.iconButtonFill(brightness),
+              border: Border.all(color: AppColors.iconButtonBorder(brightness)),
             ),
             child: Icon(
               Icons.notifications_outlined,
-              color: Colors.white,
+              color: AppColors.onSurface(brightness),
               size: responsive.isTablet ? 20 : 17,
             ),
           ),

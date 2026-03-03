@@ -10,12 +10,13 @@ class HelpFaqScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -32,36 +33,42 @@ class HelpFaqScreen extends StatelessWidget {
                     children: [
                       SizedBox(height: responsive.h(2)),
                       _buildFaqItem(
+                        context,
                         responsive,
                         question: 'How do I trigger an SOS alert?',
                         answer:
                             'From the home screen, tap the SOS button in the center of the navigation bar. Long-press to start the 5-second countdown. Your location will be sent to all trusted contacts.',
                       ),
                       _buildFaqItem(
+                        context,
                         responsive,
                         question: 'How do I add trusted contacts?',
                         answer:
                             'Go to My Account → Emergency Contacts → tap the + icon to add a new contact. You can also import contacts from your phone.',
                       ),
                       _buildFaqItem(
+                        context,
                         responsive,
                         question: 'Does the app work offline?',
                         answer:
                             'Yes! Aura uses offline-first architecture. Your data is stored locally and synced when you\'re back online. Pending actions are queued automatically.',
                       ),
                       _buildFaqItem(
+                        context,
                         responsive,
                         question: 'How do I create a wellness post?',
                         answer:
                             'Tap the "Post" button on home or go to Feed → tap the + icon. Select a category, write your content, and submit. Posts are reviewed before appearing publicly.',
                       ),
                       _buildFaqItem(
+                        context,
                         responsive,
                         question: 'Can I change the app theme?',
                         answer:
                             'Yes! Go to My Account → Appearance and choose between Light, Dark, or System (follows your device settings).',
                       ),
                       _buildFaqItem(
+                        context,
                         responsive,
                         question: 'How is my data protected?',
                         answer:
@@ -82,16 +89,18 @@ class HelpFaqScreen extends StatelessWidget {
   }
 
   Widget _buildFaqItem(
+    BuildContext context,
     Responsive responsive, {
     required String question,
     required String answer,
   }) {
+    final brightness = Theme.of(context).brightness;
     return Container(
       margin: EdgeInsets.only(bottom: responsive.h(1.5)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: ExpansionTile(
         tilePadding: EdgeInsets.symmetric(horizontal: responsive.w(4)),
@@ -101,12 +110,12 @@ class HelpFaqScreen extends StatelessWidget {
           responsive.w(4),
           responsive.h(2),
         ),
-        iconColor: Colors.white54,
-        collapsedIconColor: Colors.white38,
+        iconColor: AppColors.onSurfaceMuted(brightness),
+        collapsedIconColor: AppColors.onSurfaceFaint(brightness),
         title: Text(
           question,
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.onSurface(brightness),
             fontSize: responsive.isTablet ? 15 : 14,
             fontWeight: FontWeight.w500,
           ),
@@ -115,7 +124,7 @@ class HelpFaqScreen extends StatelessWidget {
           Text(
             answer,
             style: TextStyle(
-              color: Colors.white70,
+              color: AppColors.onSurfaceMuted(brightness),
               fontSize: responsive.isTablet ? 14 : 13,
               height: 1.5,
             ),
@@ -126,12 +135,13 @@ class HelpFaqScreen extends StatelessWidget {
   }
 
   Widget _buildContactSupport(Responsive responsive, BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Container(
       padding: EdgeInsets.all(responsive.w(5)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: Column(
         children: [
@@ -144,7 +154,7 @@ class HelpFaqScreen extends StatelessWidget {
           Text(
             'Need more help?',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.onSurface(brightness),
               fontSize: responsive.isTablet ? 18 : 16,
               fontWeight: FontWeight.bold,
             ),
@@ -153,7 +163,7 @@ class HelpFaqScreen extends StatelessWidget {
           Text(
             'Our support team is here for you',
             style: TextStyle(
-              color: Colors.white54,
+              color: AppColors.onSurfaceMuted(brightness),
               fontSize: responsive.isTablet ? 14 : 12,
             ),
           ),

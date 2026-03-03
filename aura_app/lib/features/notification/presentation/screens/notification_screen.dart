@@ -74,12 +74,13 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -88,7 +89,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
           child: Column(
             children: [
               const AppHeader(title: 'Notifications'),
-              Expanded(child: _buildBody(responsive)),
+              Expanded(child: _buildBody(responsive, brightness)),
             ],
           ),
         ),
@@ -96,7 +97,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     );
   }
 
-  Widget _buildBody(Responsive responsive) {
+  Widget _buildBody(Responsive responsive, Brightness brightness) {
     if (_isLoading && _notifications.isEmpty) {
       return const Center(child: GhostRunning());
     }
@@ -111,8 +112,10 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
 
     return RefreshIndicator(
       onRefresh: () => _loadNotifications(refresh: true),
-      color: Colors.white,
-      backgroundColor: AppColors.splashMedium,
+      color: brightness == Brightness.dark ? Colors.white : AppColors.primary,
+      backgroundColor: brightness == Brightness.dark
+          ? AppColors.splashMedium
+          : Colors.white,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
@@ -135,7 +138,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                   height: 24,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white54,
+                    color: AppColors.accent,
                   ),
                 ),
               ),
@@ -146,6 +149,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
             _notifications[index],
             responsive,
             index,
+            brightness,
           );
         },
       ),
@@ -156,6 +160,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
     Map<String, dynamic> notification,
     Responsive responsive,
     int index,
+    Brightness brightness,
   ) {
     final title = notification['title'] ?? '';
     final body = notification['body'] ?? '';
@@ -229,9 +234,9 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
           margin: EdgeInsets.only(bottom: responsive.h(1)),
           padding: EdgeInsets.all(responsive.w(4)),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: AppColors.containerFill(brightness),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(color: AppColors.containerBorder(brightness)),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +258,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                     Text(
                       title,
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.onSurface(brightness),
                         fontSize: responsive.isTablet ? 15 : 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -263,7 +268,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                       Text(
                         body,
                         style: TextStyle(
-                          color: Colors.white70,
+                          color: AppColors.onSurfaceMuted(brightness),
                           fontSize: responsive.isTablet ? 13 : 11,
                           height: 1.3,
                         ),
@@ -276,7 +281,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen> {
                       Text(
                         _formatTime(createdAt.toString()),
                         style: TextStyle(
-                          color: Colors.white38,
+                          color: AppColors.onSurfaceFaint(brightness),
                           fontSize: responsive.isTablet ? 11 : 9,
                         ),
                       ),

@@ -28,12 +28,13 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(alarmProvider);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(Theme.of(context).brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -61,7 +62,7 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                         onRefresh: () async {
                           await ref.read(alarmProvider.notifier).init();
                         },
-                        color: Colors.white,
+                        color: AppColors.onSurface(brightness),
                         backgroundColor: AppColors.primary,
                         child: state.alarms.isEmpty
                             ? const EmptyStateWidget(
@@ -120,11 +121,14 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
   }
 
   void _confirmDelete(BuildContext context, String alarmId) {
+    final brightness = Theme.of(context).brightness;
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.6),
       builder: (ctx) => Dialog(
-        backgroundColor: const Color(0xFF1B2B3B),
+        backgroundColor: brightness == Brightness.dark
+            ? const Color(0xFF1B2B3B)
+            : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -145,10 +149,10 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Delete Alarm',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.onSurface(brightness),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -158,7 +162,7 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                 'Are you sure you want to delete this alarm? This cannot be undone.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: AppColors.onSurfaceMuted(brightness),
                   fontSize: 14,
                   height: 1.5,
                 ),
@@ -170,9 +174,9 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(ctx),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white.withValues(alpha: 0.7),
+                        foregroundColor: AppColors.onSurfaceMuted(brightness),
                         side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: AppColors.containerBorder(brightness),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -241,11 +245,14 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
   }
 
   void _showPermissionDialog(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     showDialog(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.6),
       builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF1B2B3B),
+        backgroundColor: brightness == Brightness.dark
+            ? const Color(0xFF1B2B3B)
+            : Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -258,10 +265,10 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                 size: 48,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Permission Required',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.onSurface(brightness),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -271,7 +278,7 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                 'Alarms need the exact alarm permission to work reliably. Please grant this permission in settings.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: AppColors.onSurfaceMuted(brightness),
                   fontSize: 14,
                   height: 1.5,
                 ),
@@ -283,9 +290,9 @@ class _AlarmListScreenState extends ConsumerState<AlarmListScreen> {
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white.withValues(alpha: 0.7),
+                        foregroundColor: AppColors.onSurfaceMuted(brightness),
                         side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: AppColors.containerBorder(brightness),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

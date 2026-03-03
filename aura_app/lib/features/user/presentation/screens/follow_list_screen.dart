@@ -63,12 +63,13 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(Theme.of(context).brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -77,7 +78,7 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
           child: Column(
             children: [
               AppHeader(title: widget.isFollowers ? 'Followers' : 'Following'),
-              Expanded(child: _buildBody(responsive)),
+              Expanded(child: _buildBody(responsive, brightness)),
             ],
           ),
         ),
@@ -85,7 +86,7 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
     );
   }
 
-  Widget _buildBody(Responsive responsive) {
+  Widget _buildBody(Responsive responsive, Brightness brightness) {
     if (_isLoading && _items.isEmpty) {
       return const Center(child: GhostRunning());
     }
@@ -110,15 +111,15 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
       itemBuilder: (context, index) {
         if (index == _items.length) {
           _loadData();
-          return const Padding(
-            padding: EdgeInsets.all(16),
+          return Padding(
+            padding: const EdgeInsets.all(16),
             child: Center(
               child: SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  color: Colors.white54,
+                  color: AppColors.onSurfaceMuted(brightness),
                 ),
               ),
             ),
@@ -126,7 +127,7 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
         }
 
         final item = _items[index];
-        return _buildUserTile(item, responsive, index);
+        return _buildUserTile(item, responsive, index, brightness);
       },
     );
   }
@@ -135,6 +136,7 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
     Map<String, dynamic> item,
     Responsive responsive,
     int index,
+    Brightness brightness,
   ) {
     final userId = widget.isFollowers
         ? item['followerId'] ?? ''
@@ -166,9 +168,9 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
             vertical: responsive.h(1.2),
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.07),
+            color: AppColors.containerFill(brightness),
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(color: AppColors.containerBorder(brightness)),
           ),
           child: Row(
             children: [
@@ -178,16 +180,16 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.2),
+                    color: AppColors.containerBorder(brightness),
                     width: 2,
                   ),
                 ),
                 child: ClipOval(
                   child: Container(
-                    color: Colors.white24,
-                    child: const Icon(
+                    color: AppColors.iconButtonFill(brightness),
+                    child: Icon(
                       Icons.person,
-                      color: Colors.white,
+                      color: AppColors.onSurfaceFaint(brightness),
                       size: 22,
                     ),
                   ),
@@ -198,7 +200,7 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
                 child: Text(
                   userId,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.onSurface(brightness),
                     fontSize: responsive.isTablet ? 15 : 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -207,7 +209,7 @@ class _FollowListScreenState extends ConsumerState<FollowListScreen> {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: Colors.white38,
+                color: AppColors.onSurfaceFaint(brightness),
                 size: responsive.isTablet ? 22 : 18,
               ),
             ],

@@ -62,9 +62,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         body: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: AppColors.primaryGradient,
+              colors: AppColors.backgroundGradient(
+                Theme.of(context).brightness,
+              ),
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -188,63 +190,80 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void _showMessageActions(MessageModel message) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 36,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.copy_rounded, color: Colors.white70),
-                title: const Text(
-                  'Copy',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: message.content));
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Message copied'),
-                      duration: Duration(seconds: 1),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.reply_rounded, color: Colors.white70),
-                title: const Text(
-                  'Reply',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () {
-                  Navigator.pop(ctx);
-                  final preview = message.content.length > 30
-                      ? '${message.content.substring(0, 30)}...'
-                      : message.content;
-                  _controller.text = '> $preview\n';
-                  _controller.selection = TextSelection.fromPosition(
-                    TextPosition(offset: _controller.text.length),
-                  );
-                },
-              ),
-            ],
+      builder: (ctx) {
+        final br = Theme.of(ctx).brightness;
+        return Container(
+          decoration: BoxDecoration(
+            color: br == Brightness.dark
+                ? const Color(0xFF1A1A2E)
+                : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           ),
-        ),
-      ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: AppColors.onSurfaceFaint(br),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.copy_rounded,
+                      color: AppColors.onSurfaceMuted(br),
+                    ),
+                    title: Text(
+                      'Copy',
+                      style: TextStyle(color: AppColors.onSurface(br)),
+                    ),
+                    onTap: () {
+                      Clipboard.setData(ClipboardData(text: message.content));
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Message copied'),
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.reply_rounded,
+                      color: AppColors.onSurfaceMuted(br),
+                    ),
+                    title: Text(
+                      'Reply',
+                      style: TextStyle(color: AppColors.onSurface(br)),
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      final preview = message.content.length > 30
+                          ? '${message.content.substring(0, 30)}...'
+                          : message.content;
+                      _controller.text = '> $preview\n';
+                      _controller.selection = TextSelection.fromPosition(
+                        TextPosition(offset: _controller.text.length),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

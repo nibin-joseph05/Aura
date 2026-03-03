@@ -48,12 +48,13 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
     }
 
     final liveState = ref.watch(liveLocationProvider(user.uid));
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(Theme.of(context).brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -66,8 +67,8 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: liveState.isSharing
-                      ? _buildActiveSession(liveState, user.uid)
-                      : _buildStartSession(user.uid),
+                      ? _buildActiveSession(liveState, user.uid, brightness)
+                      : _buildStartSession(user.uid, brightness),
                 ),
               ),
             ],
@@ -77,7 +78,7 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
     );
   }
 
-  Widget _buildStartSession(String userId) {
+  Widget _buildStartSession(String userId, Brightness brightness) {
     final contacts = ref.watch(trustedContactsProvider(userId));
 
     return Column(
@@ -86,9 +87,9 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: AppColors.containerFill(brightness),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+            border: Border.all(color: AppColors.containerBorder(brightness)),
           ),
           child: Column(
             children: [
@@ -98,10 +99,10 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
                 color: AppColors.accent,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Share Live Location',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.onSurface(brightness),
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -111,7 +112,7 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
                 'Your trusted contacts will see your real-time location',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: AppColors.onSurfaceMuted(brightness),
                   fontSize: 14,
                 ),
               ),
@@ -122,7 +123,7 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
         Text(
           'Duration',
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
+            color: AppColors.onSurfaceMuted(brightness),
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
@@ -142,12 +143,12 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
                     decoration: BoxDecoration(
                       color: isSelected
                           ? AppColors.accent.withValues(alpha: 0.3)
-                          : Colors.white.withValues(alpha: 0.08),
+                          : AppColors.iconButtonFill(brightness),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isSelected
                             ? AppColors.accent
-                            : Colors.white.withValues(alpha: 0.15),
+                            : AppColors.iconButtonBorder(brightness),
                         width: isSelected ? 2 : 1,
                       ),
                     ),
@@ -155,7 +156,9 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
                       d['label'] as String,
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.white70,
+                        color: isSelected
+                            ? AppColors.onSurface(brightness)
+                            : AppColors.onSurfaceMuted(brightness),
                         fontWeight: isSelected
                             ? FontWeight.bold
                             : FontWeight.normal,
@@ -178,14 +181,17 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
                   color: AppColors.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.warning_amber, color: AppColors.warning),
-                    SizedBox(width: 12),
+                    const Icon(Icons.warning_amber, color: AppColors.warning),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         'Add trusted contacts in SOS Settings first',
-                        style: TextStyle(color: Colors.white, fontSize: 13),
+                        style: TextStyle(
+                          color: AppColors.onSurfaceMuted(brightness),
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
@@ -195,7 +201,7 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
             return Text(
               '${contactList.length} trusted contact(s) will be notified',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: 13,
               ),
             );
@@ -244,7 +250,11 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
     );
   }
 
-  Widget _buildActiveSession(LiveLocationState liveState, String userId) {
+  Widget _buildActiveSession(
+    LiveLocationState liveState,
+    String userId,
+    Brightness brightness,
+  ) {
     final remaining = liveState.remainingSeconds;
     final minutes = remaining ~/ 60;
     final seconds = remaining % 60;
@@ -266,10 +276,10 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
                 color: AppColors.error,
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'Sharing Live Location',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.onSurface(brightness),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
@@ -295,8 +305,9 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: AppColors.containerFill(brightness),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.containerBorder(brightness)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -304,14 +315,14 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
               Text(
                 'Points tracked',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
+                  color: AppColors.onSurfaceMuted(brightness),
                   fontSize: 14,
                 ),
               ),
               Text(
                 '${liveState.points.length}',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.onSurface(brightness),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -328,8 +339,8 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
               ref.read(liveLocationProvider(userId).notifier).stopSharing();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.15),
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.containerFill(brightness),
+              foregroundColor: AppColors.onSurface(brightness),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),

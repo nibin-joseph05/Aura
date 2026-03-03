@@ -32,12 +32,13 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final state = ref.watch(dailyActivityProvider);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -50,13 +51,13 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                 subtitle: _getFormattedDate(),
                 actions: [_buildSyncButton(state, responsive)],
               ),
-              _buildProgressCard(state, responsive),
+              _buildProgressCard(state, responsive, brightness),
               Expanded(
                 child: state.isLoading
-                    ? _buildLoadingState()
+                    ? _buildLoadingState(brightness)
                     : state.todayActivities.isEmpty
-                    ? _buildEmptyState(responsive)
-                    : _buildActivityList(state, responsive),
+                    ? _buildEmptyState(responsive, brightness)
+                    : _buildActivityList(state, responsive, brightness),
               ),
             ],
           ),
@@ -114,7 +115,11 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
     );
   }
 
-  Widget _buildProgressCard(DailyActivityState state, Responsive responsive) {
+  Widget _buildProgressCard(
+    DailyActivityState state,
+    Responsive responsive,
+    Brightness brightness,
+  ) {
     int totalTarget = 0;
     int totalDone = 0;
     for (final a in state.todayActivities) {
@@ -129,9 +134,9 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
       margin: EdgeInsets.symmetric(horizontal: responsive.w(4)),
       padding: EdgeInsets.all(responsive.space(16)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(responsive.radius(16)),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: Row(
         children: [
@@ -143,14 +148,14 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                 CircularProgressIndicator(
                   value: progress.clamp(0.0, 1.0),
                   strokeWidth: 5,
-                  backgroundColor: Colors.white.withValues(alpha: 0.1),
+                  backgroundColor: AppColors.iconButtonFill(brightness),
                   valueColor: const AlwaysStoppedAnimation(AppColors.success),
                 ),
                 Center(
                   child: Text(
                     '${(progress * 100).toInt().clamp(0, 100)}%',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.onSurface(brightness),
                       fontSize: responsive.text(13),
                       fontWeight: FontWeight.bold,
                     ),
@@ -167,7 +172,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                 Text(
                   'Today\'s Progress',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.onSurface(brightness),
                     fontSize: responsive.text(16),
                     fontWeight: FontWeight.w600,
                   ),
@@ -176,7 +181,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                 Text(
                   '$totalDone of $totalTarget completions',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.6),
+                    color: AppColors.onSurfaceMuted(brightness),
                     fontSize: responsive.text(13),
                   ),
                 ),
@@ -188,15 +193,15 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
+  Widget _buildLoadingState(Brightness brightness) {
+    return Center(
       child: CircularProgressIndicator(
-        valueColor: AlwaysStoppedAnimation(Colors.white),
+        valueColor: AlwaysStoppedAnimation(AppColors.onSurface(brightness)),
       ),
     );
   }
 
-  Widget _buildEmptyState(Responsive responsive) {
+  Widget _buildEmptyState(Responsive responsive, Brightness brightness) {
     return Center(
       child: Padding(
         padding: responsive.horizontal(10),
@@ -212,7 +217,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
             Text(
               'No activities yet',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.onSurface(brightness),
                 fontSize: responsive.text(20),
                 fontWeight: FontWeight.w600,
               ),
@@ -222,7 +227,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
               'Start tracking your daily activities\nby adding your first one!',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: responsive.text(14),
               ),
             ),
@@ -232,7 +237,11 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
     );
   }
 
-  Widget _buildActivityList(DailyActivityState state, Responsive responsive) {
+  Widget _buildActivityList(
+    DailyActivityState state,
+    Responsive responsive,
+    Brightness brightness,
+  ) {
     return ListView.builder(
       padding: EdgeInsets.symmetric(
         horizontal: responsive.w(4),
@@ -241,7 +250,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
       itemCount: state.todayActivities.length,
       itemBuilder: (context, index) {
         final activity = state.todayActivities[index];
-        return _buildActivityCard(activity, responsive);
+        return _buildActivityCard(activity, responsive, brightness);
       },
     );
   }
@@ -249,6 +258,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   Widget _buildActivityCard(
     DailyActivityModel activity,
     Responsive responsive,
+    Brightness brightness,
   ) {
     final isCompleted = activity.isRepeating
         ? activity.isFullyCompleted
@@ -257,14 +267,14 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
     return Container(
       margin: EdgeInsets.only(bottom: responsive.space(10)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: isCompleted ? 0.05 : 0.08),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(responsive.radius(14)),
         border: Border.all(
           color: isCompleted
               ? AppColors.success.withValues(alpha: 0.3)
               : activity.isRepeating && activity.isDueNow
               ? AppColors.accent.withValues(alpha: 0.4)
-              : Colors.white.withValues(alpha: 0.12),
+              : AppColors.containerBorder(brightness),
         ),
       ),
       child: Material(
@@ -301,13 +311,13 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                       Text(
                         activity.title,
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.onSurface(brightness),
                           fontSize: responsive.text(15),
                           fontWeight: FontWeight.w600,
                           decoration: isCompleted
                               ? TextDecoration.lineThrough
                               : null,
-                          decorationColor: Colors.white.withValues(alpha: 0.5),
+                          decorationColor: AppColors.onSurfaceMuted(brightness),
                         ),
                       ),
                       if (activity.description != null) ...[
@@ -315,7 +325,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                         Text(
                           activity.description!,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.5),
+                            color: AppColors.onSurfaceFaint(brightness),
                             fontSize: responsive.text(12),
                           ),
                           maxLines: 1,
@@ -354,7 +364,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                               Text(
                                 _formatInterval(activity.intervalMinutes!),
                                 style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.4),
+                                  color: AppColors.onSurfaceFaint(brightness),
                                   fontSize: responsive.text(10),
                                 ),
                               ),
@@ -386,8 +396,8 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                           ),
                           child: LinearProgressIndicator(
                             value: activity.completionProgress.clamp(0.0, 1.0),
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.1,
+                            backgroundColor: AppColors.iconButtonFill(
+                              brightness,
                             ),
                             valueColor: AlwaysStoppedAnimation(
                               isCompleted
@@ -414,7 +424,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
+                        color: AppColors.containerBorder(brightness),
                         width: 2,
                       ),
                     ),
@@ -560,6 +570,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final selectedType = ref.watch(selectedActivityTypeProvider);
+    final brightness = Theme.of(context).brightness;
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: responsive.space(24)),
@@ -569,7 +580,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
           Text(
             'Activity Type',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
+              color: AppColors.onSurfaceMuted(brightness),
               fontSize: responsive.text(14),
               fontWeight: FontWeight.w500,
             ),
@@ -601,14 +612,14 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? _getActivityColor(type)
-                            : Colors.white.withValues(alpha: 0.1),
+                            : AppColors.iconButtonFill(brightness),
                         borderRadius: BorderRadius.circular(
                           responsive.radius(20),
                         ),
                         border: Border.all(
                           color: isSelected
                               ? _getActivityColor(type)
-                              : Colors.white.withValues(alpha: 0.2),
+                              : AppColors.iconButtonBorder(brightness),
                         ),
                       ),
                       child: Row(
@@ -625,7 +636,9 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                           Text(
                             type,
                             style: TextStyle(
-                              color: Colors.white,
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.onSurfaceMuted(brightness),
                               fontSize: responsive.text(13),
                               fontWeight: isSelected
                                   ? FontWeight.w600
@@ -644,6 +657,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
             label: 'Title',
             hint: 'Enter activity title',
             responsive: responsive,
+            brightness: brightness,
           ),
           SizedBox(height: responsive.space(16)),
           _buildTextField(
@@ -652,9 +666,10 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
             hint: 'Add some details...',
             maxLines: 3,
             responsive: responsive,
+            brightness: brightness,
           ),
           SizedBox(height: responsive.space(20)),
-          _buildRepeatSection(responsive),
+          _buildRepeatSection(responsive, brightness),
           SizedBox(height: responsive.space(24)),
           SizedBox(
             width: double.infinity,
@@ -699,16 +714,16 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
     );
   }
 
-  Widget _buildRepeatSection(Responsive responsive) {
+  Widget _buildRepeatSection(Responsive responsive, Brightness brightness) {
     return Container(
       padding: EdgeInsets.all(responsive.space(16)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(responsive.radius(14)),
         border: Border.all(
           color: _isRepeating
               ? AppColors.accent.withValues(alpha: 0.3)
-              : Colors.white.withValues(alpha: 0.1),
+              : AppColors.containerBorder(brightness),
         ),
       ),
       child: Column(
@@ -721,14 +736,16 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                 children: [
                   Icon(
                     Icons.repeat_rounded,
-                    color: _isRepeating ? AppColors.accent : Colors.white54,
+                    color: _isRepeating
+                        ? AppColors.accent
+                        : AppColors.onSurfaceFaint(brightness),
                     size: responsive.icon(20),
                   ),
                   SizedBox(width: responsive.space(10)),
                   Text(
                     'Repeat Activity',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.onSurface(brightness),
                       fontSize: responsive.text(15),
                       fontWeight: FontWeight.w500,
                     ),
@@ -742,7 +759,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                   if (v && _targetCompletions < 2) _targetCompletions = 2;
                 }),
                 activeColor: AppColors.accent,
-                inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
+                inactiveTrackColor: AppColors.iconButtonFill(brightness),
               ),
             ],
           ),
@@ -751,18 +768,23 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
             Text(
               'How many times?',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: responsive.text(13),
               ),
             ),
             SizedBox(height: responsive.space(8)),
             Row(
               children: [
-                _buildCounterBtn(Icons.remove, () {
-                  if (_targetCompletions > 2) {
-                    setState(() => _targetCompletions--);
-                  }
-                }, responsive),
+                _buildCounterBtn(
+                  Icons.remove,
+                  () {
+                    if (_targetCompletions > 2) {
+                      setState(() => _targetCompletions--);
+                    }
+                  },
+                  responsive,
+                  brightness,
+                ),
                 Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: responsive.space(20),
@@ -770,24 +792,29 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                   child: Text(
                     '$_targetCompletions times',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.onSurface(brightness),
                       fontSize: responsive.text(18),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                _buildCounterBtn(Icons.add, () {
-                  if (_targetCompletions < 20) {
-                    setState(() => _targetCompletions++);
-                  }
-                }, responsive),
+                _buildCounterBtn(
+                  Icons.add,
+                  () {
+                    if (_targetCompletions < 20) {
+                      setState(() => _targetCompletions++);
+                    }
+                  },
+                  responsive,
+                  brightness,
+                ),
               ],
             ),
             SizedBox(height: responsive.space(16)),
             Text(
               'Interval between each',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: responsive.text(13),
               ),
             ),
@@ -801,6 +828,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                     suffix: 'hrs',
                     onChanged: (v) => setState(() => _intervalHours = v),
                     responsive: responsive,
+                    brightness: brightness,
                   ),
                 ),
                 SizedBox(width: responsive.space(12)),
@@ -811,6 +839,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                     suffix: 'min',
                     onChanged: (v) => setState(() => _intervalMinutes = v),
                     responsive: responsive,
+                    brightness: brightness,
                   ),
                 ),
               ],
@@ -819,7 +848,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
             Text(
               'e.g. Drink water every ${_intervalHours}h${_intervalMinutes > 0 ? "${_intervalMinutes}m" : ""}, $_targetCompletions times/day',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.4),
+                color: AppColors.onSurfaceFaint(brightness),
                 fontSize: responsive.text(11),
                 fontStyle: FontStyle.italic,
               ),
@@ -834,17 +863,22 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
     IconData icon,
     VoidCallback onTap,
     Responsive responsive,
+    Brightness brightness,
   ) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(responsive.space(8)),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
+          color: AppColors.iconButtonFill(brightness),
           borderRadius: BorderRadius.circular(responsive.radius(8)),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+          border: Border.all(color: AppColors.iconButtonBorder(brightness)),
         ),
-        child: Icon(icon, color: Colors.white, size: responsive.icon(18)),
+        child: Icon(
+          icon,
+          color: AppColors.onSurface(brightness),
+          size: responsive.icon(18),
+        ),
       ),
     );
   }
@@ -855,20 +889,26 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
     required String suffix,
     required ValueChanged<int> onChanged,
     required Responsive responsive,
+    required Brightness brightness,
   }) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: responsive.space(12)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: AppColors.inputFill(brightness),
         borderRadius: BorderRadius.circular(responsive.radius(10)),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.inputBorder(brightness)),
       ),
       child: DropdownButton<int>(
         value: value,
         isExpanded: true,
         underline: const SizedBox(),
-        dropdownColor: const Color(0xFF1A2A3F),
-        style: TextStyle(color: Colors.white, fontSize: responsive.text(14)),
+        dropdownColor: brightness == Brightness.dark
+            ? const Color(0xFF1A2A3F)
+            : Colors.white,
+        style: TextStyle(
+          color: AppColors.onSurface(brightness),
+          fontSize: responsive.text(14),
+        ),
         items: items
             .map((v) => DropdownMenuItem(value: v, child: Text('$v $suffix')))
             .toList(),
@@ -884,6 +924,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
     required String label,
     required String hint,
     required Responsive responsive,
+    required Brightness brightness,
     int maxLines = 1,
   }) {
     return Column(
@@ -892,7 +933,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.8),
+            color: AppColors.onSurfaceMuted(brightness),
             fontSize: responsive.text(14),
             fontWeight: FontWeight.w500,
           ),
@@ -901,23 +942,22 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
         TextField(
           controller: controller,
           maxLines: maxLines,
-          style: TextStyle(color: Colors.white, fontSize: responsive.text(15)),
+          style: TextStyle(
+            color: AppColors.onSurface(brightness),
+            fontSize: responsive.text(15),
+          ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+            hintStyle: TextStyle(color: AppColors.onSurfaceFaint(brightness)),
             filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.1),
+            fillColor: AppColors.inputFill(brightness),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(responsive.radius(12)),
-              borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
+              borderSide: BorderSide(color: AppColors.inputBorder(brightness)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(responsive.radius(12)),
-              borderSide: BorderSide(
-                color: Colors.white.withValues(alpha: 0.2),
-              ),
+              borderSide: BorderSide(color: AppColors.inputBorder(brightness)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(responsive.radius(12)),

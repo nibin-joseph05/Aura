@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_dimensions.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 
@@ -22,6 +23,7 @@ class PhoneNumberInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final fontSize = responsive.isTablet ? 18.0 : 16.0;
     final radius = responsive.radius(AppDimensions.radiusL);
     final showBadge = showVerifiedBadge && readOnly;
@@ -35,26 +37,35 @@ class PhoneNumberInput extends StatelessWidget {
             TextFormField(
               controller: controller,
               keyboardType: TextInputType.phone,
-              cursorColor: Colors.white,
+              cursorColor: AppColors.onSurface(brightness),
               readOnly: readOnly,
               onChanged: onChanged,
-              style: TextStyle(color: Colors.white, fontSize: fontSize),
+              style: TextStyle(
+                color: AppColors.onSurface(brightness),
+                fontSize: fontSize,
+              ),
               maxLength: 10,
               decoration: InputDecoration(
                 counterText: "",
                 hintText: "Mobile Number",
-                hintStyle: TextStyle(color: Colors.white54, fontSize: fontSize),
+                hintStyle: TextStyle(
+                  color: AppColors.onSurfaceFaint(brightness),
+                  fontSize: fontSize,
+                ),
                 prefixIcon: Padding(
                   padding: EdgeInsets.only(left: responsive.w(3)),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.phone_outlined, color: Colors.white70),
+                      Icon(
+                        Icons.phone_outlined,
+                        color: AppColors.onSurfaceMuted(brightness),
+                      ),
                       SizedBox(width: responsive.w(2)),
                       Text(
                         "+91",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.onSurface(brightness),
                           fontWeight: FontWeight.w500,
                           fontSize: fontSize,
                         ),
@@ -68,7 +79,7 @@ class PhoneNumberInput extends StatelessWidget {
                   minHeight: 0,
                 ),
                 filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.12),
+                fillColor: AppColors.inputFill(brightness),
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: responsive.w(4),
                   vertical: responsive.h(2.1),
@@ -76,7 +87,7 @@ class PhoneNumberInput extends StatelessWidget {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(radius),
                   borderSide: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.25),
+                    color: AppColors.inputBorder(brightness),
                   ),
                 ),
                 enabledBorder: OutlineInputBorder(
@@ -84,7 +95,7 @@ class PhoneNumberInput extends StatelessWidget {
                   borderSide: BorderSide(
                     color: showBadge
                         ? Colors.greenAccent.withValues(alpha: 0.5)
-                        : Colors.white.withValues(alpha: 0.25),
+                        : AppColors.inputBorder(brightness),
                   ),
                 ),
                 focusedBorder: OutlineInputBorder(

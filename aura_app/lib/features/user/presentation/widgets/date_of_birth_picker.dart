@@ -49,6 +49,7 @@ class DateOfBirthPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     final fontSize = responsive.isTablet ? 18.0 : 16.0;
     final radius = responsive.radius(AppDimensions.radiusL);
 
@@ -63,19 +64,21 @@ class DateOfBirthPicker extends StatelessWidget {
               vertical: responsive.h(2.1),
             ),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
+              color: AppColors.inputFill(brightness),
               borderRadius: BorderRadius.circular(radius),
               border: Border.all(
                 color: errorText != null
                     ? Colors.redAccent
-                    : Colors.white.withValues(alpha: 0.25),
+                    : AppColors.inputBorder(brightness),
               ),
             ),
             child: Row(
               children: [
                 Icon(
                   Icons.cake_outlined,
-                  color: errorText != null ? Colors.redAccent : Colors.white70,
+                  color: errorText != null
+                      ? Colors.redAccent
+                      : AppColors.onSurfaceMuted(brightness),
                 ),
                 SizedBox(width: responsive.w(3)),
                 Expanded(
@@ -83,15 +86,15 @@ class DateOfBirthPicker extends StatelessWidget {
                     controller.text.isEmpty ? 'Date of Birth' : controller.text,
                     style: TextStyle(
                       color: controller.text.isEmpty
-                          ? Colors.white54
-                          : Colors.white,
+                          ? AppColors.onSurfaceFaint(brightness)
+                          : AppColors.onSurface(brightness),
                       fontSize: fontSize,
                     ),
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.calendar_today,
-                  color: Colors.white70,
+                  color: AppColors.onSurfaceMuted(brightness),
                   size: 20,
                 ),
               ],

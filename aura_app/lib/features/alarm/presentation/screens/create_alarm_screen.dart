@@ -106,11 +106,12 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final brightness = Theme.of(context).brightness;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(Theme.of(context).brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -162,22 +163,23 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                         _buildCard(
                           icon: Icons.label_outline_rounded,
                           title: 'Label',
+                          brightness: brightness,
                           children: [
                             const SizedBox(height: 10),
                             TextField(
                               controller: _labelController,
                               onChanged: (v) => _label = v,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: AppColors.onSurface(brightness),
                                 fontSize: 15,
                               ),
                               decoration: InputDecoration(
                                 hintText: 'e.g. Wake up, Meeting...',
                                 hintStyle: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.35),
+                                  color: AppColors.onSurfaceFaint(brightness),
                                 ),
                                 filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.07),
+                                fillColor: AppColors.inputFill(brightness),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                   borderSide: BorderSide.none,
@@ -194,6 +196,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                         _buildCard(
                           icon: Icons.repeat_rounded,
                           title: 'Repeat',
+                          brightness: brightness,
                           children: [
                             const SizedBox(height: 12),
                             Row(
@@ -217,15 +220,15 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                     decoration: BoxDecoration(
                                       color: isSelected
                                           ? AppColors.accent
-                                          : Colors.white.withValues(
-                                              alpha: 0.08,
+                                          : AppColors.iconButtonFill(
+                                              brightness,
                                             ),
                                       borderRadius: BorderRadius.circular(10),
                                       border: Border.all(
                                         color: isSelected
                                             ? AppColors.accent
-                                            : Colors.white.withValues(
-                                                alpha: 0.12,
+                                            : AppColors.iconButtonBorder(
+                                                brightness,
                                               ),
                                       ),
                                     ),
@@ -235,8 +238,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                         style: TextStyle(
                                           color: isSelected
                                               ? Colors.white
-                                              : Colors.white.withValues(
-                                                  alpha: 0.5,
+                                              : AppColors.onSurfaceFaint(
+                                                  brightness,
                                                 ),
                                           fontWeight: isSelected
                                               ? FontWeight.w700
@@ -267,6 +270,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                         _buildCard(
                           icon: Icons.music_note_rounded,
                           title: 'Alarm Tone',
+                          brightness: brightness,
                           children: [
                             const SizedBox(height: 10),
                             Container(
@@ -275,10 +279,10 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                 vertical: 12,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.07),
+                                color: AppColors.containerFill(brightness),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: AppColors.containerBorder(brightness),
                                 ),
                               ),
                               child: Row(
@@ -292,8 +296,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                   Expanded(
                                     child: Text(
                                       _toneName,
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: AppColors.onSurface(brightness),
                                         fontSize: 15,
                                       ),
                                       overflow: TextOverflow.ellipsis,
@@ -310,6 +314,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                     icon: Icons.tune_rounded,
                                     label: 'System Tones',
                                     onTap: _showSystemTonePicker,
+                                    brightness: brightness,
                                   ),
                                 ),
                                 const SizedBox(width: 10),
@@ -318,6 +323,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                     icon: Icons.folder_open_rounded,
                                     label: 'Custom Tone',
                                     onTap: _pickCustomTone,
+                                    brightness: brightness,
                                   ),
                                 ),
                                 const SizedBox(width: 10),
@@ -359,6 +365,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                         _buildCard(
                           icon: Icons.lock_clock_rounded,
                           title: 'Dismiss Method',
+                          brightness: brightness,
                           children: [
                             const SizedBox(height: 6),
                             _buildDismissOption(
@@ -366,12 +373,14 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                               'Button Dismiss',
                               'Simple one-tap dismiss',
                               Icons.touch_app_rounded,
+                              brightness,
                             ),
                             _buildDismissOption(
                               'math',
                               'Math Challenge',
                               'Solve a problem to dismiss',
                               Icons.calculate_rounded,
+                              brightness,
                             ),
                             if (_dismissType == 'math') ...[
                               const SizedBox(height: 14),
@@ -380,8 +389,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                   Text(
                                     'Difficulty',
                                     style: TextStyle(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.7,
+                                      color: AppColors.onSurfaceMuted(
+                                        brightness,
                                       ),
                                       fontSize: 13,
                                     ),
@@ -410,8 +419,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                         decoration: BoxDecoration(
                                           color: isActive
                                               ? AppColors.accent
-                                              : Colors.white.withValues(
-                                                  alpha: 0.07,
+                                              : AppColors.iconButtonFill(
+                                                  brightness,
                                                 ),
                                           borderRadius: BorderRadius.circular(
                                             8,
@@ -422,8 +431,8 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                           style: TextStyle(
                                             color: isActive
                                                 ? Colors.white
-                                                : Colors.white.withValues(
-                                                    alpha: 0.5,
+                                                : AppColors.onSurfaceFaint(
+                                                    brightness,
                                                   ),
                                             fontSize: 12,
                                             fontWeight: isActive
@@ -443,30 +452,33 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                         _buildCard(
                           icon: Icons.tune_rounded,
                           title: 'Options',
+                          brightness: brightness,
                           children: [
                             _buildToggleRow(
                               Icons.vibration_rounded,
                               'Vibrate',
                               _vibrate,
                               (v) => setState(() => _vibrate = v),
+                              brightness,
                             ),
-                            const Divider(color: Colors.white10, height: 1),
+                            Divider(
+                              color: AppColors.dividerColor(brightness),
+                              height: 1,
+                            ),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(
                                 children: [
                                   Icon(
                                     Icons.snooze_rounded,
-                                    color: Colors.white.withValues(alpha: 0.5),
+                                    color: AppColors.onSurfaceMuted(brightness),
                                     size: 20,
                                   ),
                                   const SizedBox(width: 12),
                                   Text(
                                     'Snooze duration',
                                     style: TextStyle(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.9,
-                                      ),
+                                      color: AppColors.onSurface(brightness),
                                       fontSize: 15,
                                     ),
                                   ),
@@ -477,17 +489,18 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                                       vertical: 0,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.07,
-                                      ),
+                                      color: AppColors.inputFill(brightness),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: DropdownButton<int>(
                                       value: _snoozeMinutes,
-                                      dropdownColor: const Color(0xFF1a1a2e),
+                                      dropdownColor:
+                                          brightness == Brightness.dark
+                                          ? const Color(0xFF1a1a2e)
+                                          : Colors.white,
                                       underline: const SizedBox.shrink(),
-                                      style: const TextStyle(
-                                        color: Colors.white,
+                                      style: TextStyle(
+                                        color: AppColors.onSurface(brightness),
                                         fontSize: 14,
                                       ),
                                       items: [5, 10, 15, 20, 30].map((m) {
@@ -522,13 +535,14 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     required IconData icon,
     required String title,
     required List<Widget> children,
+    Brightness brightness = Brightness.dark,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,7 +556,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: AppColors.onSurfaceFaint(brightness),
                   letterSpacing: 1.2,
                 ),
               ),
@@ -558,24 +572,25 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    Brightness brightness = Brightness.dark,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
+          color: AppColors.iconButtonFill(brightness),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: AppColors.iconButtonBorder(brightness)),
         ),
         child: Column(
           children: [
-            Icon(icon, color: Colors.white.withValues(alpha: 0.6), size: 20),
+            Icon(icon, color: AppColors.onSurfaceMuted(brightness), size: 20),
             const SizedBox(height: 4),
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: 11,
               ),
               textAlign: TextAlign.center,
@@ -590,8 +605,9 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     String value,
     String title,
     String subtitle,
-    IconData icon,
-  ) {
+    IconData icon, [
+    Brightness brightness = Brightness.dark,
+  ]) {
     final isSelected = _dismissType == value;
     return GestureDetector(
       onTap: () => setState(() => _dismissType = value),
@@ -606,14 +622,14 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? AppColors.accent.withValues(alpha: 0.2)
-                    : Colors.white.withValues(alpha: 0.05),
+                    : AppColors.iconButtonFill(brightness),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 icon,
                 color: isSelected
                     ? AppColors.accent
-                    : Colors.white.withValues(alpha: 0.35),
+                    : AppColors.onSurfaceFaint(brightness),
                 size: 18,
               ),
             ),
@@ -625,7 +641,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: AppColors.onSurface(brightness),
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
@@ -633,7 +649,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.4),
+                      color: AppColors.onSurfaceFaint(brightness),
                       fontSize: 12,
                     ),
                   ),
@@ -649,7 +665,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
                 border: Border.all(
                   color: isSelected
                       ? AppColors.accent
-                      : Colors.white.withValues(alpha: 0.25),
+                      : AppColors.containerBorder(brightness),
                   width: 2,
                 ),
                 color: isSelected ? AppColors.accent : Colors.transparent,
@@ -668,19 +684,20 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
     IconData icon,
     String label,
     bool value,
-    ValueChanged<bool> onChanged,
-  ) {
+    ValueChanged<bool> onChanged, [
+    Brightness brightness = Brightness.dark,
+  ]) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
-          Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 20),
+          Icon(icon, color: AppColors.onSurfaceMuted(brightness), size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: AppColors.onSurface(brightness),
                 fontSize: 15,
               ),
             ),
@@ -689,7 +706,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
             value: value,
             onChanged: onChanged,
             activeColor: AppColors.accent,
-            inactiveTrackColor: Colors.white.withValues(alpha: 0.12),
+            inactiveTrackColor: AppColors.iconButtonFill(brightness),
           ),
         ],
       ),

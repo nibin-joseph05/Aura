@@ -65,9 +65,11 @@ class _WalkingScreenState extends ConsumerState<WalkingScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(
+              isDark ? Brightness.dark : Brightness.light,
+            ),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

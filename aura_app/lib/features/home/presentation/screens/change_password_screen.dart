@@ -92,33 +92,38 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   Future<bool> _showUnverifiedDialog() async {
     return await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: const Color(0xFF1E1E2A),
-            title: const Text(
-              'Email Not Verified',
-              style: TextStyle(color: Colors.white),
-            ),
-            content: const Text(
-              'Your email address is not verified. Are you sure you want to send the password reset code to this email?',
-              style: TextStyle(color: Colors.white70),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.white38),
-                ),
+          builder: (context) {
+            final br = Theme.of(context).brightness;
+            return AlertDialog(
+              backgroundColor: br == Brightness.dark
+                  ? const Color(0xFF1E1E2A)
+                  : Colors.white,
+              title: Text(
+                'Email Not Verified',
+                style: TextStyle(color: AppColors.onSurface(br)),
               ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text(
-                  'Send Anyway',
-                  style: TextStyle(color: AppColors.accent),
-                ),
+              content: Text(
+                'Your email address is not verified. Are you sure you want to send the password reset code to this email?',
+                style: TextStyle(color: AppColors.onSurfaceMuted(br)),
               ),
-            ],
-          ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: AppColors.onSurfaceFaint(br)),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text(
+                    'Send Anyway',
+                    style: TextStyle(color: AppColors.accent),
+                  ),
+                ),
+              ],
+            );
+          },
         ) ??
         false;
   }
@@ -161,14 +166,15 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         body: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: AppColors.primaryGradient,
+              colors: AppColors.backgroundGradient(brightness),
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -190,10 +196,10 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                           Container(
                             padding: EdgeInsets.all(responsive.w(5)),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.08),
+                              color: AppColors.containerFill(brightness),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.12),
+                                color: AppColors.containerBorder(brightness),
                               ),
                             ),
                             child: Column(
@@ -202,7 +208,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                                 Text(
                                   'Update Password',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.onSurface(brightness),
                                     fontSize: responsive.isTablet ? 20 : 18,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -211,7 +217,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                                 Text(
                                   'Enter your current password and choose a new one',
                                   style: TextStyle(
-                                    color: Colors.white60,
+                                    color: AppColors.onSurfaceMuted(brightness),
                                     fontSize: responsive.isTablet ? 13 : 12,
                                   ),
                                 ),
@@ -345,17 +351,18 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
     required Responsive responsive,
     String? Function(String?)? validator,
   }) {
+    final brightness = Theme.of(context).brightness;
     return TextFormField(
       controller: controller,
       obscureText: obscure,
       validator: validator,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: AppColors.onSurface(brightness)),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54),
+        labelStyle: TextStyle(color: AppColors.onSurfaceMuted(brightness)),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+          borderSide: BorderSide(color: AppColors.inputBorder(brightness)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -371,11 +378,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         ),
         errorStyle: const TextStyle(color: AppColors.error),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: AppColors.inputFill(brightness),
         suffixIcon: IconButton(
           icon: Icon(
             obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-            color: Colors.white38,
+            color: AppColors.onSurfaceFaint(brightness),
             size: 20,
           ),
           onPressed: onToggle,

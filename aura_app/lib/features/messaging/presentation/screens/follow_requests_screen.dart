@@ -34,9 +34,9 @@ class _FollowRequestsScreenState extends ConsumerState<FollowRequestsScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(Theme.of(context).brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -47,8 +47,12 @@ class _FollowRequestsScreenState extends ConsumerState<FollowRequestsScreen> {
               const AppHeader(title: 'Follow Requests'),
               Expanded(
                 child: state.isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(color: Colors.white),
+                    ? Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.onSurface(
+                            isDark ? Brightness.dark : Brightness.light,
+                          ),
+                        ),
                       )
                     : state.followRequests.isEmpty
                     ? const EmptyStateWidget(

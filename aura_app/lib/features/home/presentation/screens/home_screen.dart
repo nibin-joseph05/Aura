@@ -77,12 +77,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final responsive = Responsive.of(context);
     final overlayData = ref.watch(successOverlayProvider);
     final selectedNavItem = ref.watch(selectedNavItemProvider);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -119,12 +120,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildMainContent(Responsive responsive) {
+    final brightness = Theme.of(context).brightness;
     return RefreshIndicator(
       onRefresh: () async {
         setState(() {});
       },
-      color: Colors.white,
-      backgroundColor: AppColors.splashMedium,
+      color: brightness == Brightness.dark ? Colors.white : AppColors.primary,
+      backgroundColor: brightness == Brightness.dark
+          ? AppColors.splashMedium
+          : Colors.white,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),

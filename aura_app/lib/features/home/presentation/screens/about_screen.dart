@@ -10,12 +10,13 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -35,7 +36,7 @@ class AboutScreen extends StatelessWidget {
                         padding: EdgeInsets.all(responsive.w(6)),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: AppColors.iconButtonFill(brightness),
                           border: Border.all(
                             color: AppColors.accent.withValues(alpha: 0.3),
                             width: 2,
@@ -51,7 +52,7 @@ class AboutScreen extends StatelessWidget {
                       Text(
                         'Aura',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.onSurface(brightness),
                           fontSize: responsive.isTablet ? 32 : 28,
                           fontWeight: FontWeight.bold,
                         ),
@@ -59,7 +60,7 @@ class AboutScreen extends StatelessWidget {
                       Text(
                         'Version 1.0.0',
                         style: TextStyle(
-                          color: Colors.white54,
+                          color: AppColors.onSurfaceMuted(brightness),
                           fontSize: responsive.isTablet ? 14 : 12,
                         ),
                       ),
@@ -67,10 +68,10 @@ class AboutScreen extends StatelessWidget {
                       Container(
                         padding: EdgeInsets.all(responsive.w(5)),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.08),
+                          color: AppColors.containerFill(brightness),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: AppColors.containerBorder(brightness),
                           ),
                         ),
                         child: Text(
@@ -82,25 +83,36 @@ class AboutScreen extends StatelessWidget {
                           'their health and safety through intuitive technology.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: Colors.white70,
+                            color: AppColors.onSurfaceMuted(brightness),
                             fontSize: responsive.isTablet ? 15 : 14,
                             height: 1.6,
                           ),
                         ),
                       ),
                       SizedBox(height: responsive.h(3)),
-                      _buildInfoRow(responsive, 'Developer', 'Aura Team'),
+                      _buildInfoRow(
+                        responsive,
+                        'Developer',
+                        'Aura Team',
+                        brightness,
+                      ),
                       _buildInfoRow(
                         responsive,
                         'Built with',
                         'Flutter & Firebase',
+                        brightness,
                       ),
-                      _buildInfoRow(responsive, 'License', 'MIT License'),
+                      _buildInfoRow(
+                        responsive,
+                        'License',
+                        'MIT License',
+                        brightness,
+                      ),
                       SizedBox(height: responsive.h(4)),
                       Text(
                         '© 2024 Aura. All rights reserved.',
                         style: TextStyle(
-                          color: Colors.white38,
+                          color: AppColors.onSurfaceFaint(brightness),
                           fontSize: responsive.isTablet ? 12 : 11,
                         ),
                       ),
@@ -116,7 +128,12 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(Responsive responsive, String label, String value) {
+  Widget _buildInfoRow(
+    Responsive responsive,
+    String label,
+    String value,
+    Brightness brightness,
+  ) {
     return Container(
       margin: EdgeInsets.only(bottom: responsive.h(1)),
       padding: EdgeInsets.symmetric(
@@ -124,7 +141,7 @@ class AboutScreen extends StatelessWidget {
         vertical: responsive.h(1.5),
       ),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -133,14 +150,14 @@ class AboutScreen extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white54,
+              color: AppColors.onSurfaceMuted(brightness),
               fontSize: responsive.isTablet ? 14 : 13,
             ),
           ),
           Text(
             value,
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.onSurface(brightness),
               fontSize: responsive.isTablet ? 14 : 13,
               fontWeight: FontWeight.w500,
             ),

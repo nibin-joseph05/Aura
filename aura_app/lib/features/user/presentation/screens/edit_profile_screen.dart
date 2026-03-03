@@ -138,57 +138,68 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   Future<void> _pickAndCropImage() async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      backgroundColor: const Color(0xFF1A1A2E),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Change Profile Photo',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: AppColors.accent),
-                title: const Text(
-                  'Take Photo',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () => Navigator.pop(ctx, ImageSource.camera),
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.photo_library,
-                  color: AppColors.accent,
-                ),
-                title: const Text(
-                  'Choose from Gallery',
-                  style: TextStyle(color: Colors.white),
-                ),
-                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-              ),
-            ],
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final br = Theme.of(ctx).brightness;
+        return Container(
+          decoration: BoxDecoration(
+            color: br == Brightness.dark
+                ? const Color(0xFF1A1A2E)
+                : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
-        ),
-      ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.onSurfaceFaint(br),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Change Profile Photo',
+                    style: TextStyle(
+                      color: AppColors.onSurface(br),
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.camera_alt,
+                      color: AppColors.accent,
+                    ),
+                    title: Text(
+                      'Take Photo',
+                      style: TextStyle(color: AppColors.onSurface(br)),
+                    ),
+                    onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                  ),
+                  ListTile(
+                    leading: const Icon(
+                      Icons.photo_library,
+                      color: AppColors.accent,
+                    ),
+                    title: Text(
+                      'Choose from Gallery',
+                      style: TextStyle(color: AppColors.onSurface(br)),
+                    ),
+                    onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
     if (source == null) return;
 
@@ -289,6 +300,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     final profileState = ref.watch(editProfileProvider);
     final imgState = ref.watch(profileImageProvider);
     final notifier = ref.read(editProfileProvider.notifier);
+    final brightness = Theme.of(context).brightness;
 
     final profileUrl = _buildFullImageUrl(
       imgState.imageUrl ?? user?.profileImageUrl,
@@ -299,9 +311,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         body: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: AppColors.primaryGradient,
+              colors: AppColors.backgroundGradient(brightness),
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -434,6 +446,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
   }
 
   Widget _buildPhotoNote(Responsive responsive, dynamic imgState) {
+    final brightness = Theme.of(context).brightness;
     final wasJustUploaded = imgState.uploadedAt != null;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -444,12 +457,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
       decoration: BoxDecoration(
         color: wasJustUploaded
             ? Colors.greenAccent.withValues(alpha: 0.12)
-            : Colors.white.withValues(alpha: 0.06),
+            : AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
           color: wasJustUploaded
               ? Colors.greenAccent.withValues(alpha: 0.35)
-              : Colors.white.withValues(alpha: 0.1),
+              : AppColors.containerBorder(brightness),
         ),
       ),
       child: Row(
@@ -457,7 +470,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
           Icon(
             wasJustUploaded ? Icons.check_circle_outline : Icons.info_outline,
             size: 15,
-            color: wasJustUploaded ? Colors.greenAccent : Colors.white38,
+            color: wasJustUploaded
+                ? Colors.greenAccent
+                : AppColors.onSurfaceFaint(brightness),
           ),
           SizedBox(width: responsive.w(2)),
           Expanded(
@@ -466,7 +481,9 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                   ? 'Your profile photo was updated instantly — no need to tap Save Changes.'
                   : 'Profile photo is saved immediately when changed, independent of Save Changes.',
               style: TextStyle(
-                color: wasJustUploaded ? Colors.greenAccent : Colors.white38,
+                color: wasJustUploaded
+                    ? Colors.greenAccent
+                    : AppColors.onSurfaceFaint(brightness),
                 fontSize: 11.5,
               ),
             ),
@@ -481,6 +498,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     String? profileUrl,
     dynamic imgState,
   ) {
+    final brightness = Theme.of(context).brightness;
     return Center(
       child: GestureDetector(
         onTap: _pickAndCropImage,
@@ -499,11 +517,11 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
               child: ClipOval(
                 child: imgState.isUploading
                     ? Container(
-                        color: Colors.white24,
+                        color: AppColors.iconButtonFill(brightness),
                         child: const Center(
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: AppColors.accent,
                           ),
                         ),
                       )
@@ -514,30 +532,30 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                         loadingBuilder: (ctx, child, progress) {
                           if (progress == null) return child;
                           return Container(
-                            color: Colors.white24,
+                            color: AppColors.iconButtonFill(brightness),
                             child: const Center(
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white54,
+                                color: AppColors.accent,
                               ),
                             ),
                           );
                         },
                         errorBuilder: (_, __, ___) => Container(
-                          color: Colors.white24,
+                          color: AppColors.iconButtonFill(brightness),
                           child: Icon(
                             Icons.person,
                             size: responsive.isTablet ? 50 : 40,
-                            color: Colors.white,
+                            color: AppColors.onSurfaceMuted(brightness),
                           ),
                         ),
                       )
                     : Container(
-                        color: Colors.white24,
+                        color: AppColors.iconButtonFill(brightness),
                         child: Icon(
                           Icons.person,
                           size: responsive.isTablet ? 50 : 40,
-                          color: Colors.white,
+                          color: AppColors.onSurfaceMuted(brightness),
                         ),
                       ),
               ),
@@ -550,7 +568,12 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.accent,
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF0A1A2F), width: 2),
+                  border: Border.all(
+                    color: brightness == Brightness.dark
+                        ? const Color(0xFF0A1A2F)
+                        : Colors.white,
+                    width: 2,
+                  ),
                 ),
                 child: Icon(
                   Icons.camera_alt,
@@ -567,14 +590,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
 
   Widget? _buildUsernameSuffix(EditProfileState state) {
     if (state.isCheckingUsername) {
-      return const Padding(
-        padding: EdgeInsets.all(12),
+      return Padding(
+        padding: const EdgeInsets.all(12),
         child: SizedBox(
           width: 18,
           height: 18,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color: Colors.white70,
+            color: AppColors.accent,
           ),
         ),
       );
@@ -609,6 +632,7 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
     required bool canVerify,
     required VoidCallback onVerify,
   }) {
+    final brightness = Theme.of(context).brightness;
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -618,17 +642,17 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
             vertical: responsive.h(2),
           ),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: isVerified ? 0.05 : 0.08),
+            color: AppColors.containerFill(brightness),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isVerified
                   ? Colors.greenAccent.withValues(alpha: 0.5)
-                  : Colors.white.withValues(alpha: 0.15),
+                  : AppColors.containerBorder(brightness),
             ),
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.white54),
+              Icon(icon, color: AppColors.onSurfaceMuted(brightness)),
               SizedBox(width: responsive.w(3)),
               Expanded(
                 child: Column(
@@ -637,15 +661,24 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen> {
                     Text(
                       label,
                       style: TextStyle(
-                        color: Colors.white54,
+                        color: AppColors.onSurfaceMuted(brightness),
                         fontSize: responsive.isTablet ? 12 : 11,
                       ),
                     ),
-                    Text(value, style: const TextStyle(color: Colors.white70)),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        color: AppColors.onSurfaceMuted(brightness),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Icon(Icons.lock_outline, color: Colors.white24, size: 18),
+              Icon(
+                Icons.lock_outline,
+                color: AppColors.onSurfaceFaint(brightness),
+                size: 18,
+              ),
             ],
           ),
         ),

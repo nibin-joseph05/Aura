@@ -105,12 +105,13 @@ class _NotificationSettingsScreenState
   @override
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: AppColors.primaryGradient,
+            colors: AppColors.backgroundGradient(brightness),
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -143,6 +144,7 @@ class _NotificationSettingsScreenState
   }
 
   Widget _buildPushToggle(Responsive responsive) {
+    final brightness = Theme.of(context).brightness;
     return Container(
       padding: EdgeInsets.all(responsive.w(4)),
       decoration: BoxDecoration(
@@ -188,7 +190,7 @@ class _NotificationSettingsScreenState
                 Text(
                   'Push Notifications',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.onSurface(brightness),
                     fontSize: responsive.isTablet ? 16 : 15,
                     fontWeight: FontWeight.w600,
                   ),
@@ -199,7 +201,7 @@ class _NotificationSettingsScreenState
                       ? 'Notifications are enabled'
                       : 'Notifications are disabled',
                   style: TextStyle(
-                    color: Colors.white60,
+                    color: AppColors.onSurfaceMuted(brightness),
                     fontSize: responsive.isTablet ? 12 : 11,
                   ),
                 ),
@@ -217,11 +219,12 @@ class _NotificationSettingsScreenState
   }
 
   Widget _buildCategorySection(Responsive responsive) {
+    final brightness = Theme.of(context).brightness;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,7 +239,7 @@ class _NotificationSettingsScreenState
             child: Text(
               'Notification Categories',
               style: TextStyle(
-                color: Colors.white54,
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: responsive.isTablet ? 13 : 11,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
@@ -258,6 +261,7 @@ class _NotificationSettingsScreenState
     bool isLast,
     Responsive responsive,
   ) {
+    final brightness = Theme.of(context).brightness;
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: responsive.w(4),
@@ -267,7 +271,7 @@ class _NotificationSettingsScreenState
         border: isLast
             ? null
             : Border(
-                bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+                bottom: BorderSide(color: AppColors.dividerColor(brightness)),
               ),
       ),
       child: Row(
@@ -288,7 +292,7 @@ class _NotificationSettingsScreenState
                 Text(
                   setting.title,
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.onSurface(brightness),
                     fontSize: responsive.isTablet ? 15 : 14,
                     fontWeight: FontWeight.w500,
                   ),
@@ -297,7 +301,7 @@ class _NotificationSettingsScreenState
                 Text(
                   setting.subtitle,
                   style: TextStyle(
-                    color: Colors.white54,
+                    color: AppColors.onSurfaceMuted(brightness),
                     fontSize: responsive.isTablet ? 11 : 10,
                   ),
                 ),

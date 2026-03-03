@@ -39,14 +39,15 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
     final user = ref.watch(currentUserProvider);
+    final brightness = Theme.of(context).brightness;
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         body: Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: AppColors.primaryGradient,
+              colors: AppColors.backgroundGradient(brightness),
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -57,13 +58,15 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
                 _buildHeader(context, responsive),
                 Expanded(
                   child: user == null
-                      ? const Center(
+                      ? Center(
                           child: Text(
                             'Please log in to access SOS settings',
-                            style: TextStyle(color: Colors.white),
+                            style: TextStyle(
+                              color: AppColors.onSurfaceMuted(brightness),
+                            ),
                           ),
                         )
-                      : _buildContent(responsive, user.uid),
+                      : _buildContent(responsive, user.uid, brightness),
                 ),
               ],
             ),
@@ -77,7 +80,11 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
     return const AppHeader(title: 'SOS Settings');
   }
 
-  Widget _buildContent(Responsive responsive, String oderId) {
+  Widget _buildContent(
+    Responsive responsive,
+    String oderId,
+    Brightness brightness,
+  ) {
     final settingsAsync = ref.watch(sosSettingsProvider(oderId));
     final contactsAsync = ref.watch(trustedContactsProvider(oderId));
 
@@ -87,21 +94,30 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: responsive.h(2)),
-          _buildSectionTitle('Emergency Message'),
+          _buildSectionTitle('Emergency Message', brightness),
           SizedBox(height: responsive.h(1)),
           settingsAsync.when(
-            data: (settings) =>
-                _buildMessageCard(responsive, oderId, settings.customMessage),
-            loading: () => _buildLoadingCard(responsive),
-            error: (e, _) => _buildErrorCard(responsive, e.toString()),
+            data: (settings) => _buildMessageCard(
+              responsive,
+              oderId,
+              settings.customMessage,
+              brightness,
+            ),
+            loading: () => _buildLoadingCard(responsive, brightness),
+            error: (e, _) =>
+                _buildErrorCard(responsive, e.toString(), brightness),
           ),
           SizedBox(height: responsive.h(3)),
-          _buildSectionHeader('Trusted Contacts', _showAddContactSheet),
+          _buildSectionHeader(
+            'Trusted Contacts',
+            _showAddContactSheet,
+            brightness,
+          ),
           SizedBox(height: responsive.h(1)),
           contactsAsync.when(
             data: (contacts) {
               if (contacts.isEmpty) {
-                return _buildEmptyContactsCard(responsive);
+                return _buildEmptyContactsCard(responsive, brightness);
               }
               return Column(
                 children: contacts
@@ -112,8 +128,9 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
                     .toList(),
               );
             },
-            loading: () => _buildLoadingCard(responsive),
-            error: (e, _) => _buildErrorCard(responsive, e.toString()),
+            loading: () => _buildLoadingCard(responsive, brightness),
+            error: (e, _) =>
+                _buildErrorCard(responsive, e.toString(), brightness),
           ),
           SizedBox(height: responsive.h(3)),
         ],
@@ -121,31 +138,38 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(String title, Brightness brightness) {
     return Text(
       title,
-      style: const TextStyle(
-        color: Colors.white,
+      style: TextStyle(
+        color: AppColors.onSurface(brightness),
         fontSize: 18,
         fontWeight: FontWeight.w600,
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, VoidCallback onAdd) {
+  Widget _buildSectionHeader(
+    String title,
+    VoidCallback onAdd,
+    Brightness brightness,
+  ) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.onSurface(brightness),
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+          icon: Icon(
+            Icons.add_circle_outline,
+            color: AppColors.onSurface(brightness),
+          ),
           onPressed: onAdd,
         ),
       ],
@@ -156,6 +180,7 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
     Responsive responsive,
     String oderId,
     String message,
+    Brightness brightness,
   ) {
     if (!_isEditingMessage) {
       _messageController.text = message;
@@ -164,9 +189,9 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
     return Container(
       padding: EdgeInsets.all(responsive.w(4)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,19 +199,21 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
           if (_isEditingMessage)
             TextField(
               controller: _messageController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: AppColors.onSurface(brightness)),
               maxLines: 3,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: 'Enter your emergency message...',
-                hintStyle: TextStyle(color: Colors.white54),
+                hintStyle: TextStyle(
+                  color: AppColors.onSurfaceFaint(brightness),
+                ),
               ),
             )
           else
             Text(
               message,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: AppColors.onSurfaceMuted(brightness),
                 fontSize: 15,
               ),
             ),
@@ -202,9 +229,11 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
                       _messageController.text = message;
                     });
                   },
-                  child: const Text(
+                  child: Text(
                     'Cancel',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(
+                      color: AppColors.onSurfaceMuted(brightness),
+                    ),
                   ),
                 ),
                 TextButton(
@@ -218,18 +247,24 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
                       setState(() => _isEditingMessage = false);
                     }
                   },
-                  child: const Text(
+                  child: Text(
                     'Save',
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: AppColors.onSurface(brightness)),
                   ),
                 ),
               ] else
                 TextButton.icon(
                   onPressed: () => setState(() => _isEditingMessage = true),
-                  icon: const Icon(Icons.edit, color: Colors.white70, size: 18),
-                  label: const Text(
+                  icon: Icon(
+                    Icons.edit,
+                    color: AppColors.onSurfaceMuted(brightness),
+                    size: 18,
+                  ),
+                  label: Text(
                     'Edit',
-                    style: TextStyle(color: Colors.white70),
+                    style: TextStyle(
+                      color: AppColors.onSurfaceMuted(brightness),
+                    ),
                   ),
                 ),
             ],
@@ -239,26 +274,26 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
     );
   }
 
-  Widget _buildEmptyContactsCard(Responsive responsive) {
+  Widget _buildEmptyContactsCard(Responsive responsive, Brightness brightness) {
     return Container(
       padding: EdgeInsets.all(responsive.w(6)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.containerBorder(brightness)),
       ),
       child: Column(
         children: [
           Icon(
             Icons.people_outline,
-            color: Colors.white.withValues(alpha: 0.5),
+            color: AppColors.onSurfaceFaint(brightness),
             size: 48,
           ),
           SizedBox(height: responsive.h(1)),
           Text(
             'No trusted contacts yet',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
+              color: AppColors.onSurfaceMuted(brightness),
               fontSize: 16,
             ),
           ),
@@ -266,7 +301,7 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
           Text(
             'Add contacts who will be notified in an emergency',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: AppColors.onSurfaceFaint(brightness),
               fontSize: 13,
             ),
             textAlign: TextAlign.center,
@@ -276,11 +311,11 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
     );
   }
 
-  Widget _buildLoadingCard(Responsive responsive) {
+  Widget _buildLoadingCard(Responsive responsive, Brightness brightness) {
     return Container(
       padding: EdgeInsets.all(responsive.w(6)),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: AppColors.containerFill(brightness),
         borderRadius: BorderRadius.circular(16),
       ),
       child: const Center(
@@ -289,14 +324,21 @@ class _SOSSettingsScreenState extends ConsumerState<SOSSettingsScreen> {
     );
   }
 
-  Widget _buildErrorCard(Responsive responsive, String error) {
+  Widget _buildErrorCard(
+    Responsive responsive,
+    String error,
+    Brightness brightness,
+  ) {
     return Container(
       padding: EdgeInsets.all(responsive.w(4)),
       decoration: BoxDecoration(
         color: Colors.red.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Text(error, style: const TextStyle(color: Colors.white)),
+      child: Text(
+        error,
+        style: TextStyle(color: AppColors.onSurface(brightness)),
+      ),
     );
   }
 }
