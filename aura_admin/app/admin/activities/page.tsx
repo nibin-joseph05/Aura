@@ -12,6 +12,22 @@ interface ActivityCategory {
     name: string;
 }
 
+export enum MetricType {
+    INTEGER = "INTEGER",
+    DECIMAL = "DECIMAL",
+    BOOLEAN = "BOOLEAN",
+    TIME_MINUTES = "TIME_MINUTES",
+    TEXT = "TEXT"
+}
+
+export interface ActivityMetric {
+    id?: string;
+    name: string;
+    unit: string;
+    metricType: MetricType;
+    isRequired: boolean;
+}
+
 interface ActivityType {
     id: string;
     categoryId: string;
@@ -20,9 +36,7 @@ interface ActivityType {
     description: string;
     allowAlarm: boolean;
     allowNotes: boolean;
-    requiresDuration: boolean;
-    requiresDistance: boolean;
-    requiresCalories: boolean;
+    metrics: ActivityMetric[];
     isGymActivity: boolean;
     icon: string;
     color: string;
@@ -46,9 +60,7 @@ export default function ActivityTypesPage() {
         icon: "",
         allowAlarm: false,
         allowNotes: true,
-        requiresDuration: false,
-        requiresDistance: false,
-        requiresCalories: false,
+        metrics: [] as ActivityMetric[],
         isGymActivity: false,
         color: "#3b82f6",
         defaultIntervalMinutes: null as number | null,
@@ -119,9 +131,7 @@ export default function ActivityTypesPage() {
             icon: type.icon || "",
             allowAlarm: type.allowAlarm,
             allowNotes: type.allowNotes,
-            requiresDuration: type.requiresDuration,
-            requiresDistance: type.requiresDistance,
-            requiresCalories: type.requiresCalories,
+            metrics: type.metrics || [],
             isGymActivity: type.isGymActivity,
             color: type.color || "#3b82f6",
             defaultIntervalMinutes: type.defaultIntervalMinutes,
@@ -135,9 +145,27 @@ export default function ActivityTypesPage() {
         setEditingType(null);
         setFormData({
             categoryId: "", name: "", description: "", icon: "", color: "#3b82f6", defaultIntervalMinutes: null, defaultTargetCompletions: 1,
-            allowAlarm: false, allowNotes: true, requiresDuration: false,
-            requiresDistance: false, requiresCalories: false, isGymActivity: false,
+            allowAlarm: false, allowNotes: true, metrics: [], isGymActivity: false,
         });
+    };
+
+    const addMetric = () => {
+        setFormData({
+            ...formData,
+            metrics: [...formData.metrics, { name: "", unit: "", metricType: MetricType.INTEGER, isRequired: false }]
+        });
+    };
+
+    const updateMetric = (index: number, field: keyof ActivityMetric, value: any) => {
+        const newMetrics = [...formData.metrics];
+        newMetrics[index] = { ...newMetrics[index], [field]: value };
+        setFormData({ ...formData, metrics: newMetrics });
+    };
+
+    const removeMetric = (index: number) => {
+        const newMetrics = [...formData.metrics];
+        newMetrics.splice(index, 1);
+        setFormData({ ...formData, metrics: newMetrics });
     };
 
     return (
@@ -224,10 +252,15 @@ export default function ActivityTypesPage() {
 
                             <div className="flex flex-wrap gap-1 mb-3">
                                 {type.allowAlarm && <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">⏰ Alarm</span>}
-                                {type.requiresDuration && <span className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">⏱️ Duration</span>}
                                 {type.isGymActivity && <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400">🏋️ Gym</span>}
                                 {type.defaultIntervalMinutes && <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400">⏳ Every {type.defaultIntervalMinutes}m</span>}
                                 {type.defaultTargetCompletions > 1 && <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400">🎯 {type.defaultTargetCompletions}x / day</span>}
+
+                                {type.metrics && type.metrics.map((metric, idx) => (
+                                    <span key={metric.id || idx} className="text-xs px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 border border-green-500/30">
+                                        📊 {metric.name} {metric.isRequired ? '*' : ''}
+                                    </span>
+                                ))}
                             </div>
 
                             <div
@@ -327,9 +360,6 @@ export default function ActivityTypesPage() {
                                     {[
                                         { key: "allowAlarm", label: "⏰ Allow Alarm" },
                                         { key: "allowNotes", label: "📝 Allow Notes" },
-                                        { key: "requiresDuration", label: "⏱️ Requires Duration" },
-                                        { key: "requiresDistance", label: "📏 Requires Distance" },
-                                        { key: "requiresCalories", label: "🔥 Requires Calories" },
                                         { key: "isGymActivity", label: "🏋️ Gym Activity" },
                                     ].map((option) => (
                                         <label key={option.key} className="flex items-center gap-2 p-2 rounded-lg cursor-pointer" style={{ backgroundColor: formData[option.key as keyof typeof formData] ? `${appColors.accent}20` : "transparent", border: `1px solid ${isDark ? appColors.cardBorder : "#e5e7eb"}` }}>
@@ -338,6 +368,50 @@ export default function ActivityTypesPage() {
                                         </label>
                                     ))}
                                 </div>
+                            </div>
+
+                            <div>
+                                <div className="flex justify-between items-center mb-2">
+                                    <label style={{ color: isDark ? "#9ca3af" : "#6b7280" }} className="block text-sm">Dynamic Metrics</label>
+                                    <button onClick={addMetric} className="text-xs px-2 py-1 rounded bg-blue-500/20 text-blue-500 hover:bg-blue-500/30">
+                                        + Add Metric
+                                    </button>
+                                </div>
+
+                                {formData.metrics.length === 0 ? (
+                                    <p className="text-xs italic" style={{ color: isDark ? "#6b7280" : "#9ca3af" }}>No custom metrics defined yet.</p>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {formData.metrics.map((metric, index) => (
+                                            <div key={index} className="flex flex-col gap-2 p-3 rounded-lg relative" style={{ border: `1px dashed ${isDark ? appColors.cardBorder : "#d1d5db"}`, backgroundColor: isDark ? 'rgba(0,0,0,0.1)' : '#f9fafb' }}>
+                                                <button onClick={() => removeMetric(index)} className="absolute top-2 right-2 text-red-500 hover:text-red-700">🗑️</button>
+
+                                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                                    <div>
+                                                        <label className="text-xs mb-1 block" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Name</label>
+                                                        <input type="text" value={metric.name} onChange={(e) => updateMetric(index, 'name', e.target.value)} className="w-full rounded p-2 text-sm" style={{ backgroundColor: isDark ? appColors.cardBg : "white", color: isDark ? "#f3f4f6" : "#1f2937", border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}` }} placeholder="e.g. Pages Read" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs mb-1 block" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Unit Symbol</label>
+                                                        <input type="text" value={metric.unit} onChange={(e) => updateMetric(index, 'unit', e.target.value)} className="w-full rounded p-2 text-sm" style={{ backgroundColor: isDark ? appColors.cardBg : "white", color: isDark ? "#f3f4f6" : "#1f2937", border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}` }} placeholder="e.g. pages, L, mins" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs mb-1 block" style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>Data Type</label>
+                                                        <select value={metric.metricType} onChange={(e) => updateMetric(index, 'metricType', e.target.value)} className="w-full rounded p-2 text-sm" style={{ backgroundColor: isDark ? appColors.cardBg : "white", color: isDark ? "#f3f4f6" : "#1f2937", border: `1px solid ${isDark ? appColors.cardBorder : "#d1d5db"}` }}>
+                                                            {Object.values(MetricType).map(t => <option key={t} value={t}>{t}</option>)}
+                                                        </select>
+                                                    </div>
+                                                    <div className="flex items-center justify-center mt-5">
+                                                        <label className="flex items-center gap-2 cursor-pointer">
+                                                            <input type="checkbox" checked={metric.isRequired} onChange={(e) => updateMetric(index, 'isRequired', e.target.checked)} className="rounded" />
+                                                            <span className="text-xs font-bold" style={{ color: isDark ? "#f3f4f6" : "#374151" }}>Required Field</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
