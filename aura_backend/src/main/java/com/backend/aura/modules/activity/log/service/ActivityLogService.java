@@ -7,7 +7,9 @@ import com.backend.aura.modules.activity.log.model.enums.ActivityStatus;
 import com.backend.aura.modules.activity.log.repository.ActivityLogRepository;
 import com.backend.aura.modules.activity.useractivity.model.UserActivity;
 import com.backend.aura.modules.activity.useractivity.repository.UserActivityRepository;
+import com.backend.aura.modules.activity.log.model.ActivityLogMetric;
 import com.backend.aura.modules.common.exception.NotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -17,6 +19,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ActivityLogService {
 
     private final ActivityLogRepository logRepository;
@@ -63,64 +66,93 @@ public class ActivityLogService {
             throw new IllegalArgumentException("Log already exists for this activity on this date");
         }
 
-        ActivityLog log = new ActivityLog();
-        log.setUserActivity(userActivity);
-        log.setLogDate(logDate);
-        log.setStatus(request.getStatus() != null ? request.getStatus() : ActivityStatus.PENDING);
-        log.setActualDuration(request.getActualDuration());
-        log.setDistanceKm(request.getDistanceKm());
-        log.setCaloriesBurned(request.getCaloriesBurned());
-        log.setNote(request.getNote());
+        ActivityLog activityLog = new ActivityLog();
+        activityLog.setUserActivity(userActivity);
+        activityLog.setLogDate(logDate);
+        activityLog.setStatus(request.getStatus() != null ? request.getStatus() : ActivityStatus.PENDING);
+        if (request.getMetrics() != null) {
+            List<ActivityLogMetric> logMetrics = request.getMetrics().entrySet().stream().map(entry -> {
+                ActivityLogMetric lm = new ActivityLogMetric();
+                lm.setActivityLog(activityLog);
+                com.backend.aura.modules.activity.type.model.ActivityMetric am = userActivity.getActivityType()
+                        .getMetrics().stream()
+                        .filter(m -> m.getId().equals(entry.getKey()))
+                        .findFirst()
+                        .orElseThrow(() -> {
+                            log.error("Failed to map log metric. Invalid metric ID specified: {} for activity {}",
+                                    entry.getKey(), userActivity.getActivityType().getName());
+                            return new IllegalArgumentException("Invalid metric ID: " + entry.getKey());
+                        });
+                lm.setActivityMetric(am);
+                lm.setMetricValue(entry.getValue());
+                return lm;
+            }).collect(Collectors.toList());
+            activityLog.setMetrics(logMetrics);
+        }
+        activityLog.setNote(request.getNote());
 
         if (request.getStatus() == ActivityStatus.COMPLETED) {
-            log.setCompletedAt(LocalDateTime.now());
+            activityLog.setCompletedAt(LocalDateTime.now());
         }
 
-        ActivityLog saved = logRepository.save(log);
+        ActivityLog saved = logRepository.save(activityLog);
         return ActivityLogResponse.fromEntity(saved);
     }
 
     public ActivityLogResponse updateLog(UUID id, ActivityLogRequest request) {
-        ActivityLog log = logRepository.findById(id)
+        ActivityLog activityLog = logRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity log not found"));
 
         if (request.getStatus() != null) {
-            log.setStatus(request.getStatus());
-            if (request.getStatus() == ActivityStatus.COMPLETED && log.getCompletedAt() == null) {
-                log.setCompletedAt(LocalDateTime.now());
+            activityLog.setStatus(request.getStatus());
+            if (request.getStatus() == ActivityStatus.COMPLETED && activityLog.getCompletedAt() == null) {
+                activityLog.setCompletedAt(LocalDateTime.now());
             }
         }
-        if (request.getActualDuration() != null) {
-            log.setActualDuration(request.getActualDuration());
-        }
-        if (request.getDistanceKm() != null) {
-            log.setDistanceKm(request.getDistanceKm());
-        }
-        if (request.getCaloriesBurned() != null) {
-            log.setCaloriesBurned(request.getCaloriesBurned());
+        if (request.getMetrics() != null) {
+            activityLog.getMetrics().clear();
+            List<ActivityLogMetric> logMetrics = request.getMetrics().entrySet().stream().map(entry -> {
+                ActivityLogMetric lm = new ActivityLogMetric();
+                lm.setActivityLog(activityLog);
+                com.backend.aura.modules.activity.type.model.ActivityMetric am = activityLog.getUserActivity()
+                        .getActivityType()
+                        .getMetrics().stream()
+                        .filter(m -> m.getId().equals(entry.getKey()))
+                        .findFirst()
+                        .orElseThrow(() -> {
+                            log.error(
+                                    "Failed to map log metric during update. Invalid metric ID specified: {} for activity log {}",
+                                    entry.getKey(), activityLog.getId());
+                            return new IllegalArgumentException("Invalid metric ID: " + entry.getKey());
+                        });
+                lm.setActivityMetric(am);
+                lm.setMetricValue(entry.getValue());
+                return lm;
+            }).collect(Collectors.toList());
+            activityLog.getMetrics().addAll(logMetrics);
         }
         if (request.getNote() != null) {
-            log.setNote(request.getNote());
+            activityLog.setNote(request.getNote());
         }
 
-        ActivityLog saved = logRepository.save(log);
+        ActivityLog saved = logRepository.save(activityLog);
         return ActivityLogResponse.fromEntity(saved);
     }
 
     public ActivityLogResponse markAsCompleted(UUID id) {
-        ActivityLog log = logRepository.findById(id)
+        ActivityLog activityLog = logRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity log not found"));
-        log.setStatus(ActivityStatus.COMPLETED);
-        log.setCompletedAt(LocalDateTime.now());
-        ActivityLog saved = logRepository.save(log);
+        activityLog.setStatus(ActivityStatus.COMPLETED);
+        activityLog.setCompletedAt(LocalDateTime.now());
+        ActivityLog saved = logRepository.save(activityLog);
         return ActivityLogResponse.fromEntity(saved);
     }
 
     public ActivityLogResponse markAsSkipped(UUID id) {
-        ActivityLog log = logRepository.findById(id)
+        ActivityLog activityLog = logRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Activity log not found"));
-        log.setStatus(ActivityStatus.SKIPPED);
-        ActivityLog saved = logRepository.save(log);
+        activityLog.setStatus(ActivityStatus.SKIPPED);
+        ActivityLog saved = logRepository.save(activityLog);
         return ActivityLogResponse.fromEntity(saved);
     }
 

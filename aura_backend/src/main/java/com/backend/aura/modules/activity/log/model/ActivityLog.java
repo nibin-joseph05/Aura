@@ -6,10 +6,11 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.GenericGenerator;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "activity_logs")
@@ -33,14 +34,8 @@ public class ActivityLog {
     @Column(name = "status", nullable = false)
     private ActivityStatus status = ActivityStatus.PENDING;
 
-    @Column(name = "actual_duration")
-    private Integer actualDuration;
-
-    @Column(name = "distance_km", precision = 10, scale = 2)
-    private BigDecimal distanceKm;
-
-    @Column(name = "calories_burned")
-    private Integer caloriesBurned;
+    @OneToMany(mappedBy = "activityLog", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ActivityLogMetric> metrics = new ArrayList<>();
 
     @Column(name = "note", columnDefinition = "TEXT")
     private String note;

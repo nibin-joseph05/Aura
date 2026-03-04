@@ -3,6 +3,7 @@ package com.backend.aura.modules.activity.type.dto;
 import lombok.Data;
 
 import java.util.UUID;
+import java.util.List;
 
 @Data
 public class ActivityTypeRequest {
@@ -11,9 +12,7 @@ public class ActivityTypeRequest {
     private String description;
     private Boolean allowAlarm;
     private Boolean allowNotes;
-    private Boolean requiresDuration;
-    private Boolean requiresDistance;
-    private Boolean requiresCalories;
+    private List<ActivityMetricDto> metrics;
     private Boolean isGymActivity;
     private String icon;
     private String color;

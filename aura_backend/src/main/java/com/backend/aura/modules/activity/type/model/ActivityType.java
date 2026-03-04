@@ -7,6 +7,8 @@ import org.hibernate.annotations.GenericGenerator;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "activity_types")
@@ -35,14 +37,8 @@ public class ActivityType {
     @Column(name = "allow_notes", nullable = false)
     private Boolean allowNotes = true;
 
-    @Column(name = "requires_duration", nullable = false)
-    private Boolean requiresDuration = false;
-
-    @Column(name = "requires_distance", nullable = false)
-    private Boolean requiresDistance = false;
-
-    @Column(name = "requires_calories", nullable = false)
-    private Boolean requiresCalories = false;
+    @OneToMany(mappedBy = "activityType", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ActivityMetric> metrics = new ArrayList<>();
 
     @Column(name = "is_gym_activity", nullable = false)
     private Boolean isGymActivity = false;
@@ -78,12 +74,6 @@ public class ActivityType {
             allowAlarm = false;
         if (allowNotes == null)
             allowNotes = true;
-        if (requiresDuration == null)
-            requiresDuration = false;
-        if (requiresDistance == null)
-            requiresDistance = false;
-        if (requiresCalories == null)
-            requiresCalories = false;
         if (isGymActivity == null)
             isGymActivity = false;
         if (defaultTargetCompletions == null)

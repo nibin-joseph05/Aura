@@ -5,8 +5,10 @@ import com.backend.aura.modules.activity.category.repository.ActivityCategoryRep
 import com.backend.aura.modules.activity.type.dto.ActivityTypeRequest;
 import com.backend.aura.modules.activity.type.dto.ActivityTypeResponse;
 import com.backend.aura.modules.activity.type.model.ActivityType;
+import com.backend.aura.modules.activity.type.model.ActivityMetric;
 import com.backend.aura.modules.activity.type.repository.ActivityTypeRepository;
 import com.backend.aura.modules.common.exception.NotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ActivityTypeService {
 
     private final ActivityTypeRepository typeRepository;
@@ -79,12 +82,25 @@ public class ActivityTypeService {
         ActivityType type = new ActivityType();
         type.setCategory(category);
         type.setName(request.getName());
+
+        log.info("Creating new ActivityType: {} in category {}", request.getName(), category.getName());
         type.setDescription(request.getDescription());
         type.setAllowAlarm(request.getAllowAlarm() != null ? request.getAllowAlarm() : false);
         type.setAllowNotes(request.getAllowNotes() != null ? request.getAllowNotes() : true);
-        type.setRequiresDuration(request.getRequiresDuration() != null ? request.getRequiresDuration() : false);
-        type.setRequiresDistance(request.getRequiresDistance() != null ? request.getRequiresDistance() : false);
-        type.setRequiresCalories(request.getRequiresCalories() != null ? request.getRequiresCalories() : false);
+
+        if (request.getMetrics() != null) {
+            List<ActivityMetric> metricEntities = request.getMetrics().stream().map(mDto -> {
+                ActivityMetric m = new ActivityMetric();
+                m.setActivityType(type);
+                m.setName(mDto.getName());
+                m.setUnit(mDto.getUnit());
+                m.setMetricType(mDto.getMetricType());
+                m.setIsRequired(mDto.getIsRequired() != null ? mDto.getIsRequired() : false);
+                return m;
+            }).collect(Collectors.toList());
+            type.setMetrics(metricEntities);
+        }
+
         type.setIsGymActivity(request.getIsGymActivity() != null ? request.getIsGymActivity() : false);
         type.setIcon(request.getIcon());
         type.setColor(request.getColor());
@@ -94,6 +110,8 @@ public class ActivityTypeService {
         type.setIsActive(request.getIsActive() != null ? request.getIsActive() : true);
 
         ActivityType saved = typeRepository.save(type);
+        log.info("Successfully created ActivityType: {} with {} metrics", saved.getName(),
+                saved.getMetrics() != null ? saved.getMetrics().size() : 0);
         return ActivityTypeResponse.fromEntity(saved);
     }
 
@@ -124,15 +142,21 @@ public class ActivityTypeService {
         if (request.getAllowNotes() != null) {
             type.setAllowNotes(request.getAllowNotes());
         }
-        if (request.getRequiresDuration() != null) {
-            type.setRequiresDuration(request.getRequiresDuration());
+
+        if (request.getMetrics() != null) {
+            type.getMetrics().clear();
+            List<ActivityMetric> metricEntities = request.getMetrics().stream().map(mDto -> {
+                ActivityMetric m = new ActivityMetric();
+                m.setActivityType(type);
+                m.setName(mDto.getName());
+                m.setUnit(mDto.getUnit());
+                m.setMetricType(mDto.getMetricType());
+                m.setIsRequired(mDto.getIsRequired() != null ? mDto.getIsRequired() : false);
+                return m;
+            }).collect(Collectors.toList());
+            type.getMetrics().addAll(metricEntities);
         }
-        if (request.getRequiresDistance() != null) {
-            type.setRequiresDistance(request.getRequiresDistance());
-        }
-        if (request.getRequiresCalories() != null) {
-            type.setRequiresCalories(request.getRequiresCalories());
-        }
+
         if (request.getIsGymActivity() != null) {
             type.setIsGymActivity(request.getIsGymActivity());
         }
@@ -153,6 +177,7 @@ public class ActivityTypeService {
         }
 
         ActivityType saved = typeRepository.save(type);
+        log.info("Successfully updated ActivityType: {} with ID: {}", saved.getName(), saved.getId());
         return ActivityTypeResponse.fromEntity(saved);
     }
 

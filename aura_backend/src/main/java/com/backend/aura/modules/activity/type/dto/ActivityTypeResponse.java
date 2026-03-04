@@ -5,6 +5,8 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 public class ActivityTypeResponse {
@@ -15,9 +17,7 @@ public class ActivityTypeResponse {
     private String description;
     private Boolean allowAlarm;
     private Boolean allowNotes;
-    private Boolean requiresDuration;
-    private Boolean requiresDistance;
-    private Boolean requiresCalories;
+    private List<ActivityMetricDto> metrics;
     private Boolean isGymActivity;
     private String icon;
     private String color;
@@ -36,9 +36,17 @@ public class ActivityTypeResponse {
         response.setDescription(type.getDescription());
         response.setAllowAlarm(type.getAllowAlarm());
         response.setAllowNotes(type.getAllowNotes());
-        response.setRequiresDuration(type.getRequiresDuration());
-        response.setRequiresDistance(type.getRequiresDistance());
-        response.setRequiresCalories(type.getRequiresCalories());
+        if (type.getMetrics() != null) {
+            response.setMetrics(type.getMetrics().stream().map(m -> {
+                ActivityMetricDto dto = new ActivityMetricDto();
+                dto.setId(m.getId());
+                dto.setName(m.getName());
+                dto.setUnit(m.getUnit());
+                dto.setMetricType(m.getMetricType());
+                dto.setIsRequired(m.getIsRequired());
+                return dto;
+            }).collect(Collectors.toList()));
+        }
         response.setIsGymActivity(type.getIsGymActivity());
         response.setIcon(type.getIcon());
         response.setColor(type.getColor());
