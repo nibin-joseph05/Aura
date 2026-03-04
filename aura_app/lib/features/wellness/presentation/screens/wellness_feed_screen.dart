@@ -50,18 +50,19 @@ class WellnessFeedScreen extends ConsumerWidget {
                       onRefresh: () async {
                         ref.invalidate(wellnessFeedProvider(selectedCategory));
                       },
-                      child: ListView.builder(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: responsive.w(4),
-                          vertical: responsive.h(2),
-                        ),
+                      child: PageView.builder(
+                        scrollDirection: Axis.vertical,
                         itemCount: updates.length,
                         itemBuilder: (context, index) {
-                          return WellnessUpdateCard(
-                            update: updates[index],
-                            currentUserId: currentUserId,
-                            onDeleted: () => ref.invalidate(
-                              wellnessFeedProvider(selectedCategory),
+                          return Center(
+                            child: SingleChildScrollView(
+                              child: WellnessUpdateCard(
+                                update: updates[index],
+                                currentUserId: currentUserId,
+                                onDeleted: () => ref.invalidate(
+                                  wellnessFeedProvider(selectedCategory),
+                                ),
+                              ),
                             ),
                           );
                         },

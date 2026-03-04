@@ -7,6 +7,11 @@ import com.backend.aura.modules.messaging.model.Message;
 import com.backend.aura.modules.messaging.repository.ConversationRepository;
 import com.backend.aura.modules.messaging.repository.FollowRelationshipRepository;
 import com.backend.aura.modules.messaging.repository.MessageRepository;
+import com.backend.aura.modules.notification.model.Notification;
+import com.backend.aura.modules.notification.service.NotificationService;
+import com.backend.aura.modules.notification.service.PushNotificationService;
+import com.backend.aura.modules.user.model.User;
+import com.backend.aura.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,6 +32,9 @@ public class MessagingService {
     private final MessageRepository messageRepo;
     private final FollowRelationshipRepository followRepo;
     private final SimpMessagingTemplate messagingTemplate;
+    private final NotificationService notificationService;
+    private final PushNotificationService pushNotificationService;
+    private final UserRepository userRepository;
     private final AuraLogger logger;
 
     @Transactional
@@ -47,6 +55,23 @@ public class MessagingService {
         messagingTemplate.convertAndSendToUser(
                 toUserId, "/queue/follow-requests",
                 Map.of("type", "FOLLOW_REQUEST", "fromUserId", fromUserId, "requestId", follow.getId()));
+
+        try {
+            User sender = userRepository.findById(fromUserId).orElse(null);
+            String senderName = (sender != null && sender.getName() != null) ? sender.getName() : "Someone";
+
+            var notif = notificationService.createUserNotification(
+                    toUserId, "New Follow Request", senderName + " wants to follow you.",
+                    Notification.NotificationType.ACCOUNT_ALERT, "/messages");
+
+            User receiver = userRepository.findById(toUserId).orElse(null);
+            if (receiver != null && receiver.getFcmToken() != null && !receiver.getFcmToken().isBlank()) {
+                pushNotificationService.sendToUser(receiver.getFcmToken(),
+                        "New Follow Request", senderName + " wants to follow you.", "/messages");
+                notificationService.markAsSent(notif.getId());
+            }
+        } catch (Exception ignored) {
+        }
 
         return follow;
     }

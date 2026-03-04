@@ -2,6 +2,7 @@ package com.backend.aura.modules.auth.firebase.filter;
 
 import com.backend.aura.modules.auth.firebase.context.AuthenticatedUserContext;
 import com.backend.aura.modules.auth.firebase.service.FirebaseAuthService;
+import com.backend.aura.modules.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,9 +23,11 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(FirebaseAuthFilter.class);
 
     private final FirebaseAuthService firebaseAuthService;
+    private final UserRepository userRepository;
 
-    public FirebaseAuthFilter(FirebaseAuthService firebaseAuthService) {
+    public FirebaseAuthFilter(FirebaseAuthService firebaseAuthService, UserRepository userRepository) {
         this.firebaseAuthService = firebaseAuthService;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -36,6 +39,7 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
         String method = request.getMethod();
         String path = request.getRequestURI();
         String authHeader = request.getHeader("Authorization");
+        String xUserId = request.getHeader("X-User-Id");
 
         log.debug("------------------------------------------------------------");
         log.debug("FILTER - {} {} | Auth header present: {}", method, path, authHeader != null);
@@ -56,6 +60,16 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
                         authContext.getUid(), authContext.getEmail(), authContext.getPhone());
             } catch (Exception e) {
                 log.debug("FILTER - Auth FAILED | error: {}", e.getMessage());
+            }
+        } else if (xUserId != null && !xUserId.isBlank()) {
+            log.debug("FILTER - No Bearer token, checking X-User-Id: {}", xUserId);
+            if (userRepository.existsById(xUserId)) {
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        xUserId, null, Collections.emptyList());
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+                log.debug("FILTER - X-User-Id auth SUCCESS | uid: {}", xUserId);
+            } else {
+                log.debug("FILTER - X-User-Id uid not found in DB: {}", xUserId);
             }
         } else {
             log.debug("FILTER - No Bearer token, proceeding without auth");

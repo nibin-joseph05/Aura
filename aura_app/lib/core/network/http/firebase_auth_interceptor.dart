@@ -1,6 +1,8 @@
 import 'dart:developer' as dev;
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:aura_app/features/user/data/models/user_model.dart';
 
 class AuthInterceptor extends Interceptor {
   @override
@@ -8,12 +10,13 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    bool authenticated = false;
     try {
       User? user = FirebaseAuth.instance.currentUser;
 
       if (user == null) {
         user = await FirebaseAuth.instance.authStateChanges().first.timeout(
-          const Duration(seconds: 10),
+          const Duration(seconds: 3),
           onTimeout: () => null,
         );
       }
@@ -22,9 +25,36 @@ class AuthInterceptor extends Interceptor {
         final String? idToken = await user.getIdToken(false);
         if (idToken != null && idToken.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $idToken';
+          authenticated = true;
         }
       }
     } catch (_) {}
+
+    if (!authenticated) {
+      try {
+        Box<UserModel>? box;
+        if (Hive.isBoxOpen('user')) {
+          box = Hive.box<UserModel>('user');
+        } else {
+          try {
+            box = await Hive.openBox<UserModel>('user');
+          } catch (_) {
+            try {
+              box = Hive.box<UserModel>('user');
+            } catch (_) {}
+          }
+        }
+
+        if (box != null) {
+          final UserModel? user = box.get('currentUser');
+          if (user != null && user.uid.isNotEmpty) {
+            options.headers['X-User-Id'] = user.uid;
+          }
+        }
+      } catch (e) {
+        dev.log('AuthInterceptor Hive error: $e', name: 'HTTP');
+      }
+    }
 
     dev.log(
       '------------------------------------------------------------\n'

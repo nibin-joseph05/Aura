@@ -194,4 +194,23 @@ public class UserController {
         userService.updateFcmToken(body.get("uid"), body.get("token"));
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchUsers(
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        if (q.isBlank()) {
+            return ResponseEntity.ok(Map.of("content", java.util.List.of()));
+        }
+        var results = userRepository
+                .findByNameContainingIgnoreCaseOrEmailContainingIgnoreCaseOrUsernameContainingIgnoreCase(
+                        q, q, q, org.springframework.data.domain.PageRequest.of(page, size))
+                .map(u -> Map.of(
+                        "uid", u.getUid(),
+                        "name", u.getName() != null ? u.getName() : "",
+                        "username", u.getUsername() != null ? u.getUsername() : "",
+                        "profileImageUrl", u.getProfileImageUrl() != null ? u.getProfileImageUrl() : ""));
+        return ResponseEntity.ok(results);
+    }
 }

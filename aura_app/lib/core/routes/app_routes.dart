@@ -38,4 +38,5 @@ class AppRoutes {
   static const String notificationSettings = '/notification-settings';
   static const String myAccount = '/my-account';
   static const String newsDetail = '/news-detail';
+  static const String searchUsers = '/search-users';
 }

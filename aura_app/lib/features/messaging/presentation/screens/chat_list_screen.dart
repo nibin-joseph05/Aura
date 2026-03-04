@@ -47,6 +47,17 @@ class _ChatListScreenState extends ConsumerState<ChatListScreen> {
               AppHeader(
                 title: 'Messages',
                 actions: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.search_rounded,
+                      color: AppColors.onSurface(
+                        isDark ? Brightness.dark : Brightness.light,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.pushNamed(context, AppRoutes.searchUsers);
+                    },
+                  ),
                   Stack(
                     children: [
                       IconButton(

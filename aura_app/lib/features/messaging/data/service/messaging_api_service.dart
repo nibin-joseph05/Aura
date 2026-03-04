@@ -147,4 +147,16 @@ class MessagingApiService {
     final response = await _dio.get('/api/users/$userId/profile');
     return response.data;
   }
+
+  Future<List<dynamic>> searchUsers(
+    String query, {
+    int page = 0,
+    int size = 20,
+  }) async {
+    final response = await _dio.get(
+      '/api/user/search',
+      queryParameters: {'q': query, 'page': page, 'size': size},
+    );
+    return response.data;
+  }
 }

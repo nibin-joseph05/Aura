@@ -74,6 +74,21 @@ public class WellnessService {
                 .build();
 
         WellnessUpdate saved = updateRepository.save(update);
+
+        try {
+            var notif = notificationService.createUserNotification(
+                    userId, "✨ Post published!", "Your wellness post is now live on the feed.",
+                    com.backend.aura.modules.notification.model.Notification.NotificationType.WELLNESS,
+                    "/wellness-feed");
+            User poster = userRepository.findById(userId).orElse(null);
+            if (poster != null && poster.getFcmToken() != null && !poster.getFcmToken().isBlank()) {
+                pushNotificationService.sendToUser(poster.getFcmToken(),
+                        "✨ Post published!", "Your wellness post is now live on the feed.", "/wellness-feed");
+                notificationService.markAsSent(notif.getId());
+            }
+        } catch (Exception ignored) {
+        }
+
         return enrich(saved, false);
     }
 

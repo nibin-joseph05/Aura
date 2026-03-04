@@ -230,128 +230,195 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     );
     final followersCount = _profile?['followersCount'] ?? 0;
     final followingCount = _profile?['followingCount'] ?? 0;
-    final postsCount = _profile?['postsCount'] ?? 0;
+
+    final postsAsync = isOwnProfile
+        ? ref.watch(myWellnessUpdatesProvider(widget.userId))
+        : ref.watch(userWellnessPostsProvider(widget.userId));
+
+    final postsCount = postsAsync.when(
+      data: (posts) => posts.length,
+      loading: () => _profile?['postsCount'] ?? 0,
+      error: (_, __) => _profile?['postsCount'] ?? 0,
+    );
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
         SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: responsive.w(5)),
-            child: Column(
-              children: [
-                SizedBox(height: responsive.h(3)),
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.containerBorder(brightness),
-                      width: 3,
+          child: Column(
+            children: [
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    height: responsive.h(16),
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.accent.withValues(alpha: 0.8),
+                          AppColors.accent.withValues(alpha: 0.3),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.accent.withValues(alpha: 0.2),
-                        blurRadius: 20,
-                        spreadRadius: 4,
+                  ),
+                  Positioned(
+                    bottom: -50,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.background,
+                      ),
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const LinearGradient(
+                            colors: [Colors.purple, Colors.orange, Colors.pink],
+                            begin: Alignment.topRight,
+                            end: Alignment.bottomLeft,
+                          ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppColors.background,
+                                width: 3,
+                              ),
+                            ),
+                            child: ClipOval(
+                              child: profileImageUrl != null
+                                  ? Image.network(
+                                      profileImageUrl,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) =>
+                                          _buildAvatarPlaceholder(brightness),
+                                    )
+                                  : _buildAvatarPlaceholder(brightness),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 60),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: responsive.w(5)),
+                child: Column(
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        color: AppColors.onSurface(brightness),
+                        fontSize: responsive.isTablet ? 24 : 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '@$username',
+                      style: TextStyle(
+                        color: AppColors.onSurfaceMuted(brightness),
+                        fontSize: responsive.isTablet ? 15 : 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (bio != null && bio.toString().trim().isNotEmpty) ...[
+                      SizedBox(height: responsive.h(1.5)),
+                      Text(
+                        bio.toString().trim(),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppColors.onSurface(brightness),
+                          fontSize: responsive.isTablet ? 14 : 13,
+                          height: 1.4,
+                        ),
                       ),
                     ],
-                  ),
-                  child: ClipOval(
-                    child: profileImageUrl != null
-                        ? Image.network(
-                            profileImageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) =>
-                                _buildAvatarPlaceholder(brightness),
-                          )
-                        : _buildAvatarPlaceholder(brightness),
-                  ),
-                ),
-                SizedBox(height: responsive.h(1.5)),
-                Text(
-                  name,
-                  style: TextStyle(
-                    color: AppColors.onSurface(brightness),
-                    fontSize: responsive.isTablet ? 24 : 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '@$username',
-                  style: TextStyle(
-                    color: AppColors.onSurfaceMuted(brightness),
-                    fontSize: responsive.isTablet ? 15 : 13,
-                  ),
-                ),
-                if (bio.toString().isNotEmpty) ...[
-                  SizedBox(height: responsive.h(1)),
-                  Text(
-                    bio.toString(),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.onSurfaceMuted(brightness),
-                      fontSize: responsive.isTablet ? 14 : 12,
-                      height: 1.4,
+                    SizedBox(height: responsive.h(3)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildStatItem(
+                          'Posts',
+                          postsCount,
+                          responsive,
+                          brightness,
+                        ),
+                        _buildStatDivider(brightness),
+                        GestureDetector(
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.followers,
+                            arguments: widget.userId,
+                          ),
+                          child: _buildStatItem(
+                            'Followers',
+                            followersCount,
+                            responsive,
+                            brightness,
+                          ),
+                        ),
+                        _buildStatDivider(brightness),
+                        GestureDetector(
+                          onTap: () => Navigator.pushNamed(
+                            context,
+                            AppRoutes.following,
+                            arguments: widget.userId,
+                          ),
+                          child: _buildStatItem(
+                            'Following',
+                            followingCount,
+                            responsive,
+                            brightness,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-                SizedBox(height: responsive.h(2.5)),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildStatItem('Posts', postsCount, responsive, brightness),
-                    _buildStatDivider(brightness),
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.followers,
-                        arguments: widget.userId,
+                    SizedBox(height: responsive.h(3)),
+                    if (!isOwnProfile) ...[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: _buildFollowButton(responsive, brightness),
+                          ),
+                          if (_followStatus?['isMutual'] == true) ...[
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildMessageButton(
+                                responsive,
+                                brightness,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      child: _buildStatItem(
-                        'Followers',
-                        followersCount,
-                        responsive,
-                        brightness,
-                      ),
-                    ),
-                    _buildStatDivider(brightness),
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        AppRoutes.following,
-                        arguments: widget.userId,
-                      ),
-                      child: _buildStatItem(
-                        'Following',
-                        followingCount,
-                        responsive,
-                        brightness,
-                      ),
-                    ),
+                    ],
+                    SizedBox(height: responsive.h(2)),
                   ],
                 ),
-                SizedBox(height: responsive.h(2.5)),
-                if (!isOwnProfile) ...[
-                  _buildFollowButton(responsive, brightness),
-                  SizedBox(height: responsive.h(1)),
-                  if (_followStatus?['isMutual'] == true)
-                    _buildMessageButton(responsive, brightness),
-                ],
-                SizedBox(height: responsive.h(2)),
-                Divider(color: AppColors.containerBorder(brightness)),
-                SizedBox(height: responsive.h(1)),
-              ],
-            ),
+              ),
+              Divider(height: 1, color: AppColors.containerBorder(brightness)),
+            ],
           ),
         ),
         _buildPostsGrid(
           responsive,
           brightness,
           isOwnProfile,
-          userState.user?.uid ?? '',
+          user?.uid ?? '',
+          postsAsync,
         ),
       ],
     );
@@ -362,11 +429,8 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     Brightness brightness,
     bool isOwnProfile,
     String currentUserId,
+    AsyncValue<List<WellnessUpdate>> postsAsync,
   ) {
-    final postsAsync = isOwnProfile
-        ? ref.watch(myWellnessUpdatesProvider(widget.userId))
-        : ref.watch(userWellnessPostsProvider(widget.userId));
-
     return postsAsync.when(
       loading: () => const SliverFillRemaining(
         child: Center(child: CircularProgressIndicator()),

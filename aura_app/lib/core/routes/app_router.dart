@@ -38,6 +38,7 @@ import '../../features/home/presentation/screens/my_account_screen.dart';
 import '../../features/home/presentation/screens/notification_settings_screen.dart';
 import '../../features/news/data/models/news_article.dart';
 import '../../features/news/presentation/screens/news_detail_screen.dart';
+import '../../features/user/presentation/screens/search_users_screen.dart';
 
 import 'app_routes.dart';
 
@@ -143,6 +144,8 @@ class AppRouter {
       case AppRoutes.newsDetail:
         final article = settings.arguments as NewsArticle;
         return _build(NewsDetailScreen(article: article), settings);
+      case AppRoutes.searchUsers:
+        return _build(const SearchUsersScreen(), settings);
       default:
         return _build(
           const Scaffold(body: Center(child: Text("Route not found"))),
