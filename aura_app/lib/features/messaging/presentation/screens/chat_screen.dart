@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../../core/widgets/loading/ghost_running.dart';
 import '../providers/messaging_provider.dart';
+import '../../../wellness/presentation/widgets/shared_post_card.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
   final String conversationId;
@@ -125,6 +126,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   Widget _buildMessageBubble(MessageModel message, bool isDark) {
     final isMine = message.senderId != widget.otherUserId;
+    final isSharedPost = message.content.startsWith('shared_post:');
 
     return Align(
       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
@@ -132,56 +134,62 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         onLongPress: () => _showMessageActions(message),
         child: Container(
           margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: isSharedPost
+              ? EdgeInsets.zero
+              : const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           constraints: BoxConstraints(
             maxWidth: MediaQuery.of(context).size.width * 0.72,
           ),
-          decoration: BoxDecoration(
-            color: isMine
-                ? AppColors.primary
-                : isDark
-                ? AppColors.surfaceDark
-                : AppColors.surface,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(16),
-              topRight: const Radius.circular(16),
-              bottomLeft: Radius.circular(isMine ? 16 : 4),
-              bottomRight: Radius.circular(isMine ? 4 : 16),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 4,
-                offset: const Offset(0, 1),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                message.content,
-                style: TextStyle(
-                  fontSize: 14,
+          decoration: isSharedPost
+              ? null
+              : BoxDecoration(
                   color: isMine
-                      ? Colors.white
+                      ? AppColors.primary
                       : isDark
-                      ? Colors.white
-                      : AppColors.textPrimary,
+                      ? AppColors.surfaceDark
+                      : AppColors.surface,
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(16),
+                    topRight: const Radius.circular(16),
+                    bottomLeft: Radius.circular(isMine ? 16 : 4),
+                    bottomRight: Radius.circular(isMine ? 4 : 16),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                _formatMessageTime(message.sentAt),
-                style: TextStyle(
-                  fontSize: 10,
-                  color: isMine
-                      ? Colors.white.withValues(alpha: 0.7)
-                      : AppColors.textSecondary,
+          child: isSharedPost
+              ? SharedPostCard(postId: message.content.split(':')[1])
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      message.content,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isMine
+                            ? Colors.white
+                            : isDark
+                            ? Colors.white
+                            : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatMessageTime(message.sentAt),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isMine
+                            ? Colors.white.withValues(alpha: 0.7)
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
         ),
       ),
     );

@@ -179,4 +179,12 @@ class WellnessRemoteDataSource {
       throw Exception(response.data['error'] ?? 'Failed to delete comment');
     }
   }
+
+  Future<WellnessUpdate> getUpdateById(String id) async {
+    final response = await _dio.get('${ApiEndpoints.wellnessUpdates}/$id');
+    if (response.data['success'] == true) {
+      return WellnessUpdate.fromJson(response.data['data']);
+    }
+    throw Exception(response.data['error'] ?? 'Failed to fetch post');
+  }
 }

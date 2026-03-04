@@ -101,4 +101,15 @@ class WellnessLocalDataSource {
     final box = await _getPendingOpsBox();
     return box.length;
   }
+
+  Future<WellnessUpdate> getUpdateById(String id) async {
+    final feedBox = await _getFeedBox();
+    final myBox = await _getMyUpdatesBox();
+
+    WellnessUpdate? update = feedBox.get(id);
+    update ??= myBox.get(id);
+
+    if (update != null) return update;
+    throw Exception('Post not found in local storage');
+  }
 }

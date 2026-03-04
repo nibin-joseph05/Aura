@@ -184,6 +184,17 @@ class WellnessRepository {
     await _remoteDataSource.deleteComment(commentId);
   }
 
+  Future<WellnessUpdate> getUpdateById(String id) async {
+    try {
+      if (await _isOnline()) {
+        final update = await _remoteDataSource.getUpdateById(id);
+        await _localDataSource.addUpdate(update);
+        return update;
+      }
+    } catch (_) {}
+    return _localDataSource.getUpdateById(id);
+  }
+
   Future<void> syncPendingOperations() async {
     if (!await _isOnline()) return;
 

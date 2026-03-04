@@ -43,6 +43,14 @@ final wellnessCommentsProvider =
       return repository.getComments(postId);
     });
 
+final wellnessPostProvider = FutureProvider.family<WellnessUpdate, String>((
+  ref,
+  postId,
+) async {
+  final repository = ref.watch(wellnessRepositoryProvider);
+  return repository.getUpdateById(postId);
+});
+
 class WellnessNotifier extends StateNotifier<AsyncValue<void>> {
   final WellnessRepository _repository;
   final Ref _ref;

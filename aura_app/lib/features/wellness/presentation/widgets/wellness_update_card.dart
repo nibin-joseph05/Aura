@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../data/models/wellness_update.dart';
 import '../providers/wellness_provider.dart';
 import '../screens/edit_wellness_post_screen.dart';
+import 'share_post_sheet.dart';
 import 'wellness_comments_sheet.dart';
 
 class WellnessUpdateCard extends ConsumerStatefulWidget {
@@ -104,19 +105,28 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard>
     );
   }
 
+  void _showShareSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => SharePostSheet(post: _update),
+    );
+  }
+
   void _showOptionsMenu() {
     final brightness = Theme.of(context).brightness;
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.containerFill(brightness),
+      backgroundColor: const Color(0xFF1A1E2E),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Container(
               width: 40,
               height: 4,
@@ -128,9 +138,9 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard>
             const SizedBox(height: 8),
             ListTile(
               leading: Icon(Icons.edit_outlined, color: AppColors.accent),
-              title: Text(
+              title: const Text(
                 'Edit post',
-                style: TextStyle(color: AppColors.onSurface(brightness)),
+                style: TextStyle(color: Colors.white),
               ),
               onTap: () async {
                 Navigator.pop(ctx);
@@ -182,6 +192,7 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard>
                 }
               },
             ),
+            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -258,9 +269,7 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard>
                 _buildActionButton(
                   icon: Icons.share_outlined,
                   label: 'Share',
-                  onTap: () {
-                    // TODO: Implement share
-                  },
+                  onTap: _showShareSheet,
                 ),
                 if (isOwn) ...[
                   const SizedBox(height: 20),
@@ -282,15 +291,15 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        '/user-profile',
-                        arguments: _update.userId,
-                      ),
-                      child: CircleAvatar(
+                GestureDetector(
+                  onTap: () => Navigator.pushNamed(
+                    context,
+                    '/user-profile',
+                    arguments: _update.userId,
+                  ),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
                         radius: 20,
                         backgroundImage: profileImageUrl.isNotEmpty
                             ? NetworkImage(profileImageUrl)
@@ -308,34 +317,34 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard>
                               )
                             : null,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              shadows: [
-                                Shadow(blurRadius: 4, color: Colors.black54),
-                              ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                shadows: [
+                                  Shadow(blurRadius: 4, color: Colors.black54),
+                                ],
+                              ),
                             ),
-                          ),
-                          Text(
-                            _timeAgo(_update.createdAt),
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 12,
+                            Text(
+                              _timeAgo(_update.createdAt),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 12,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Container(
