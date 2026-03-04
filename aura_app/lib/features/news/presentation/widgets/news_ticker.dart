@@ -23,7 +23,7 @@ class _NewsTickerState extends ConsumerState<NewsTicker> {
   }
 
   void _startAutoScroll() {
-    Future.delayed(const Duration(seconds: 4), () {
+    Future.delayed(const Duration(seconds: 7), () {
       if (!mounted) return;
       final newsAsync = ref.read(wellnessNewsProvider);
       final count = newsAsync.valueOrNull?.length ?? 0;
@@ -31,8 +31,8 @@ class _NewsTickerState extends ConsumerState<NewsTicker> {
         final next = (_currentPage + 1) % count;
         _pageController.animateToPage(
           next,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOutCubic,
         );
         setState(() => _currentPage = next);
       }
@@ -249,110 +249,111 @@ class _NewsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(
-        context,
-        '/news-detail',
-        arguments: article,
-      ),
+      onTap: () =>
+          Navigator.pushNamed(context, '/news-detail', arguments: article),
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: Colors.white.withValues(alpha: 0.07),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Row(
-          children: [
-            if (article.imageUrl != null)
-              Container(
-                width: responsive.isTablet ? 130 : 110,
-                color: Colors.white.withValues(alpha: 0.05),
-                child: Image.network(
-                  article.imageUrl!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    child: const Icon(
-                      Icons.image_not_supported_rounded,
-                      color: Colors.white24,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: Colors.white.withValues(alpha: 0.07),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(18),
+          child: Row(
+            children: [
+              if (article.imageUrl != null)
+                Container(
+                  width: responsive.isTablet ? 130 : 110,
+                  color: Colors.white.withValues(alpha: 0.05),
+                  child: Image.network(
+                    article.imageUrl!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.white.withValues(alpha: 0.05),
+                      child: const Icon(
+                        Icons.image_not_supported_rounded,
+                        color: Colors.white24,
+                      ),
                     ),
                   ),
                 ),
-              ),
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(responsive.w(3)),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (article.source != null)
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 7,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFFEF4444,
-                              ).withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              article.source!,
-                              style: TextStyle(
-                                color: const Color(0xFFEF4444),
-                                fontSize: responsive.isTablet ? 10 : 9,
-                                fontWeight: FontWeight.w600,
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.all(responsive.w(3)),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (article.source != null)
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 7,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFFEF4444,
+                                  ).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  article.source!,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: const Color(0xFFEF4444),
+                                    fontSize: responsive.isTablet ? 10 : 9,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            article.timeAgo,
-                            style: TextStyle(
-                              color: Colors.white38,
-                              fontSize: responsive.isTablet ? 10 : 9,
+                            const SizedBox(width: 8),
+                            Text(
+                              article.timeAgo,
+                              style: TextStyle(
+                                color: Colors.white38,
+                                fontSize: responsive.isTablet ? 10 : 9,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    SizedBox(height: responsive.h(0.6)),
-                    Text(
-                      article.title,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: responsive.isTablet ? 13 : 12,
-                        fontWeight: FontWeight.w600,
-                        height: 1.4,
-                      ),
-                    ),
-                    if (article.description != null) ...[
-                      SizedBox(height: responsive.h(0.5)),
+                          ],
+                        ),
+                      SizedBox(height: responsive.h(0.6)),
                       Text(
-                        article.description!,
-                        maxLines: 1,
+                        article.title,
+                        maxLines: 3,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: Colors.white38,
-                          fontSize: responsive.isTablet ? 11 : 10,
+                          color: Colors.white,
+                          fontSize: responsive.isTablet ? 13 : 12,
+                          fontWeight: FontWeight.w600,
+                          height: 1.4,
                         ),
                       ),
+                      if (article.description != null) ...[
+                        SizedBox(height: responsive.h(0.5)),
+                        Text(
+                          article.description!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white38,
+                            fontSize: responsive.isTablet ? 11 : 10,
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      )
     );
   }
 }

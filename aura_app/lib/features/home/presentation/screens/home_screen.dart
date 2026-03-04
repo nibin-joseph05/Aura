@@ -9,7 +9,6 @@ import '../../../daily_activity/presentation/widgets/daily_activity_tracker_widg
 import '../../../user/presentation/providers/user_provider.dart';
 import '../providers/success_overlay_provider.dart';
 import '../widgets/daily_insight_card.dart';
-import '../widgets/feed_preview_section.dart';
 import '../widgets/home_footer.dart';
 import '../widgets/home_header.dart';
 import '../widgets/mood_check_in_widget.dart';
@@ -238,9 +237,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   delay: const Duration(milliseconds: 530),
                   child: _buildSectionHeader(
                     responsive,
-                    icon: Icons.favorite_rounded,
-                    color: const Color(0xFF10B981),
-                    label: 'Vibes Feed',
+                    icon: Icons.analytics_rounded,
+                    color: const Color(0xFF8B5CF6),
+                    label: 'Analytics',
                   ),
                 ),
 
@@ -248,10 +247,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
                 AnimatedEntry(
                   delay: const Duration(milliseconds: 560),
-                  child: FeedPreviewSection(
-                    onSeeAll: () =>
-                        Navigator.pushNamed(context, '/wellness-feed'),
-                  ),
+                  child: _buildAnalyticsPlaceholder(responsive),
                 ),
 
                 SizedBox(height: responsive.h(2.5)),
@@ -312,6 +308,49 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAnalyticsPlaceholder(Responsive responsive) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        vertical: responsive.h(4),
+        horizontal: responsive.w(4),
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(
+              Icons.area_chart_rounded,
+              size: 48,
+              color: Colors.white.withValues(alpha: 0.2),
+            ),
+            SizedBox(height: responsive.h(1.5)),
+            Text(
+              "Analytics Coming Soon",
+              style: TextStyle(
+                color: Colors.white54,
+                fontSize: responsive.isTablet ? 16 : 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: responsive.h(0.5)),
+            Text(
+              "AI-driven wellness trends powered by Gemini.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white38,
+                fontSize: responsive.isTablet ? 13 : 11,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

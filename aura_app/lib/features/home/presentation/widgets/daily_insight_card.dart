@@ -247,14 +247,6 @@ class _DailyInsightCardState extends State<DailyInsightCard>
           ),
           child: Stack(
             children: [
-              Positioned(
-                right: -16,
-                bottom: -16,
-                child: Text(
-                  _todayInsight.emoji,
-                  style: TextStyle(fontSize: responsive.isTablet ? 72 : 58),
-                ),
-              ),
               ShaderMask(
                 shaderCallback: (rect) => LinearGradient(
                   begin: Alignment(_shimmer.value - 0.8, 0),
@@ -273,48 +265,57 @@ class _DailyInsightCardState extends State<DailyInsightCard>
                   ),
                 ),
               ),
-              Column(
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Daily Insight',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: responsive.isTablet ? 11 : 9.5,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Daily Insight',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: responsive.isTablet ? 11 : 9.5,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: responsive.h(1.5)),
+                        Text(
+                          _todayInsight.title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: responsive.isTablet ? 20 : 17,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: responsive.h(0.8)),
+                        Text(
+                          _todayInsight.body,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: responsive.isTablet ? 13 : 11.5,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: responsive.h(1)),
+                  SizedBox(width: responsive.w(3)),
                   Text(
-                    _todayInsight.title,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: responsive.isTablet ? 20 : 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  SizedBox(height: responsive.h(0.5)),
-                  SizedBox(
-                    width: responsive.w(60),
-                    child: Text(
-                      _todayInsight.body,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontSize: responsive.isTablet ? 13 : 11.5,
-                        height: 1.45,
-                      ),
-                    ),
+                    _todayInsight.emoji,
+                    style: TextStyle(fontSize: responsive.isTablet ? 48 : 42),
                   ),
                 ],
               ),

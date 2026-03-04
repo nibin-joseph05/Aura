@@ -46,7 +46,13 @@ public class NewsService {
 
             Map<String, Object> body = new HashMap<>();
             body.put("action", "getArticles");
-            body.put("keyword", keyword);
+
+            body.put("categoryUri", "dmoz/Health");
+
+            if (keyword != null && !keyword.isBlank()) {
+                body.put("keyword", keyword);
+            }
+
             body.put("articlesPage", 1);
             body.put("articlesCount", Math.min(pageSize, 20));
             body.put("articlesSortBy", "date");
@@ -59,8 +65,9 @@ public class NewsService {
             log.debug("NEWS_SERVICE - Sending request to Event Registry: keyword={}, pageSize={}", keyword, pageSize);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            ResponseEntity<Map> response = restTemplate.postForEntity(
-                    EVENT_REGISTRY_URL, request, Map.class);
+
+            ResponseEntity<Map<String, Object>> response = restTemplate.postForEntity(
+                    EVENT_REGISTRY_URL, request, (Class<Map<String, Object>>) (Class<?>) Map.class);
 
             if (response.getBody() == null) {
                 log.warn("NEWS_SERVICE - Event Registry returned null body");
