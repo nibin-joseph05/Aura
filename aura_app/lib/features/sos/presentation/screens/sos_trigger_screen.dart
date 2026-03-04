@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:background_sms/background_sms.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
@@ -106,41 +108,62 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
     final messageBody =
         '${settings.customMessage}\n\nMy location: $mapsUrl\n\nLat: ${location.latitude}\nLng: ${location.longitude}';
 
+     
+    bool hasSmsPermission = false;
+    if (Platform.isAndroid) {
+      final status = await Permission.sms.request();
+      hasSmsPermission = status.isGranted;
+    }
+
     for (final contact in contacts) {
-      try {
-        if (Platform.isAndroid) {
-          final smsUri = Uri(
-            scheme: 'sms',
-            path: contact.phone,
-            queryParameters: {'body': messageBody},
+      if (Platform.isAndroid && hasSmsPermission) {
+         
+        try {
+           
+           
+          SmsStatus result = await BackgroundSms.sendMessage(
+            phoneNumber: contact.phone,
+            message: messageBody,
           );
-          try {
-            await launchUrl(smsUri);
-          } catch (_) {
-            debugPrint('[SOS] SMS launch to ${contact.name} failed');
+          if (result == SmsStatus.sent) {
+            debugPrint('[SOS] Background SMS sent to ${contact.name}');
+          } else {
+            debugPrint('[SOS] Background SMS failed to ${contact.name}');
           }
+        } catch (e) {
+          debugPrint('[SOS] Background SMS error for ${contact.name}: $e');
         }
-      } catch (e) {
-        debugPrint('[SOS] SMS to ${contact.name} failed: $e');
+      } else if (Platform.isIOS || (Platform.isAndroid && !hasSmsPermission)) {
+         
+        try {
+          final separator = Platform.isIOS ? '&' : '?';
+          final smsUri = Uri.parse(
+            'sms:${contact.phone}$separator'
+            'body=${Uri.encodeComponent(messageBody)}',
+          );
+
+          if (await canLaunchUrl(smsUri)) {
+            await launchUrl(smsUri);
+          } else {
+            debugPrint('[SOS] Cannot launch SMS to ${contact.phone}');
+          }
+        } catch (e) {
+          debugPrint('[SOS] SMS launch to ${contact.name} failed: $e');
+        }
       }
 
       if (contact.email != null && contact.email!.isNotEmpty) {
         try {
-          final emailUri = Uri(
-            scheme: 'mailto',
-            path: contact.email,
-            queryParameters: {
-              'subject': 'EMERGENCY SOS - ${user.name ?? "User"} needs help!',
-              'body': messageBody,
-            },
+          final emailUri = Uri.parse(
+            'mailto:${contact.email}?subject=${Uri.encodeComponent('EMERGENCY SOS - ${user.name ?? "User"} needs help!')}&body=${Uri.encodeComponent(messageBody)}',
           );
-          try {
+          if (await canLaunchUrl(emailUri)) {
             await launchUrl(emailUri);
-          } catch (_) {
-            debugPrint('[SOS] Email launch to ${contact.name} failed');
+          } else {
+            debugPrint('[SOS] Cannot launch Email to ${contact.email}');
           }
         } catch (e) {
-          debugPrint('[SOS] Email to ${contact.name} failed: $e');
+          debugPrint('[SOS] Email launch to ${contact.name} failed: $e');
         }
       }
     }

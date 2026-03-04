@@ -37,6 +37,7 @@ public class SOSService {
     private final SOSEventRepository sosEventRepository;
     private final UserRepository userRepository;
     private final BlockchainService blockchainService;
+    private final com.backend.aura.modules.mail.service.EmailService emailService;
     private final AuraLogger auraLogger;
 
     @Transactional
@@ -167,6 +168,20 @@ public class SOSService {
         SOSEvent saved = sosEventRepository.save(event);
         log.debug("SOS_SVC - triggerSOS | event saved | eventId: {} | userId: {}", saved.getId(), userId);
         auraLogger.sosTriggered(userId, saved.getId().toString());
+
+        List<TrustedContact> contacts = trustedContactRepository.findByUserIdAndIsActiveTrueOrderByPriorityAsc(userId);
+        for (TrustedContact contact : contacts) {
+            if (contact.getEmail() != null && !contact.getEmail().trim().isEmpty()) {
+                String location = request.getLatitude() + ", " + request.getLongitude();
+                emailService.sendSosAlertToContact(
+                        contact.getEmail(),
+                        contact.getName(),
+                        user != null ? user.getName() : "Aura User",
+                        location,
+                        event.getTriggeredAt().toString());
+                log.debug("SOS_SVC - triggerSOS | Sent SOS email to contact: {}", contact.getEmail());
+            }
+        }
 
         log.debug("SOS_SVC - triggerSOS | writing to blockchain | eventId: {}", saved.getId());
         blockchainService.writeSosEvent(
