@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 
 part 'wellness_category.g.dart';
@@ -42,6 +43,21 @@ enum WellnessCategory {
         return '🏆';
       case WellnessCategory.general:
         return '✨';
+    }
+  }
+
+  Color get color {
+    switch (this) {
+      case WellnessCategory.progress:
+        return const Color(0xFF4CAF50);
+      case WellnessCategory.motivation:
+        return const Color(0xFF2196F3);
+      case WellnessCategory.tip:
+        return const Color(0xFFFFC107);
+      case WellnessCategory.achievement:
+        return const Color(0xFF9C27B0);
+      case WellnessCategory.general:
+        return const Color(0xFF00BCD4);
     }
   }
 

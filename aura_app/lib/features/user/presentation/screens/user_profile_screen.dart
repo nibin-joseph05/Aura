@@ -9,6 +9,9 @@ import '../../../../core/ui/snackbar/app_snackbar.dart';
 import '../../../../core/widgets/loading/ghost_running.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../messaging/data/service/messaging_api_service.dart';
+import '../../../wellness/data/models/wellness_update.dart';
+import '../../../wellness/presentation/providers/wellness_provider.dart';
+import '../../../wellness/presentation/widgets/wellness_update_card.dart';
 import '../../presentation/providers/profile_image_provider.dart';
 import '../../presentation/providers/user_provider.dart';
 
@@ -229,113 +232,283 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     final followingCount = _profile?['followingCount'] ?? 0;
     final postsCount = _profile?['postsCount'] ?? 0;
 
-    return SingleChildScrollView(
+    return CustomScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: EdgeInsets.symmetric(horizontal: responsive.w(5)),
-      child: Column(
-        children: [
-          SizedBox(height: responsive.h(3)),
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.containerBorder(brightness),
-                width: 3,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.accent.withValues(alpha: 0.2),
-                  blurRadius: 20,
-                  spreadRadius: 4,
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: responsive.w(5)),
+            child: Column(
+              children: [
+                SizedBox(height: responsive.h(3)),
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.containerBorder(brightness),
+                      width: 3,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.accent.withValues(alpha: 0.2),
+                        blurRadius: 20,
+                        spreadRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: profileImageUrl != null
+                        ? Image.network(
+                            profileImageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                _buildAvatarPlaceholder(brightness),
+                          )
+                        : _buildAvatarPlaceholder(brightness),
+                  ),
                 ),
+                SizedBox(height: responsive.h(1.5)),
+                Text(
+                  name,
+                  style: TextStyle(
+                    color: AppColors.onSurface(brightness),
+                    fontSize: responsive.isTablet ? 24 : 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '@$username',
+                  style: TextStyle(
+                    color: AppColors.onSurfaceMuted(brightness),
+                    fontSize: responsive.isTablet ? 15 : 13,
+                  ),
+                ),
+                if (bio.toString().isNotEmpty) ...[
+                  SizedBox(height: responsive.h(1)),
+                  Text(
+                    bio.toString(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.onSurfaceMuted(brightness),
+                      fontSize: responsive.isTablet ? 14 : 12,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+                SizedBox(height: responsive.h(2.5)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildStatItem('Posts', postsCount, responsive, brightness),
+                    _buildStatDivider(brightness),
+                    GestureDetector(
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.followers,
+                        arguments: widget.userId,
+                      ),
+                      child: _buildStatItem(
+                        'Followers',
+                        followersCount,
+                        responsive,
+                        brightness,
+                      ),
+                    ),
+                    _buildStatDivider(brightness),
+                    GestureDetector(
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        AppRoutes.following,
+                        arguments: widget.userId,
+                      ),
+                      child: _buildStatItem(
+                        'Following',
+                        followingCount,
+                        responsive,
+                        brightness,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: responsive.h(2.5)),
+                if (!isOwnProfile) ...[
+                  _buildFollowButton(responsive, brightness),
+                  SizedBox(height: responsive.h(1)),
+                  if (_followStatus?['isMutual'] == true)
+                    _buildMessageButton(responsive, brightness),
+                ],
+                SizedBox(height: responsive.h(2)),
+                Divider(color: AppColors.containerBorder(brightness)),
+                SizedBox(height: responsive.h(1)),
               ],
             ),
-            child: ClipOval(
-              child: profileImageUrl != null
-                  ? Image.network(
-                      profileImageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) =>
-                          _buildAvatarPlaceholder(brightness),
-                    )
-                  : _buildAvatarPlaceholder(brightness),
-            ),
           ),
-          SizedBox(height: responsive.h(1.5)),
-          Text(
-            name,
-            style: TextStyle(
-              color: AppColors.onSurface(brightness),
-              fontSize: responsive.isTablet ? 24 : 20,
-              fontWeight: FontWeight.bold,
+        ),
+        _buildPostsGrid(
+          responsive,
+          brightness,
+          isOwnProfile,
+          userState.user?.uid ?? '',
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPostsGrid(
+    Responsive responsive,
+    Brightness brightness,
+    bool isOwnProfile,
+    String currentUserId,
+  ) {
+    final postsAsync = isOwnProfile
+        ? ref.watch(myWellnessUpdatesProvider(widget.userId))
+        : ref.watch(userWellnessPostsProvider(widget.userId));
+
+    return postsAsync.when(
+      loading: () => const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator()),
+      ),
+      error: (_, __) => const SliverFillRemaining(
+        child: Center(child: Text('Could not load posts')),
+      ),
+      data: (posts) {
+        if (posts.isEmpty) {
+          return SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.spa_outlined,
+                    size: 48,
+                    color: AppColors.onSurfaceFaint(brightness),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'No posts yet',
+                    style: TextStyle(
+                      color: AppColors.onSurfaceMuted(brightness),
+                    ),
+                  ),
+                ],
+              ),
             ),
+          );
+        }
+        return SliverGrid(
+          delegate: SliverChildBuilderDelegate((ctx, i) {
+            final post = posts[i];
+            final imageUrl = post.imageUrl != null && post.imageUrl!.isNotEmpty
+                ? (post.imageUrl!.startsWith('http')
+                      ? post.imageUrl!
+                      : '${AppConfig.baseUrl}${post.imageUrl}')
+                : null;
+            return GestureDetector(
+              onTap: () => _showPostDetail(ctx, post, currentUserId),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.containerFill(brightness),
+                  border: Border.all(
+                    color: AppColors.containerBorder(brightness),
+                    width: 0.5,
+                  ),
+                ),
+                child: imageUrl != null
+                    ? Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) =>
+                            _buildPostPlaceholder(post, brightness),
+                      )
+                    : _buildPostPlaceholder(post, brightness),
+              ),
+            );
+          }, childCount: posts.length),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 2,
+            mainAxisSpacing: 2,
           ),
-          const SizedBox(height: 4),
-          Text(
-            '@$username',
-            style: TextStyle(
-              color: AppColors.onSurfaceMuted(brightness),
-              fontSize: responsive.isTablet ? 15 : 13,
-            ),
-          ),
-          if (bio.toString().isNotEmpty) ...[
-            SizedBox(height: responsive.h(1)),
-            Text(
-              bio.toString(),
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.onSurfaceMuted(brightness),
-                fontSize: responsive.isTablet ? 14 : 12,
-                height: 1.4,
+        );
+      },
+    );
+  }
+
+  Widget _buildPostPlaceholder(WellnessUpdate post, Brightness brightness) {
+    return Container(
+      color: post.category.color.withValues(alpha: 0.15),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(post.category.emoji, style: const TextStyle(fontSize: 24)),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                post.content,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.onSurfaceMuted(brightness),
+                  fontSize: 10,
+                ),
               ),
             ),
           ],
-          SizedBox(height: responsive.h(2.5)),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _buildStatItem('Posts', postsCount, responsive, brightness),
-              _buildStatDivider(brightness),
-              GestureDetector(
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  AppRoutes.followers,
-                  arguments: widget.userId,
-                ),
-                child: _buildStatItem(
-                  'Followers',
-                  followersCount,
-                  responsive,
-                  brightness,
+        ),
+      ),
+    );
+  }
+
+  void _showPostDetail(
+    BuildContext ctx,
+    WellnessUpdate post,
+    String currentUserId,
+  ) {
+    showModalBottomSheet(
+      context: ctx,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.85,
+        decoration: BoxDecoration(
+          color: Theme.of(ctx).brightness == Brightness.dark
+              ? const Color(0xFF1A1E2E)
+              : Colors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(top: 8),
+                child: WellnessUpdateCard(
+                  update: post,
+                  currentUserId: currentUserId,
+                  onDeleted: () {
+                    Navigator.pop(sheetCtx);
+                    ref.invalidate(myWellnessUpdatesProvider(widget.userId));
+                    ref.invalidate(userWellnessPostsProvider(widget.userId));
+                  },
                 ),
               ),
-              _buildStatDivider(brightness),
-              GestureDetector(
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  AppRoutes.following,
-                  arguments: widget.userId,
-                ),
-                child: _buildStatItem(
-                  'Following',
-                  followingCount,
-                  responsive,
-                  brightness,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: responsive.h(2.5)),
-          if (!isOwnProfile) ...[
-            _buildFollowButton(responsive, brightness),
-            SizedBox(height: responsive.h(1)),
-            if (_followStatus?['isMutual'] == true)
-              _buildMessageButton(responsive, brightness),
+            ),
           ],
-          SizedBox(height: responsive.h(3)),
-        ],
+        ),
       ),
     );
   }

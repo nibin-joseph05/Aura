@@ -23,7 +23,7 @@ public class WellnessUpdate {
     @Column(nullable = false)
     private String userId;
 
-    @Column(nullable = false, length = 500)
+    @Column(nullable = false, length = 1000)
     private String content;
 
     private String imageUrl;
@@ -36,10 +36,17 @@ public class WellnessUpdate {
     private int likesCount = 0;
 
     @Builder.Default
-    private boolean isApproved = false;
+    private int commentsCount = 0;
+
+    @Builder.Default
+    private boolean isApproved = true;
 
     @Builder.Default
     private boolean isVisible = true;
+
+    @Builder.Default
+    @Column(nullable = false)
+    private boolean translationFailed = false;
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -49,16 +56,6 @@ public class WellnessUpdate {
     private String moderatedBy;
 
     private LocalDateTime moderatedAt;
-
-    private String rejectionReason;
-
-    @Column(length = 500)
-    private String translatedContent;
-
-    private String detectedLanguage;
-
-    @Builder.Default
-    private boolean translationFailed = false;
 
     @PreUpdate
     protected void onUpdate() {

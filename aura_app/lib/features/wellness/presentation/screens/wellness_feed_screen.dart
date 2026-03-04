@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../../core/widgets/screens/empty_state_widget.dart';
+import '../../../user/presentation/providers/user_provider.dart';
 import '../../data/models/wellness_category.dart';
 import '../providers/wellness_provider.dart';
 import '../widgets/wellness_update_card.dart';
@@ -18,6 +19,8 @@ class WellnessFeedScreen extends ConsumerWidget {
     final selectedCategory = ref.watch(selectedCategoryProvider);
     final feedAsync = ref.watch(wellnessFeedProvider(selectedCategory));
     final brightness = Theme.of(context).brightness;
+    final currentUser = ref.watch(currentUserProvider);
+    final currentUserId = currentUser?.uid ?? '';
 
     return Scaffold(
       body: Container(
@@ -54,7 +57,13 @@ class WellnessFeedScreen extends ConsumerWidget {
                         ),
                         itemCount: updates.length,
                         itemBuilder: (context, index) {
-                          return WellnessUpdateCard(update: updates[index]);
+                          return WellnessUpdateCard(
+                            update: updates[index],
+                            currentUserId: currentUserId,
+                            onDeleted: () => ref.invalidate(
+                              wellnessFeedProvider(selectedCategory),
+                            ),
+                          );
                         },
                       ),
                     );

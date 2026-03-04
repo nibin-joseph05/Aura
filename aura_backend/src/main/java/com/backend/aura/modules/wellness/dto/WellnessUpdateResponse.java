@@ -18,9 +18,11 @@ public class WellnessUpdateResponse {
     private String imageUrl;
     private WellnessCategory category;
     private int likesCount;
+    private int commentsCount;
     private boolean likedByCurrentUser;
     private boolean isApproved;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public static WellnessUpdateResponse from(WellnessUpdate update) {
         return WellnessUpdateResponse.builder()
@@ -30,15 +32,25 @@ public class WellnessUpdateResponse {
                 .imageUrl(update.getImageUrl())
                 .category(update.getCategory())
                 .likesCount(update.getLikesCount())
+                .commentsCount(update.getCommentsCount())
                 .likedByCurrentUser(false)
                 .isApproved(update.isApproved())
                 .createdAt(update.getCreatedAt())
+                .updatedAt(update.getUpdatedAt())
                 .build();
     }
 
     public static WellnessUpdateResponse from(WellnessUpdate update, boolean likedByCurrentUser) {
         WellnessUpdateResponse response = from(update);
         response.setLikedByCurrentUser(likedByCurrentUser);
+        return response;
+    }
+
+    public static WellnessUpdateResponse from(WellnessUpdate update, boolean likedByCurrentUser, String userName,
+            String userProfileImage) {
+        WellnessUpdateResponse response = from(update, likedByCurrentUser);
+        response.setUserName(userName);
+        response.setUserProfileImage(userProfileImage);
         return response;
     }
 }

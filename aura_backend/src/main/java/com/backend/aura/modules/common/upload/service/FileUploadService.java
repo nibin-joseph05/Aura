@@ -38,6 +38,38 @@ public class FileUploadService {
         return "/uploads/profile-images/" + filename;
     }
 
+    public String uploadWellnessImage(MultipartFile file, String userId) throws IOException {
+        Path uploadPath = Paths.get(uploadDir, "wellness-images");
+
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        String originalFilename = file.getOriginalFilename();
+        String extension = "";
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+
+        String filename = "w_" + userId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+        Path filePath = uploadPath.resolve(filename);
+
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+        return "/uploads/wellness-images/" + filename;
+    }
+
+    public void deleteWellnessImage(String relativePath) {
+        if (relativePath == null || relativePath.isEmpty())
+            return;
+        try {
+            String filename = relativePath.replace("/uploads/wellness-images/", "");
+            Path filePath = Paths.get(uploadDir, "wellness-images", filename);
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+        }
+    }
+
     public void deleteProfileImage(String relativePath) {
         if (relativePath == null || relativePath.isEmpty())
             return;

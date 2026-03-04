@@ -35,12 +35,11 @@ export const API_ENDPOINTS = {
         LIVE_SESSION_BY_ID: (id: string) => `/api/user/sos/live/${id}`,
     },
     WELLNESS: {
-        PENDING: "/api/admin/wellness/pending",
         ALL: "/api/admin/wellness/all",
         STATS: "/api/admin/wellness/stats",
-        APPROVE: (id: string) => `/api/admin/wellness/${id}/approve`,
-        REJECT: (id: string) => `/api/admin/wellness/${id}/reject`,
         DELETE: (id: string) => `/api/admin/wellness/${id}`,
+        HIDE: (id: string) => `/api/admin/wellness/${id}/hide`,
+        WARN: (id: string) => `/api/admin/wellness/${id}/warn`,
     },
     USERS: {
         BASE: "/api/admin/users",

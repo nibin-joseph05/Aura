@@ -13,27 +13,25 @@ import java.util.List;
 @Repository
 public interface WellnessUpdateRepository extends JpaRepository<WellnessUpdate, String> {
 
-    Page<WellnessUpdate> findByIsApprovedTrueAndIsVisibleTrueOrderByCreatedAtDesc(Pageable pageable);
+    Page<WellnessUpdate> findByIsVisibleTrueOrderByCreatedAtDesc(Pageable pageable);
 
-    Page<WellnessUpdate> findByIsApprovedTrueAndIsVisibleTrueAndCategoryOrderByCreatedAtDesc(
-            WellnessCategory category, Pageable pageable);
+    Page<WellnessUpdate> findByIsVisibleTrueAndCategoryOrderByCreatedAtDesc(WellnessCategory category,
+            Pageable pageable);
 
     Page<WellnessUpdate> findByUserIdOrderByCreatedAtDesc(String userId, Pageable pageable);
 
-    Page<WellnessUpdate> findByIsApprovedFalseAndIsVisibleTrueOrderByCreatedAtAsc(Pageable pageable);
+    Page<WellnessUpdate> findByUserIdAndIsVisibleTrueOrderByCreatedAtDesc(String userId, Pageable pageable);
 
     Page<WellnessUpdate> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
-    Page<WellnessUpdate> findByCategoryOrderByCreatedAtDesc(WellnessCategory category, Pageable pageable);
-
-    long countByIsApprovedFalseAndIsVisibleTrue();
-
-    long countByIsApprovedTrue();
+    Page<WellnessUpdate> findByUserIdAndIsVisibleTrue(String userId, Pageable pageable);
 
     long countByUserId(String userId);
+
+    long countByIsVisibleTrue();
 
     @Query("SELECT COUNT(w) FROM WellnessUpdate w WHERE w.createdAt >= CURRENT_DATE")
     long countTodayUpdates();
 
-    List<WellnessUpdate> findTop10ByIsApprovedTrueAndIsVisibleTrueOrderByLikesCountDesc();
+    List<WellnessUpdate> findTop10ByIsVisibleTrueOrderByLikesCountDesc();
 }

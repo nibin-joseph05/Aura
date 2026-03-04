@@ -1,8 +1,10 @@
+import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../../core/network/sync/sync_manager.dart';
 import 'wellness_local_datasource.dart';
 import 'wellness_remote_datasource.dart';
 import 'models/wellness_update.dart';
+import 'models/wellness_comment.dart';
 import 'models/wellness_category.dart';
 import 'models/pending_wellness_operation.dart';
 
@@ -67,6 +69,18 @@ class WellnessRepository {
     return _localDataSource.getMyUpdates(userId);
   }
 
+  Future<List<WellnessUpdate>> getUserPosts(
+    String userId, {
+    int page = 0,
+  }) async {
+    try {
+      if (await _isOnline()) {
+        return await _remoteDataSource.getUserPosts(userId, page: page);
+      }
+    } catch (_) {}
+    return [];
+  }
+
   Future<List<WellnessUpdate>> getTrending() async {
     try {
       if (await _isOnline()) {
@@ -74,6 +88,10 @@ class WellnessRepository {
       }
     } catch (_) {}
     return [];
+  }
+
+  Future<String> uploadImage(File imageFile) async {
+    return await _remoteDataSource.uploadImage(imageFile);
   }
 
   Future<WellnessUpdate?> createUpdate({
@@ -101,6 +119,18 @@ class WellnessRepository {
     await _localDataSource.addPendingOperation(pendingOp);
     await _updatePendingCount();
     return null;
+  }
+
+  Future<WellnessUpdate?> editUpdate({
+    required String id,
+    required String content,
+    required WellnessCategory category,
+  }) async {
+    return await _remoteDataSource.editUpdate(
+      id: id,
+      content: content,
+      category: category,
+    );
   }
 
   Future<void> deleteUpdate(String id) async {
@@ -138,6 +168,18 @@ class WellnessRepository {
     await _localDataSource.addPendingOperation(pendingOp);
     await _updatePendingCount();
     return null;
+  }
+
+  Future<List<WellnessComment>> getComments(String postId) async {
+    return await _remoteDataSource.getComments(postId);
+  }
+
+  Future<WellnessComment> createComment(String postId, String content) async {
+    return await _remoteDataSource.createComment(postId, content);
+  }
+
+  Future<void> deleteComment(String commentId) async {
+    await _remoteDataSource.deleteComment(commentId);
   }
 
   Future<void> syncPendingOperations() async {

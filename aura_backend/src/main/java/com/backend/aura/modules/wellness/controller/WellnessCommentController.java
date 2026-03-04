@@ -26,7 +26,7 @@ public class WellnessCommentController {
             @PathVariable String postId,
             @Valid @RequestBody CreateCommentRequest request) {
         CommentDTO comment = commentService.createComment(userId, postId, request);
-        return ResponseEntity.ok(ApiResponse.success(comment, "Comment created"));
+        return ResponseEntity.ok(ApiResponse.success(comment, "Comment added"));
     }
 
     @GetMapping("/{postId}/comments")
@@ -44,15 +44,11 @@ public class WellnessCommentController {
         return ResponseEntity.ok(ApiResponse.success(comments));
     }
 
-    @PostMapping("/comments/{commentId}/translate")
-    public ResponseEntity<ApiResponse<CommentDTO>> translateComment(@PathVariable String commentId) {
-        CommentDTO comment = commentService.translateComment(commentId);
-        return ResponseEntity.ok(ApiResponse.success(comment));
-    }
-
-    @GetMapping("/comments/{commentId}")
-    public ResponseEntity<ApiResponse<Long>> getCommentCount(@PathVariable String postId) {
-        long count = commentService.getCommentCount(postId);
-        return ResponseEntity.ok(ApiResponse.success(count));
+    @DeleteMapping("/comments/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteComment(
+            @AuthenticationPrincipal String userId,
+            @PathVariable String commentId) {
+        commentService.deleteComment(commentId, userId);
+        return ResponseEntity.ok(ApiResponse.success(null, "Comment deleted"));
     }
 }

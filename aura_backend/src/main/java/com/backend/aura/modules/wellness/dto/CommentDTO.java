@@ -14,11 +14,9 @@ public class CommentDTO {
     private String id;
     private String postId;
     private String userId;
-    private String originalContent;
-    private String translatedContent;
-    private String detectedLanguage;
-    private String translationStatus;
-    private boolean isApproved;
+    private String userName;
+    private String userProfileImage;
+    private String content;
     private String createdAt;
 
     public static CommentDTO from(WellnessComment comment) {
@@ -26,12 +24,15 @@ public class CommentDTO {
                 .id(comment.getId())
                 .postId(comment.getPostId())
                 .userId(comment.getUserId())
-                .originalContent(comment.getOriginalContent())
-                .translatedContent(comment.getTranslatedContent())
-                .detectedLanguage(comment.getDetectedLanguage())
-                .translationStatus(comment.getTranslationStatus().name())
-                .isApproved(comment.isApproved())
+                .content(comment.getOriginalContent())
                 .createdAt(comment.getCreatedAt().toString())
                 .build();
+    }
+
+    public static CommentDTO from(WellnessComment comment, String userName, String userProfileImage) {
+        CommentDTO dto = from(comment);
+        dto.setUserName(userName);
+        dto.setUserProfileImage(userProfileImage);
+        return dto;
     }
 }

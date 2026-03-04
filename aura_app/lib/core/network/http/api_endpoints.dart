@@ -52,6 +52,11 @@ class ApiEndpoints {
   static const wellnessMyUpdates = "/api/user/wellness/my-updates";
   static const wellnessTrending = "/api/user/wellness/trending";
   static const wellnessUpdates = "/api/user/wellness/updates";
+  static const wellnessImageUpload = "/api/user/wellness/updates/upload-image";
+  static const wellnessBase = "/api/wellness";
+  static const wellnessComments = "/api/wellness/comments";
+  static String wellnessUserPosts(String userId) =>
+      "/api/user/wellness/user/$userId/posts";
 
   static const newsWellness = "/api/news/wellness";
   static const newsHeadlines = "/api/news/headlines";

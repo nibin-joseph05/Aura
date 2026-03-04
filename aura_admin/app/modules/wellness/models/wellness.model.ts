@@ -9,15 +9,19 @@ export interface WellnessUpdate {
     imageUrl: string | null;
     category: WellnessCategory;
     likesCount: number;
+    commentsCount: number;
     likedByCurrentUser: boolean;
     isApproved: boolean;
+    isVisible: boolean;
     createdAt: string;
+    updatedAt?: string;
 }
 
 export interface WellnessStats {
     totalUpdates: number;
-    approvedUpdates: number;
-    pendingUpdates: number;
+    totalLikes: number;
+    totalComments: number;
+    totalUsers: number;
     todayUpdates: number;
 }
 
@@ -27,8 +31,4 @@ export interface WellnessUpdatesResponse {
     totalPages: number;
     size: number;
     number: number;
-}
-
-export interface ModerateWellnessRequest {
-    rejectionReason?: string;
 }

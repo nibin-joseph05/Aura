@@ -1,6 +1,10 @@
 package com.backend.aura.modules.wellness.service;
 
-import com.backend.aura.modules.translation.service.TranslationService;
+import com.backend.aura.modules.notification.model.Notification;
+import com.backend.aura.modules.notification.service.NotificationService;
+import com.backend.aura.modules.notification.service.PushNotificationService;
+import com.backend.aura.modules.user.model.User;
+import com.backend.aura.modules.user.repository.UserRepository;
 import com.backend.aura.modules.wellness.dto.*;
 import com.backend.aura.modules.wellness.model.WellnessLike;
 import com.backend.aura.modules.wellness.model.WellnessUpdate;
@@ -22,25 +26,41 @@ import java.util.stream.Collectors;
 public class WellnessService {
     private final WellnessUpdateRepository updateRepository;
     private final WellnessLikeRepository likeRepository;
-    private final TranslationService translationService;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
+    private final PushNotificationService pushNotificationService;
+
+    private WellnessUpdateResponse enrich(WellnessUpdate update, boolean liked) {
+        User user = userRepository.findById(update.getUserId()).orElse(null);
+        String name = user != null ? user.getName() : null;
+        if (name == null || name.isBlank()) {
+            name = user != null ? user.getUsername() : null;
+        }
+        String image = user != null ? user.getProfileImageUrl() : null;
+        return WellnessUpdateResponse.from(update, liked, name, image);
+    }
 
     public Page<WellnessUpdateResponse> getFeed(String currentUserId, WellnessCategory category, Pageable pageable) {
         Page<WellnessUpdate> updates;
         if (category != null) {
-            updates = updateRepository.findByIsApprovedTrueAndIsVisibleTrueAndCategoryOrderByCreatedAtDesc(category,
-                    pageable);
+            updates = updateRepository.findByIsVisibleTrueAndCategoryOrderByCreatedAtDesc(category, pageable);
         } else {
-            updates = updateRepository.findByIsApprovedTrueAndIsVisibleTrueOrderByCreatedAtDesc(pageable);
+            updates = updateRepository.findByIsVisibleTrueOrderByCreatedAtDesc(pageable);
         }
         return updates.map(update -> {
             boolean liked = likeRepository.existsByUpdateIdAndUserId(update.getId(), currentUserId);
-            return WellnessUpdateResponse.from(update, liked);
+            return enrich(update, liked);
         });
     }
 
     public Page<WellnessUpdateResponse> getMyUpdates(String userId, Pageable pageable) {
         return updateRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
-                .map(WellnessUpdateResponse::from);
+                .map(u -> enrich(u, likeRepository.existsByUpdateIdAndUserId(u.getId(), userId)));
+    }
+
+    public Page<WellnessUpdateResponse> getUserPosts(String userId, Pageable pageable) {
+        return updateRepository.findByUserIdAndIsVisibleTrueOrderByCreatedAtDesc(userId, pageable)
+                .map(u -> enrich(u, false));
     }
 
     public WellnessUpdateResponse createUpdate(String userId, CreateWellnessUpdateRequest request) {
@@ -49,31 +69,35 @@ public class WellnessService {
                 .content(request.getContent())
                 .imageUrl(request.getImageUrl())
                 .category(request.getCategory())
-                .isApproved(false)
+                .isApproved(true)
                 .isVisible(true)
                 .build();
 
-        translationService.translateToEnglish(request.getContent())
-                .ifPresentOrElse(
-                        result -> {
-                            update.setTranslatedContent(result.getTranslatedText());
-                            update.setDetectedLanguage(result.getDetectedLanguage());
-                            update.setTranslationFailed(false);
-                        },
-                        () -> {
-                            update.setTranslatedContent(request.getContent());
-                            update.setTranslationFailed(true);
-                        });
-
         WellnessUpdate saved = updateRepository.save(update);
-        return WellnessUpdateResponse.from(saved);
+        return enrich(saved, false);
+    }
+
+    @Transactional
+    public WellnessUpdateResponse editUpdate(String userId, String updateId, EditWellnessUpdateRequest request) {
+        WellnessUpdate update = updateRepository.findById(updateId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        if (!update.getUserId().equals(userId)) {
+            throw new RuntimeException("Cannot edit another user's post");
+        }
+        update.setContent(request.getContent());
+        if (request.getCategory() != null) {
+            update.setCategory(request.getCategory());
+        }
+        WellnessUpdate saved = updateRepository.save(update);
+        boolean liked = likeRepository.existsByUpdateIdAndUserId(saved.getId(), userId);
+        return enrich(saved, liked);
     }
 
     public void deleteUpdate(String userId, String updateId) {
         WellnessUpdate update = updateRepository.findById(updateId)
-                .orElseThrow(() -> new RuntimeException("Update not found"));
+                .orElseThrow(() -> new RuntimeException("Post not found"));
         if (!update.getUserId().equals(userId)) {
-            throw new RuntimeException("Cannot delete another user's update");
+            throw new RuntimeException("Cannot delete another user's post");
         }
         updateRepository.delete(update);
     }
@@ -81,7 +105,7 @@ public class WellnessService {
     @Transactional
     public WellnessUpdateResponse likeUpdate(String userId, String updateId) {
         WellnessUpdate update = updateRepository.findById(updateId)
-                .orElseThrow(() -> new RuntimeException("Update not found"));
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
         if (likeRepository.existsByUpdateIdAndUserId(updateId, userId)) {
             throw new RuntimeException("Already liked");
@@ -95,77 +119,93 @@ public class WellnessService {
 
         update.setLikesCount(update.getLikesCount() + 1);
         WellnessUpdate saved = updateRepository.save(update);
-        return WellnessUpdateResponse.from(saved, true);
+        return enrich(saved, true);
     }
 
     @Transactional
     public WellnessUpdateResponse unlikeUpdate(String userId, String updateId) {
         WellnessUpdate update = updateRepository.findById(updateId)
-                .orElseThrow(() -> new RuntimeException("Update not found"));
+                .orElseThrow(() -> new RuntimeException("Post not found"));
 
         likeRepository.deleteByUpdateIdAndUserId(updateId, userId);
 
         update.setLikesCount(Math.max(0, update.getLikesCount() - 1));
         WellnessUpdate saved = updateRepository.save(update);
-        return WellnessUpdateResponse.from(saved, false);
+        return enrich(saved, false);
     }
 
-    public Page<WellnessUpdateResponse> getPendingUpdates(Pageable pageable) {
-        return updateRepository.findByIsApprovedFalseAndIsVisibleTrueOrderByCreatedAtAsc(pageable)
-                .map(WellnessUpdateResponse::from);
+    public void incrementCommentCount(String postId) {
+        updateRepository.findById(postId).ifPresent(u -> {
+            u.setCommentsCount(u.getCommentsCount() + 1);
+            updateRepository.save(u);
+        });
     }
 
-    public Page<WellnessUpdateResponse> getAllUpdates(WellnessCategory category, Pageable pageable) {
-        if (category != null) {
-            return updateRepository.findByCategoryOrderByCreatedAtDesc(category, pageable)
-                    .map(WellnessUpdateResponse::from);
+    public void decrementCommentCount(String postId) {
+        updateRepository.findById(postId).ifPresent(u -> {
+            u.setCommentsCount(Math.max(0, u.getCommentsCount() - 1));
+            updateRepository.save(u);
+        });
+    }
+
+    public Page<WellnessUpdateResponse> getAllUpdates(String userId, WellnessCategory category, Pageable pageable) {
+        Page<WellnessUpdate> updates;
+        if (userId != null && !userId.isBlank()) {
+            updates = updateRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+        } else if (category != null) {
+            updates = updateRepository.findByIsVisibleTrueAndCategoryOrderByCreatedAtDesc(category, pageable);
+        } else {
+            updates = updateRepository.findAllByOrderByCreatedAtDesc(pageable);
         }
-        return updateRepository.findAllByOrderByCreatedAtDesc(pageable)
-                .map(WellnessUpdateResponse::from);
-    }
-
-    public WellnessUpdateResponse approveUpdate(String updateId, String adminId) {
-        WellnessUpdate update = updateRepository.findById(updateId)
-                .orElseThrow(() -> new RuntimeException("Update not found"));
-        update.setApproved(true);
-        update.setModeratedBy(adminId);
-        update.setModeratedAt(LocalDateTime.now());
-        update.setRejectionReason(null);
-        WellnessUpdate saved = updateRepository.save(update);
-        return WellnessUpdateResponse.from(saved);
-    }
-
-    public WellnessUpdateResponse rejectUpdate(String updateId, String adminId, String reason) {
-        WellnessUpdate update = updateRepository.findById(updateId)
-                .orElseThrow(() -> new RuntimeException("Update not found"));
-        update.setApproved(false);
-        update.setVisible(false);
-        update.setModeratedBy(adminId);
-        update.setModeratedAt(LocalDateTime.now());
-        update.setRejectionReason(reason);
-        WellnessUpdate saved = updateRepository.save(update);
-        return WellnessUpdateResponse.from(saved);
+        return updates.map(u -> enrich(u, false));
     }
 
     public void adminDeleteUpdate(String updateId) {
         WellnessUpdate update = updateRepository.findById(updateId)
-                .orElseThrow(() -> new RuntimeException("Update not found"));
+                .orElseThrow(() -> new RuntimeException("Post not found"));
         updateRepository.delete(update);
+    }
+
+    public void adminHideUpdate(String updateId) {
+        WellnessUpdate update = updateRepository.findById(updateId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        update.setVisible(false);
+        update.setModeratedAt(LocalDateTime.now());
+        updateRepository.save(update);
+    }
+
+    public void warnUser(String postId, String adminId, String message) {
+        WellnessUpdate update = updateRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+        String title = "⚠️ Content Warning";
+        String body = message != null && !message.isBlank() ? message
+                : "One of your posts was flagged by our moderators. Please review our community guidelines.";
+        var notification = notificationService.createUserNotification(
+                update.getUserId(), title, body,
+                Notification.NotificationType.WELLNESS, "/wellness-feed");
+        try {
+            User user = userRepository.findById(update.getUserId()).orElse(null);
+            if (user != null && user.getFcmToken() != null && !user.getFcmToken().isBlank()) {
+                pushNotificationService.sendToUser(user.getFcmToken(), title, body, "/wellness-feed");
+                notificationService.markAsSent(notification.getId());
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     public WellnessStatsResponse getStats() {
         return WellnessStatsResponse.builder()
                 .totalUpdates(updateRepository.count())
-                .approvedUpdates(updateRepository.countByIsApprovedTrue())
-                .pendingUpdates(updateRepository.countByIsApprovedFalseAndIsVisibleTrue())
+                .approvedUpdates(updateRepository.countByIsVisibleTrue())
+                .pendingUpdates(0)
                 .todayUpdates(updateRepository.countTodayUpdates())
                 .build();
     }
 
     public List<WellnessUpdateResponse> getTrendingUpdates() {
-        return updateRepository.findTop10ByIsApprovedTrueAndIsVisibleTrueOrderByLikesCountDesc()
+        return updateRepository.findTop10ByIsVisibleTrueOrderByLikesCountDesc()
                 .stream()
-                .map(WellnessUpdateResponse::from)
+                .map(u -> enrich(u, false))
                 .collect(Collectors.toList());
     }
 }
