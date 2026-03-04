@@ -3,16 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
-import '../../../../core/widgets/notifications/notification_encourage_card.dart';
 import '../../../../core/widgets/screens/success_overlay_card.dart';
+import '../../../../core/widgets/animations/animated_entry.dart';
 import '../../../daily_activity/presentation/widgets/daily_activity_tracker_widget.dart';
+import '../../../user/presentation/providers/user_provider.dart';
 import '../providers/success_overlay_provider.dart';
+import '../widgets/daily_insight_card.dart';
 import '../widgets/feed_preview_section.dart';
 import '../widgets/home_footer.dart';
 import '../widgets/home_header.dart';
+import '../widgets/mood_check_in_widget.dart';
 import '../widgets/quick_actions_row.dart';
 import '../widgets/wellness_summary_card.dart';
-import 'my_account_screen.dart';
 
 final selectedNavItemProvider = StateProvider<HomeNavItem>(
   (ref) => HomeNavItem.home,
@@ -25,16 +27,44 @@ class HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends ConsumerState<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with TickerProviderStateMixin {
   bool _hasCheckedArgs = false;
+  late AnimationController _welcomeController;
+  late Animation<double> _welcomeFade;
+  late Animation<double> _welcomeScale;
 
   @override
   void initState() {
     super.initState();
+
+    _welcomeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _welcomeFade = CurvedAnimation(
+      parent: _welcomeController,
+      curve: const Interval(0.0, 0.7, curve: Curves.easeOut),
+    );
+    _welcomeScale = Tween<double>(begin: 0.94, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _welcomeController,
+        curve: const Interval(0.0, 0.8, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    _welcomeController.forward();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _checkArgsAndShowOverlay();
     });
+  }
+
+  @override
+  void dispose() {
+    _welcomeController.dispose();
+    super.dispose();
   }
 
   void _checkArgsAndShowOverlay() {
@@ -56,17 +86,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   void _onNavItemSelected(HomeNavItem item) {
-    if (item == HomeNavItem.account) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const MyAccountScreen()),
-      );
+    if (item == HomeNavItem.messages) {
+      Navigator.pushNamed(context, '/chat');
     } else if (item == HomeNavItem.sos) {
       Navigator.pushNamed(context, '/sos-trigger');
-    } else if (item == HomeNavItem.feed) {
+    } else if (item == HomeNavItem.vibes) {
       Navigator.pushNamed(context, '/wellness-feed');
-    } else if (item == HomeNavItem.walk) {
-      Navigator.pushNamed(context, '/walking');
+    } else if (item == HomeNavItem.profile) {
+      final userId = ref.read(userProvider).user?.uid ?? '';
+      if (userId.isNotEmpty) {
+        Navigator.pushNamed(context, '/user-profile', arguments: userId);
+      }
     } else {
       ref.read(selectedNavItemProvider.notifier).state = item;
     }
@@ -91,15 +121,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         child: Stack(
           children: [
             SafeArea(
-              child: Column(
-                children: [
-                  const HomeHeader(),
-                  Expanded(child: _buildMainContent(responsive)),
-                  HomeFooter(
-                    selectedItem: selectedNavItem,
-                    onItemSelected: _onNavItemSelected,
+              child: FadeTransition(
+                opacity: _welcomeFade,
+                child: ScaleTransition(
+                  scale: _welcomeScale,
+                  child: Column(
+                    children: [
+                      const HomeHeader(),
+                      Expanded(
+                        child: _buildMainContent(responsive, brightness),
+                      ),
+                      HomeFooter(
+                        selectedItem: selectedNavItem,
+                        onItemSelected: _onNavItemSelected,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
             if (overlayData.isVisible)
@@ -119,8 +157,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildMainContent(Responsive responsive) {
-    final brightness = Theme.of(context).brightness;
+  Widget _buildMainContent(Responsive responsive, Brightness brightness) {
     return RefreshIndicator(
       onRefresh: () async {
         setState(() {});
@@ -129,37 +166,132 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: brightness == Brightness.dark
           ? AppColors.splashMedium
           : Colors.white,
-      child: SingleChildScrollView(
+      child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(
           parent: BouncingScrollPhysics(),
         ),
-        padding: responsive.horizontal(5),
-        child: Column(
-          children: [
-            SizedBox(height: responsive.h(2)),
-            const NotificationEncourageCard(),
-            const WellnessSummaryCard(),
-            SizedBox(height: responsive.h(2.5)),
-            QuickActionsRow(
-              onSOS: () => Navigator.pushNamed(context, '/sos-trigger'),
-              onCreatePost: () =>
-                  Navigator.pushNamed(context, '/wellness-create'),
-              onWellnessFeed: () =>
-                  Navigator.pushNamed(context, '/wellness-feed'),
-              onAlarm: () => Navigator.pushNamed(context, '/alarm'),
-              onChat: () => Navigator.pushNamed(context, '/chat'),
-              onWalking: () => Navigator.pushNamed(context, '/walking'),
+        slivers: [
+          SliverPadding(
+            padding: responsive.horizontal(5),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                SizedBox(height: responsive.h(2)),
+
+                const AnimatedEntry(
+                  delay: Duration(milliseconds: 80),
+                  child: WellnessSummaryCard(),
+                ),
+
+                SizedBox(height: responsive.h(2.5)),
+
+                const AnimatedEntry(
+                  delay: Duration(milliseconds: 180),
+                  child: MoodCheckInWidget(),
+                ),
+
+                SizedBox(height: responsive.h(2.5)),
+
+                AnimatedEntry(
+                  delay: const Duration(milliseconds: 260),
+                  child: QuickActionsRow(
+                    onSOS: () => Navigator.pushNamed(context, '/sos-trigger'),
+                    onCreatePost: () =>
+                        Navigator.pushNamed(context, '/wellness-create'),
+                    onWellnessFeed: () =>
+                        Navigator.pushNamed(context, '/wellness-feed'),
+                    onAlarm: () => Navigator.pushNamed(context, '/alarm'),
+                    onChat: () => Navigator.pushNamed(context, '/chat'),
+                    onWalking: () => Navigator.pushNamed(context, '/walking'),
+                  ),
+                ),
+
+                SizedBox(height: responsive.h(2.5)),
+
+                const AnimatedEntry(
+                  delay: Duration(milliseconds: 350),
+                  child: DailyInsightCard(),
+                ),
+
+                SizedBox(height: responsive.h(2.5)),
+
+                AnimatedEntry(
+                  delay: const Duration(milliseconds: 430),
+                  child: _buildSectionHeader(
+                    responsive,
+                    icon: Icons.track_changes_rounded,
+                    color: const Color(0xFF667EEA),
+                    label: 'Activity Tracker',
+                  ),
+                ),
+
+                SizedBox(height: responsive.h(1.2)),
+
+                const AnimatedEntry(
+                  delay: Duration(milliseconds: 480),
+                  child: DailyActivityTrackerWidget(),
+                ),
+
+                SizedBox(height: responsive.h(2.5)),
+
+                AnimatedEntry(
+                  delay: const Duration(milliseconds: 560),
+                  child: FeedPreviewSection(
+                    onSeeAll: () =>
+                        Navigator.pushNamed(context, '/wellness-feed'),
+                  ),
+                ),
+
+                SizedBox(height: responsive.h(3)),
+              ]),
             ),
-            SizedBox(height: responsive.h(3)),
-            const DailyActivityTrackerWidget(),
-            SizedBox(height: responsive.h(3)),
-            FeedPreviewSection(
-              onSeeAll: () => Navigator.pushNamed(context, '/wellness-feed'),
-            ),
-            SizedBox(height: responsive.h(3)),
-          ],
-        ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildSectionHeader(
+    Responsive responsive, {
+    required IconData icon,
+    required Color color,
+    required String label,
+  }) {
+    return Row(
+      children: [
+        Container(
+          width: responsive.isTablet ? 34 : 28,
+          height: responsive.isTablet ? 34 : 28,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [color, color.withValues(alpha: 0.6)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(9),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Icon(
+            icon,
+            color: Colors.white,
+            size: responsive.isTablet ? 18 : 15,
+          ),
+        ),
+        SizedBox(width: responsive.w(2.5)),
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: responsive.isTablet ? 18 : 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
     );
   }
 }

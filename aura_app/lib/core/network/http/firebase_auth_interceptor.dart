@@ -8,15 +8,23 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final user = FirebaseAuth.instance.currentUser;
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
 
-    if (user != null) {
-      final String? idToken = await user.getIdToken();
-
-      if (idToken != null && idToken.isNotEmpty) {
-        options.headers["Authorization"] = "Bearer $idToken";
+      if (user == null) {
+        user = await FirebaseAuth.instance.authStateChanges().first.timeout(
+          const Duration(seconds: 3),
+          onTimeout: () => null,
+        );
       }
-    }
+
+      if (user != null) {
+        final String? idToken = await user.getIdToken();
+        if (idToken != null && idToken.isNotEmpty) {
+          options.headers['Authorization'] = 'Bearer $idToken';
+        }
+      }
+    } catch (_) {}
 
     dev.log(
       '------------------------------------------------------------\n'

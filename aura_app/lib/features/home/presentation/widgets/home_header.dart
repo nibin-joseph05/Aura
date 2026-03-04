@@ -73,10 +73,10 @@ class HomeHeader extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      'Hi, $firstName',
+                      'Hi, $firstName 👋',
                       style: TextStyle(
                         color: AppColors.onSurface(brightness),
-                        fontSize: responsive.isTablet ? 24 : 20,
+                        fontSize: responsive.isTablet ? 22 : 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -84,19 +84,12 @@ class HomeHeader extends ConsumerWidget {
                       'Welcome to Aura',
                       style: TextStyle(
                         color: AppColors.onSurfaceMuted(brightness),
-                        fontSize: responsive.isTablet ? 14 : 12,
+                        fontSize: responsive.isTablet ? 13 : 11,
                       ),
                     ),
                   ],
                 ),
               ),
-              _buildHeaderIcon(
-                icon: Icons.chat_bubble_outline_rounded,
-                onTap: () => Navigator.pushNamed(context, '/chat'),
-                responsive: responsive,
-                brightness: brightness,
-              ),
-              SizedBox(width: responsive.w(1.5)),
               _buildNotificationIcon(
                 onTap: () => Navigator.pushNamed(context, '/notifications'),
                 responsive: responsive,
@@ -181,31 +174,6 @@ class HomeHeader extends ConsumerWidget {
         Icons.person,
         size: responsive.isTablet ? 24 : 20,
         color: AppColors.onSurfaceMuted(brightness),
-      ),
-    );
-  }
-
-  Widget _buildHeaderIcon({
-    required IconData icon,
-    required VoidCallback onTap,
-    required Responsive responsive,
-    required Brightness brightness,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: responsive.isTablet ? 40 : 34,
-        height: responsive.isTablet ? 40 : 34,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.iconButtonFill(brightness),
-          border: Border.all(color: AppColors.iconButtonBorder(brightness)),
-        ),
-        child: Icon(
-          icon,
-          color: AppColors.onSurface(brightness),
-          size: responsive.isTablet ? 20 : 17,
-        ),
       ),
     );
   }

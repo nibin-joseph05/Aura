@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/ui/responsive/responsive.dart';
 
-enum HomeNavItem { home, feed, sos, walk, account }
+enum HomeNavItem { home, messages, sos, vibes, profile }
 
 class HomeFooter extends StatelessWidget {
   final HomeNavItem selectedItem;
@@ -58,24 +58,24 @@ class HomeFooter extends StatelessWidget {
               ),
               _buildNavItem(
                 context: context,
-                icon: Icons.article_rounded,
-                label: 'Feed',
-                item: HomeNavItem.feed,
+                icon: Icons.chat_bubble_rounded,
+                label: 'Messages',
+                item: HomeNavItem.messages,
                 responsive: responsive,
               ),
               SizedBox(width: sosButtonSize + responsive.w(2)),
               _buildNavItem(
                 context: context,
-                icon: Icons.directions_walk_rounded,
-                label: 'Walk',
-                item: HomeNavItem.walk,
+                icon: Icons.auto_awesome_rounded,
+                label: 'Vibes',
+                item: HomeNavItem.vibes,
                 responsive: responsive,
               ),
               _buildNavItem(
                 context: context,
                 icon: Icons.person_rounded,
-                label: 'Account',
-                item: HomeNavItem.account,
+                label: 'Profile',
+                item: HomeNavItem.profile,
                 responsive: responsive,
               ),
             ],
@@ -134,18 +134,29 @@ class HomeFooter extends StatelessWidget {
 
     return GestureDetector(
       onTap: () => onItemSelected(item),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(
-          horizontal: responsive.w(2),
+          horizontal: responsive.w(2.5),
           vertical: responsive.h(0.5),
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Colors.white.withValues(alpha: 0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: responsive.isTablet ? 26 : 22,
-              color: isSelected ? Colors.white : Colors.white54,
+            AnimatedScale(
+              scale: isSelected ? 1.1 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                icon,
+                size: responsive.isTablet ? 26 : 22,
+                color: isSelected ? Colors.white : Colors.white54,
+              ),
             ),
             SizedBox(height: responsive.h(0.2)),
             Text(
@@ -153,7 +164,7 @@ class HomeFooter extends StatelessWidget {
               style: TextStyle(
                 color: isSelected ? Colors.white : Colors.white54,
                 fontSize: responsive.isTablet ? 11 : 9,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
               ),
             ),
           ],

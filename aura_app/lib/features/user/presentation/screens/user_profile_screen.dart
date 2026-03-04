@@ -70,6 +70,18 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
   Future<void> _loadProfile() async {
     try {
       final currentUserId = ref.read(userProvider).user?.uid ?? '';
+      final isOwn = widget.userId == currentUserId;
+
+      if (isOwn) {
+        setState(() {
+          _profile = null;
+          _followStatus = null;
+          _isLoading = false;
+        });
+        _animController.forward();
+        return;
+      }
+
       final dio = _api;
 
       final results = await Future.wait([
@@ -206,18 +218,16 @@ class _UserProfileScreenState extends ConsumerState<UserProfileScreen>
     final user = isOwnProfile ? userState.user : null;
     final name = user?.name ?? _profile?['name'] ?? '';
     final username = user?.username ?? _profile?['username'] ?? '';
-    final bio = user?.bio ?? _profile?['bio'] ?? '';
+    final bio = _profile?['bio'] ?? '';
     final profileImageUrl = _buildImageUrl(
       isOwnProfile
           ? (imgState.imageUrl ?? user?.profileImageUrl)
           : _profile?['profileImageUrl'],
       cacheBust: isOwnProfile ? imgState.uploadedAt : null,
     );
-    final followersCount =
-        _profile?['followersCount'] ?? user?.followersCount ?? 0;
-    final followingCount =
-        _profile?['followingCount'] ?? user?.followingCount ?? 0;
-    final postsCount = _profile?['postsCount'] ?? user?.postsCount ?? 0;
+    final followersCount = _profile?['followersCount'] ?? 0;
+    final followingCount = _profile?['followingCount'] ?? 0;
+    final postsCount = _profile?['postsCount'] ?? 0;
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 
 class QuickActionsRow extends StatelessWidget {
@@ -25,101 +24,99 @@ class QuickActionsRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final responsive = Responsive.of(context);
 
+    final actions = [
+      _ActionData(
+        icon: Icons.add_circle_outline_rounded,
+        label: 'Share Vibe',
+        colors: const [Color(0xFF2196F3), Color(0xFF00BCD4)],
+        onTap: onCreatePost,
+      ),
+      _ActionData(
+        icon: Icons.warning_amber_rounded,
+        label: 'SOS',
+        colors: const [Color(0xFFFF416C), Color(0xFFFF4B2B)],
+        onTap: onSOS,
+      ),
+      _ActionData(
+        icon: Icons.alarm_rounded,
+        label: 'Alarms',
+        colors: const [Color(0xFF667EEA), Color(0xFF764BA2)],
+        onTap: onAlarm ?? () {},
+      ),
+      _ActionData(
+        icon: Icons.directions_walk_rounded,
+        label: 'Walk',
+        colors: const [Color(0xFF11998E), Color(0xFF38EF7D)],
+        onTap: onWalking ?? () {},
+      ),
+      _ActionData(
+        icon: Icons.chat_bubble_outline_rounded,
+        label: 'Messages',
+        colors: const [Color(0xFF00B4DB), Color(0xFF0083B0)],
+        onTap: onChat ?? () {},
+      ),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: _AnimatedActionButton(
-                icon: Icons.warning_rounded,
-                label: 'SOS',
-                colors: const [Color(0xFFFF416C), Color(0xFFFF4B2B)],
-                onTap: onSOS,
-                responsive: responsive,
-              ),
+        Padding(
+          padding: EdgeInsets.only(bottom: responsive.h(1.5)),
+          child: Text(
+            'Quick Actions',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: responsive.isTablet ? 18 : 16,
+              fontWeight: FontWeight.bold,
             ),
-            SizedBox(width: responsive.w(2.5)),
-            Expanded(
-              child: _AnimatedActionButton(
-                icon: Icons.add_circle_outline,
-                label: 'Post',
-                colors: [AppColors.primary, AppColors.accent],
-                onTap: onCreatePost,
-                responsive: responsive,
-              ),
-            ),
-            SizedBox(width: responsive.w(2.5)),
-            Expanded(
-              child: _AnimatedActionButton(
-                icon: Icons.explore_outlined,
-                label: 'Feed',
-                colors: const [Color(0xFF11998E), Color(0xFF38EF7D)],
-                onTap: onWellnessFeed,
-                responsive: responsive,
-              ),
-            ),
-          ],
+          ),
         ),
-        SizedBox(height: responsive.h(1.5)),
-        Row(
-          children: [
-            Expanded(
-              child: _AnimatedActionButton(
-                icon: Icons.alarm_rounded,
-                label: 'Alarms',
-                colors: const [Color(0xFF667EEA), Color(0xFF764BA2)],
-                onTap: onAlarm ?? () {},
+        SizedBox(
+          height: responsive.isTablet ? 96 : 84,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.zero,
+            physics: const BouncingScrollPhysics(),
+            itemCount: actions.length,
+            separatorBuilder: (_, __) => SizedBox(width: responsive.w(3)),
+            itemBuilder: (context, index) {
+              return _QuickActionCard(
+                data: actions[index],
                 responsive: responsive,
-              ),
-            ),
-            SizedBox(width: responsive.w(2.5)),
-            Expanded(
-              child: _AnimatedActionButton(
-                icon: Icons.chat_bubble_outline_rounded,
-                label: 'Messages',
-                colors: const [Color(0xFF00B4DB), Color(0xFF0083B0)],
-                onTap: onChat ?? () {},
-                responsive: responsive,
-              ),
-            ),
-            SizedBox(width: responsive.w(2.5)),
-            Expanded(
-              child: _AnimatedActionButton(
-                icon: Icons.directions_walk_rounded,
-                label: 'Walking',
-                colors: const [Color(0xFF11998E), Color(0xFF38EF7D)],
-                onTap: onWalking ?? () {},
-                responsive: responsive,
-              ),
-            ),
-          ],
+              );
+            },
+          ),
         ),
       ],
     );
   }
 }
 
-class _AnimatedActionButton extends StatefulWidget {
+class _ActionData {
   final IconData icon;
   final String label;
   final List<Color> colors;
   final VoidCallback onTap;
-  final Responsive responsive;
 
-  const _AnimatedActionButton({
+  const _ActionData({
     required this.icon,
     required this.label,
     required this.colors,
     required this.onTap,
-    required this.responsive,
   });
-
-  @override
-  State<_AnimatedActionButton> createState() => _AnimatedActionButtonState();
 }
 
-class _AnimatedActionButtonState extends State<_AnimatedActionButton>
+class _QuickActionCard extends StatefulWidget {
+  final _ActionData data;
+  final Responsive responsive;
+
+  const _QuickActionCard({required this.data, required this.responsive});
+
+  @override
+  State<_QuickActionCard> createState() => _QuickActionCardState();
+}
+
+class _QuickActionCardState extends State<_QuickActionCard>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scaleAnimation;
@@ -129,11 +126,11 @@ class _AnimatedActionButtonState extends State<_AnimatedActionButton>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 120),
     );
     _scaleAnimation = Tween<double>(
       begin: 1.0,
-      end: 0.93,
+      end: 0.88,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
@@ -145,46 +142,58 @@ class _AnimatedActionButtonState extends State<_AnimatedActionButton>
 
   @override
   Widget build(BuildContext context) {
+    final r = widget.responsive;
+    final d = widget.data;
+
     return GestureDetector(
       onTapDown: (_) => _controller.forward(),
       onTapUp: (_) {
         _controller.reverse();
-        widget.onTap();
+        d.onTap();
       },
       onTapCancel: () => _controller.reverse(),
       child: ScaleTransition(
         scale: _scaleAnimation,
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: widget.responsive.h(2)),
+          width: r.isTablet ? 96 : 80,
+          height: r.isTablet ? 96 : 84,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: widget.colors,
+              colors: d.colors,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: widget.colors[0].withValues(alpha: 0.3),
-                blurRadius: 12,
+                color: d.colors[0].withValues(alpha: 0.38),
+                blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
             ],
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                widget.icon,
-                color: Colors.white,
-                size: widget.responsive.isTablet ? 28 : 24,
+              Container(
+                width: r.isTablet ? 44 : 38,
+                height: r.isTablet ? 44 : 38,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  d.icon,
+                  color: Colors.white,
+                  size: r.isTablet ? 24 : 20,
+                ),
               ),
-              SizedBox(height: widget.responsive.h(0.5)),
+              SizedBox(height: r.h(0.7)),
               Text(
-                widget.label,
+                d.label,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: widget.responsive.isTablet ? 13 : 11,
+                  fontSize: r.isTablet ? 11 : 10,
                   fontWeight: FontWeight.w600,
                 ),
               ),
