@@ -10,10 +10,8 @@ class MoodCheckInWidget extends StatefulWidget {
   State<MoodCheckInWidget> createState() => _MoodCheckInWidgetState();
 }
 
-class _MoodCheckInWidgetState extends State<MoodCheckInWidget>
-    with SingleTickerProviderStateMixin {
+class _MoodCheckInWidgetState extends State<MoodCheckInWidget> {
   int? _selectedIndex;
-  late AnimationController _popController;
 
   static const _moods = [
     _Mood('😔', 'Rough', Color(0xFF6B7280)),
@@ -23,26 +21,10 @@ class _MoodCheckInWidgetState extends State<MoodCheckInWidget>
     _Mood('🤩', 'Amazing', Color(0xFF8B5CF6)),
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _popController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-  }
-
-  @override
-  void dispose() {
-    _popController.dispose();
-    super.dispose();
-  }
-
   void _selectMood(int index) {
     if (_selectedIndex == index) return;
     HapticFeedback.lightImpact();
     setState(() => _selectedIndex = index);
-    _popController.forward(from: 0);
   }
 
   @override
@@ -102,6 +84,7 @@ class _MoodCheckInWidgetState extends State<MoodCheckInWidget>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(_moods.length, (i) {
               final isSelected = _selectedIndex == i;
+              final color = _moods[i].color;
               return GestureDetector(
                 onTap: () => _selectMood(i),
                 child: AnimatedContainer(
@@ -111,24 +94,24 @@ class _MoodCheckInWidgetState extends State<MoodCheckInWidget>
                   height: responsive.isTablet ? 62 : 52,
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? _moods[i].color.withValues(alpha: 0.25)
+                        ? color.withValues(alpha: 0.25)
                         : Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected
-                          ? _moods[i].color.withValues(alpha: 0.7)
+                          ? color.withValues(alpha: 0.7)
                           : Colors.white.withValues(alpha: 0.08),
                       width: isSelected ? 2 : 1,
                     ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: _moods[i].color.withValues(alpha: 0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ]
-                        : null,
+                    boxShadow: [
+                      BoxShadow(
+                        color: isSelected
+                            ? color.withValues(alpha: 0.3)
+                            : Colors.transparent,
+                        blurRadius: isSelected ? 12 : 0,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -141,11 +124,11 @@ class _MoodCheckInWidgetState extends State<MoodCheckInWidget>
                               : (responsive.isTablet ? 22 : 18),
                         ),
                       ),
-                      SizedBox(height: 2),
+                      const SizedBox(height: 2),
                       Text(
                         _moods[i].label,
                         style: TextStyle(
-                          color: isSelected ? _moods[i].color : Colors.white38,
+                          color: isSelected ? color : Colors.white38,
                           fontSize: responsive.isTablet ? 9 : 8,
                           fontWeight: isSelected
                               ? FontWeight.w700

@@ -15,6 +15,7 @@ import '../widgets/home_header.dart';
 import '../widgets/mood_check_in_widget.dart';
 import '../widgets/quick_actions_row.dart';
 import '../widgets/wellness_summary_card.dart';
+import '../../../news/presentation/widgets/news_ticker.dart';
 
 final selectedNavItemProvider = StateProvider<HomeNavItem>(
   (ref) => HomeNavItem.home,
@@ -239,6 +240,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     onSeeAll: () =>
                         Navigator.pushNamed(context, '/wellness-feed'),
                   ),
+                ),
+
+                SizedBox(height: responsive.h(2.5)),
+
+                const AnimatedEntry(
+                  delay: Duration(milliseconds: 650),
+                  child: NewsTicker(),
                 ),
 
                 SizedBox(height: responsive.h(3)),
