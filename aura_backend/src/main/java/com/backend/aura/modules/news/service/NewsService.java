@@ -51,7 +51,7 @@ public class NewsService {
             body.put("articlesCount", Math.min(pageSize, 20));
             body.put("articlesSortBy", "date");
             body.put("articlesSortByAsc", false);
-            body.put("articlesArticleBodyLen", 200);
+            body.put("articlesArticleBodyLen", 600);
             body.put("resultType", "articles");
             body.put("lang", "eng");
             body.put("apiKey", newsApiKey);

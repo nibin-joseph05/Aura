@@ -248,8 +248,14 @@ class _NewsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 2),
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(
+        context,
+        '/news-detail',
+        arguments: article,
+      ),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
         color: Colors.white.withValues(alpha: 0.07),
@@ -346,6 +352,7 @@ class _NewsCard extends StatelessWidget {
           ],
         ),
       ),
+      )
     );
   }
 }

@@ -37,4 +37,5 @@ class AppRoutes {
   static const String changePhone = '/change-phone';
   static const String notificationSettings = '/notification-settings';
   static const String myAccount = '/my-account';
+  static const String newsDetail = '/news-detail';
 }

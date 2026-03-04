@@ -183,14 +183,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   child: WellnessSummaryCard(),
                 ),
 
-                SizedBox(height: responsive.h(2.5)),
+                SizedBox(height: responsive.h(2)),
 
                 const AnimatedEntry(
                   delay: Duration(milliseconds: 180),
                   child: MoodCheckInWidget(),
                 ),
 
-                SizedBox(height: responsive.h(2.5)),
+                SizedBox(height: responsive.h(2)),
 
                 AnimatedEntry(
                   delay: const Duration(milliseconds: 260),
@@ -206,7 +206,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   ),
                 ),
 
-                SizedBox(height: responsive.h(2.5)),
+                SizedBox(height: responsive.h(2)),
 
                 const AnimatedEntry(
                   delay: Duration(milliseconds: 350),
@@ -235,6 +235,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                 SizedBox(height: responsive.h(2.5)),
 
                 AnimatedEntry(
+                  delay: const Duration(milliseconds: 530),
+                  child: _buildSectionHeader(
+                    responsive,
+                    icon: Icons.favorite_rounded,
+                    color: const Color(0xFF10B981),
+                    label: 'Vibes Feed',
+                  ),
+                ),
+
+                SizedBox(height: responsive.h(1.2)),
+
+                AnimatedEntry(
                   delay: const Duration(milliseconds: 560),
                   child: FeedPreviewSection(
                     onSeeAll: () =>
@@ -249,7 +261,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   child: NewsTicker(),
                 ),
 
-                SizedBox(height: responsive.h(3)),
+                SizedBox(height: responsive.h(4)),
               ]),
             ),
           ),
