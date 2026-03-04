@@ -5,6 +5,7 @@ import '../../../../core/services/local_notification_service.dart';
 import '../../data/datasources/daily_activity_local_datasource.dart';
 import '../../data/datasources/daily_activity_remote_datasource.dart';
 import '../../data/models/user_activity_model.dart';
+import '../../../activity_types/data/models/activity_metric.dart';
 
 class DailyActivityState {
   final List<UserActivityModel> activities;
@@ -117,6 +118,7 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
     int targetCompletions = 1,
     bool isAlarmEnabled = false,
     bool isPushEnabled = false,
+    List<ActivityMetric> metrics = const [],
   }) async {
     final now = DateTime.now();
     final activity = UserActivityModel(
@@ -132,6 +134,7 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       targetCompletions: targetCompletions,
       isAlarmEnabled: isAlarmEnabled,
       isPushEnabled: isPushEnabled,
+      metrics: metrics,
     );
 
     await _localDataSource.save(activity);
@@ -185,7 +188,10 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
     }
   }
 
-  Future<void> completeActivity(String id) async {
+  Future<void> completeActivity(
+    String id, {
+    Map<String, String>? metricValues,
+  }) async {
     final activities = await _localDataSource.getAll();
     final activity = activities.firstWhere(
       (a) => a.id == id,
@@ -210,7 +216,10 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
     _trySyncActivity(updatedActivity);
   }
 
-  Future<void> recordCompletion(String id) async {
+  Future<void> recordCompletion(
+    String id, {
+    Map<String, String>? metricValues,
+  }) async {
     final activities = await _localDataSource.getAll();
     final activity = activities.firstWhere(
       (a) => a.id == id,

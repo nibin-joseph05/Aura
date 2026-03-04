@@ -24,18 +24,16 @@ class ActivityLogAdapter extends TypeAdapter<ActivityLog> {
       customTitle: fields[4] as String?,
       logDate: fields[5] as DateTime,
       status: fields[6] as ActivityStatus,
-      actualDuration: fields[7] as int?,
-      distanceKm: fields[8] as double?,
-      caloriesBurned: fields[9] as int?,
-      note: fields[10] as String?,
-      completedAt: fields[11] as DateTime?,
+      metrics: (fields[7] as List?)?.cast<ActivityLogMetric>(),
+      note: fields[8] as String?,
+      completedAt: fields[9] as DateTime?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ActivityLog obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(10)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -51,14 +49,10 @@ class ActivityLogAdapter extends TypeAdapter<ActivityLog> {
       ..writeByte(6)
       ..write(obj.status)
       ..writeByte(7)
-      ..write(obj.actualDuration)
+      ..write(obj.metrics)
       ..writeByte(8)
-      ..write(obj.distanceKm)
-      ..writeByte(9)
-      ..write(obj.caloriesBurned)
-      ..writeByte(10)
       ..write(obj.note)
-      ..writeByte(11)
+      ..writeByte(9)
       ..write(obj.completedAt);
   }
 

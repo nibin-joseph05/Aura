@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import 'activity_metric.dart';
 
 part 'activity_type.g.dart';
 
@@ -26,21 +27,15 @@ class ActivityType extends HiveObject {
   final bool allowNotes;
 
   @HiveField(7)
-  final bool requiresDuration;
+  final List<ActivityMetric> metrics;
 
   @HiveField(8)
-  final bool requiresDistance;
-
-  @HiveField(9)
-  final bool requiresCalories;
-
-  @HiveField(10)
   final bool isGymActivity;
 
-  @HiveField(11)
+  @HiveField(9)
   final String? icon;
 
-  @HiveField(12)
+  @HiveField(10)
   final bool isActive;
 
   ActivityType({
@@ -51,9 +46,7 @@ class ActivityType extends HiveObject {
     this.description,
     this.allowAlarm = false,
     this.allowNotes = true,
-    this.requiresDuration = false,
-    this.requiresDistance = false,
-    this.requiresCalories = false,
+    this.metrics = const [],
     this.isGymActivity = false,
     this.icon,
     this.isActive = true,
@@ -68,9 +61,11 @@ class ActivityType extends HiveObject {
       description: json['description'] as String?,
       allowAlarm: json['allowAlarm'] as bool? ?? false,
       allowNotes: json['allowNotes'] as bool? ?? true,
-      requiresDuration: json['requiresDuration'] as bool? ?? false,
-      requiresDistance: json['requiresDistance'] as bool? ?? false,
-      requiresCalories: json['requiresCalories'] as bool? ?? false,
+      metrics: json['metrics'] != null
+          ? (json['metrics'] as List)
+                .map((m) => ActivityMetric.fromJson(m))
+                .toList()
+          : [],
       isGymActivity: json['isGymActivity'] as bool? ?? false,
       icon: json['icon'] as String?,
       isActive: json['isActive'] as bool? ?? true,
@@ -86,9 +81,7 @@ class ActivityType extends HiveObject {
       'description': description,
       'allowAlarm': allowAlarm,
       'allowNotes': allowNotes,
-      'requiresDuration': requiresDuration,
-      'requiresDistance': requiresDistance,
-      'requiresCalories': requiresCalories,
+      'metrics': metrics.map((m) => m.toJson()).toList(),
       'isGymActivity': isGymActivity,
       'icon': icon,
       'isActive': isActive,

@@ -34,13 +34,17 @@ class UserActivityModelAdapter extends TypeAdapter<UserActivityModel> {
       activityTypeIcon: fields[14] as String,
       isGymActivity: fields[15] as bool,
       activityTypeId: fields[16] as String,
+      metrics:
+          fields[17] == null ? [] : (fields[17] as List).cast<ActivityMetric>(),
+      metricLogs:
+          fields[18] == null ? {} : (fields[18] as Map).cast<String, String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, UserActivityModel obj) {
     writer
-      ..writeByte(17)
+      ..writeByte(19)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -74,7 +78,11 @@ class UserActivityModelAdapter extends TypeAdapter<UserActivityModel> {
       ..writeByte(15)
       ..write(obj.isGymActivity)
       ..writeByte(16)
-      ..write(obj.activityTypeId);
+      ..write(obj.activityTypeId)
+      ..writeByte(17)
+      ..write(obj.metrics)
+      ..writeByte(18)
+      ..write(obj.metricLogs);
   }
 
   @override

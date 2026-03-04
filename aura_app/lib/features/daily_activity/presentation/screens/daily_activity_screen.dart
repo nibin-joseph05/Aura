@@ -8,8 +8,13 @@ import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../../core/widgets/wrappers/app_bottom_sheet.dart';
 import '../../data/models/user_activity_model.dart';
 import '../providers/daily_activity_provider.dart';
+import '../../../activity_types/state/activity_type_providers.dart';
+import '../../../activity_types/data/models/activity_type.dart';
+import '../../../activity_types/data/models/activity_metric.dart';
 
-final selectedActivityTypeProvider = StateProvider<String>((ref) => 'Exercise');
+final selectedActivityTypeProvider = StateProvider<ActivityType?>(
+  (ref) => null,
+);
 
 class DailyActivityScreen extends ConsumerStatefulWidget {
   const DailyActivityScreen({super.key});
@@ -283,15 +288,41 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
           borderRadius: BorderRadius.circular(responsive.radius(14)),
           onTap: isCompleted
               ? null
-              : () {
-                  if (activity.isRepeating) {
-                    ref
-                        .read(dailyActivityProvider.notifier)
-                        .recordCompletion(activity.id);
+              : () async {
+                  if (activity.metrics.isNotEmpty) {
+                    final metricValues =
+                        await AppBottomSheet.show<Map<String, String>>(
+                          context: context,
+                          title: 'Log ${activity.title}',
+                          child: _DynamicMetricsDialog(activity: activity),
+                        );
+                    if (metricValues == null) return; // User cancelled
+
+                    if (activity.isRepeating) {
+                      ref
+                          .read(dailyActivityProvider.notifier)
+                          .recordCompletion(
+                            activity.id,
+                            metricValues: metricValues,
+                          );
+                    } else {
+                      ref
+                          .read(dailyActivityProvider.notifier)
+                          .completeActivity(
+                            activity.id,
+                            metricValues: metricValues,
+                          );
+                    }
                   } else {
-                    ref
-                        .read(dailyActivityProvider.notifier)
-                        .completeActivity(activity.id);
+                    if (activity.isRepeating) {
+                      ref
+                          .read(dailyActivityProvider.notifier)
+                          .recordCompletion(activity.id);
+                    } else {
+                      ref
+                          .read(dailyActivityProvider.notifier)
+                          .completeActivity(activity.id);
+                    }
                   }
                 },
           child: Padding(
@@ -513,7 +544,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   }
 
   void _showAddActivitySheet(BuildContext context) {
-    ref.read(selectedActivityTypeProvider.notifier).state = 'Exercise';
+    ref.read(selectedActivityTypeProvider.notifier).state = null;
     AppBottomSheet.show(
       context: context,
       title: 'Add New Activity',
@@ -531,14 +562,15 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
               ref
                   .read(dailyActivityProvider.notifier)
                   .addActivity(
-                    activityType: type,
-                    activityTypeId: type,
+                    activityType: type.name,
+                    activityTypeId: type.id,
                     title: title,
                     description: description,
                     intervalMinutes: intervalMinutes,
                     targetCompletions: targetCompletions,
                     isAlarmEnabled: isAlarmEnabled,
                     isPushEnabled: isPushEnabled,
+                    metrics: type.metrics,
                   );
             },
       ),
@@ -546,9 +578,217 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   }
 }
 
+class _DynamicMetricsDialog extends StatefulWidget {
+  final UserActivityModel activity;
+
+  const _DynamicMetricsDialog({required this.activity});
+
+  @override
+  State<_DynamicMetricsDialog> createState() => _DynamicMetricsDialogState();
+}
+
+class _DynamicMetricsDialogState extends State<_DynamicMetricsDialog> {
+  final Map<String, TextEditingController> _controllers = {};
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    for (var metric in widget.activity.metrics) {
+      _controllers[metric.id ?? metric.name] = TextEditingController();
+    }
+  }
+
+  @override
+  void dispose() {
+    for (var controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final responsive = Responsive.of(context);
+    final brightness = Theme.of(context).brightness;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(
+        horizontal: responsive.space(24),
+        vertical: responsive.space(16),
+      ),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ...widget.activity.metrics.map((metric) {
+              final isBoolean = metric.metricType == MetricType.boolean;
+              final controller = _controllers[metric.id ?? metric.name]!;
+              final label =
+                  metric.name +
+                  (metric.unit.isNotEmpty ? ' (${metric.unit})' : '');
+
+              return Padding(
+                padding: EdgeInsets.only(bottom: responsive.space(16)),
+                child: isBoolean
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            label,
+                            style: TextStyle(
+                              color: AppColors.onSurface(brightness),
+                              fontSize: responsive.text(14),
+                            ),
+                          ),
+                          Switch(
+                            value: controller.text == 'true',
+                            onChanged: (val) {
+                              setState(() {
+                                controller.text = val.toString();
+                              });
+                            },
+                            activeThumbColor: AppColors.accent,
+                            inactiveTrackColor: AppColors.iconButtonFill(
+                              brightness,
+                            ),
+                          ),
+                        ],
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            label,
+                            style: TextStyle(
+                              color: AppColors.onSurfaceMuted(brightness),
+                              fontSize: responsive.text(14),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SizedBox(height: responsive.space(8)),
+                          TextFormField(
+                            controller: controller,
+                            keyboardType: _getKeyboardType(metric.metricType),
+                            style: TextStyle(
+                              color: AppColors.onSurface(brightness),
+                              fontSize: responsive.text(15),
+                            ),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: AppColors.iconButtonFill(brightness),
+                              hintText: 'Enter value...',
+                              hintStyle: TextStyle(
+                                color: AppColors.onSurfaceFaint(brightness),
+                                fontSize: responsive.text(14),
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  responsive.radius(12),
+                                ),
+                                borderSide: BorderSide(
+                                  color: AppColors.iconButtonBorder(brightness),
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  responsive.radius(12),
+                                ),
+                                borderSide: BorderSide(
+                                  color: AppColors.iconButtonBorder(brightness),
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(
+                                  responsive.radius(12),
+                                ),
+                                borderSide: const BorderSide(
+                                  color: AppColors.accent,
+                                  width: 2,
+                                ),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: responsive.space(16),
+                                vertical: responsive.space(14),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (metric.isRequired &&
+                                  (value == null || value.trim().isEmpty)) {
+                                return 'This field is required';
+                              }
+                              if (value != null && value.isNotEmpty) {
+                                if (metric.metricType == MetricType.integer &&
+                                    int.tryParse(value) == null) {
+                                  return 'Must be an integer';
+                                }
+                                if ((metric.metricType == MetricType.decimal ||
+                                        metric.metricType ==
+                                            MetricType.timeMinutes) &&
+                                    double.tryParse(value) == null) {
+                                  return 'Must be a number';
+                                }
+                              }
+                              return null;
+                            },
+                          ),
+                        ],
+                      ),
+              );
+            }),
+            SizedBox(height: responsive.space(8)),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    final result = <String, String>{};
+                    for (var metric in widget.activity.metrics) {
+                      final key = metric.id ?? metric.name;
+                      result[key] = _controllers[key]!.text;
+                    }
+                    Navigator.pop(context, result);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.accent,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: responsive.space(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(responsive.radius(14)),
+                  ),
+                ),
+                child: Text(
+                  'Log Activity',
+                  style: TextStyle(
+                    fontSize: responsive.text(16),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: responsive.space(16)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  TextInputType _getKeyboardType(MetricType type) {
+    if (type == MetricType.integer || type == MetricType.timeMinutes) {
+      return TextInputType.number;
+    }
+    if (type == MetricType.decimal) {
+      return const TextInputType.numberWithOptions(decimal: true);
+    }
+    return TextInputType.text;
+  }
+}
+
 class _AddActivityContent extends ConsumerStatefulWidget {
   final void Function(
-    String type,
+    ActivityType type,
     String title,
     String? description,
     int? intervalMinutes,
@@ -602,71 +842,94 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
             ),
           ),
           SizedBox(height: responsive.space(10)),
-          Wrap(
-            spacing: responsive.space(8),
-            runSpacing: responsive.space(8),
-            children:
-                [
-                  'Exercise',
-                  'Meditation',
-                  'Reading',
-                  'Work',
-                  'Health',
-                  'Social',
-                  'Other',
-                ].map((type) {
-                  final isSelected = selectedType == type;
-                  return GestureDetector(
-                    onTap: () =>
-                        ref.read(selectedActivityTypeProvider.notifier).state =
-                            type,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: responsive.space(14),
-                        vertical: responsive.space(8),
+          ref
+              .watch(activityTypesProvider)
+              .when(
+                data: (types) {
+                  if (types.isEmpty) {
+                    return Text(
+                      'No activity types available.',
+                      style: TextStyle(
+                        color: AppColors.onSurfaceMuted(brightness),
                       ),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? _getActivityColor(type)
-                            : AppColors.iconButtonFill(brightness),
-                        borderRadius: BorderRadius.circular(
-                          responsive.radius(20),
-                        ),
-                        border: Border.all(
-                          color: isSelected
-                              ? _getActivityColor(type)
-                              : AppColors.iconButtonBorder(brightness),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            _getActivityIcon(type),
-                            color: isSelected
-                                ? Colors.white
-                                : _getActivityColor(type),
-                            size: responsive.icon(16),
+                    );
+                  }
+                  // Set default if null
+                  if (selectedType == null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      ref.read(selectedActivityTypeProvider.notifier).state =
+                          types.first;
+                    });
+                  }
+                  return Wrap(
+                    spacing: responsive.space(8),
+                    runSpacing: responsive.space(8),
+                    children: types.map((type) {
+                      final isSelected = selectedType?.id == type.id;
+                      return GestureDetector(
+                        onTap: () =>
+                            ref
+                                    .read(selectedActivityTypeProvider.notifier)
+                                    .state =
+                                type,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: responsive.space(14),
+                            vertical: responsive.space(8),
                           ),
-                          SizedBox(width: responsive.space(6)),
-                          Text(
-                            type,
-                            style: TextStyle(
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? _getActivityColor(type.name)
+                                : AppColors.iconButtonFill(brightness),
+                            borderRadius: BorderRadius.circular(
+                              responsive.radius(20),
+                            ),
+                            border: Border.all(
                               color: isSelected
-                                  ? Colors.white
-                                  : AppColors.onSurfaceMuted(brightness),
-                              fontSize: responsive.text(13),
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
+                                  ? _getActivityColor(type.name)
+                                  : AppColors.iconButtonBorder(brightness),
                             ),
                           ),
-                        ],
-                      ),
-                    ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _getActivityIcon(type.name),
+                                color: isSelected
+                                    ? Colors.white
+                                    : _getActivityColor(type.name),
+                                size: responsive.icon(16),
+                              ),
+                              SizedBox(width: responsive.space(6)),
+                              Text(
+                                type.name,
+                                style: TextStyle(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : AppColors.onSurfaceMuted(brightness),
+                                  fontSize: responsive.text(13),
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
-          ),
+                },
+                loading: () => Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation(AppColors.accent),
+                  ),
+                ),
+                error: (err, stack) => Text(
+                  'Failed to load types',
+                  style: TextStyle(color: AppColors.error),
+                ),
+              ),
           SizedBox(height: responsive.space(20)),
           _buildTextField(
             controller: _titleController,
@@ -693,7 +956,8 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                if (_titleController.text.trim().isNotEmpty) {
+                if (_titleController.text.trim().isNotEmpty &&
+                    selectedType != null) {
                   final totalMin = _isRepeating
                       ? (_intervalHours * 60 + _intervalMinutes)
                       : null;

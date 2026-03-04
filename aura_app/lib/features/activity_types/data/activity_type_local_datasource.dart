@@ -13,38 +13,64 @@ class ActivityTypeLocalDataSource {
       await Hive.openBox<ActivityType>(typesBoxName);
 
   Future<List<ActivityCategory>> getCategories() async {
-    final box = await _categoriesBox;
-    return box.values.toList();
+    try {
+      final box = await _categoriesBox;
+      return box.values.toList();
+    } catch (_) {
+      try {
+        await Hive.deleteBoxFromDisk(categoriesBoxName);
+      } catch (_) {}
+      return [];
+    }
   }
 
   Future<void> saveCategories(List<ActivityCategory> categories) async {
-    final box = await _categoriesBox;
-    await box.clear();
-    for (var category in categories) {
-      await box.put(category.id, category);
-    }
+    try {
+      final box = await _categoriesBox;
+      await box.clear();
+      for (var category in categories) {
+        await box.put(category.id, category);
+      }
+    } catch (_) {}
   }
 
   Future<List<ActivityType>> getTypes() async {
-    final box = await _typesBox;
-    return box.values.toList();
-  }
-
-  Future<List<ActivityType>> getTypesByCategory(String categoryId) async {
-    final box = await _typesBox;
-    return box.values.where((type) => type.categoryId == categoryId).toList();
-  }
-
-  Future<void> saveTypes(List<ActivityType> types) async {
-    final box = await _typesBox;
-    await box.clear();
-    for (var type in types) {
-      await box.put(type.id, type);
+    try {
+      final box = await _typesBox;
+      return box.values.toList();
+    } catch (_) {
+      try {
+        await Hive.deleteBoxFromDisk(typesBoxName);
+      } catch (_) {}
+      return [];
     }
   }
 
+  Future<List<ActivityType>> getTypesByCategory(String categoryId) async {
+    try {
+      final box = await _typesBox;
+      return box.values.where((type) => type.categoryId == categoryId).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> saveTypes(List<ActivityType> types) async {
+    try {
+      final box = await _typesBox;
+      await box.clear();
+      for (var type in types) {
+        await box.put(type.id, type);
+      }
+    } catch (_) {}
+  }
+
   Future<ActivityType?> getTypeById(String id) async {
-    final box = await _typesBox;
-    return box.get(id);
+    try {
+      final box = await _typesBox;
+      return box.get(id);
+    } catch (_) {
+      return null;
+    }
   }
 }

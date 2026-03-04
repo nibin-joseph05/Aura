@@ -1,4 +1,5 @@
 import 'package:hive/hive.dart';
+import '../../../../features/activity_types/data/models/activity_metric.dart';
 
 part 'user_activity_model.g.dart';
 
@@ -55,6 +56,12 @@ class UserActivityModel {
   @HiveField(16)
   final String activityTypeId;
 
+  @HiveField(17, defaultValue: [])
+  final List<ActivityMetric> metrics;
+
+  @HiveField(18, defaultValue: {})
+  final Map<String, String> metricLogs;
+
   UserActivityModel({
     required this.id,
     required this.date,
@@ -73,6 +80,8 @@ class UserActivityModel {
     this.activityTypeIcon = '',
     this.isGymActivity = false,
     required this.activityTypeId,
+    this.metrics = const [],
+    this.metricLogs = const {},
   });
 
   bool get isRepeating => targetCompletions > 1;
@@ -122,6 +131,14 @@ class UserActivityModel {
       activityTypeIcon: json['activityTypeIcon'] ?? '',
       isGymActivity: json['isGymActivity'] ?? false,
       activityTypeId: json['activityTypeId'] ?? '',
+      metrics: json['metrics'] != null
+          ? (json['metrics'] as List)
+                .map((m) => ActivityMetric.fromJson(m))
+                .toList()
+          : [],
+      metricLogs: json['metricLogs'] != null
+          ? Map<String, String>.from(json['metricLogs'])
+          : {},
     );
   }
 
@@ -145,6 +162,8 @@ class UserActivityModel {
       'activityTypeIcon': activityTypeIcon,
       'isGymActivity': isGymActivity,
       'activityTypeId': activityTypeId,
+      'metrics': metrics.map((m) => m.toJson()).toList(),
+      'metricLogs': metricLogs,
     };
   }
 
@@ -166,6 +185,8 @@ class UserActivityModel {
     String? activityTypeIcon,
     bool? isGymActivity,
     String? activityTypeId,
+    List<ActivityMetric>? metrics,
+    Map<String, String>? metricLogs,
   }) {
     return UserActivityModel(
       id: id ?? this.id,
@@ -185,6 +206,8 @@ class UserActivityModel {
       activityTypeIcon: activityTypeIcon ?? this.activityTypeIcon,
       isGymActivity: isGymActivity ?? this.isGymActivity,
       activityTypeId: activityTypeId ?? this.activityTypeId,
+      metrics: metrics ?? this.metrics,
+      metricLogs: metricLogs ?? this.metricLogs,
     );
   }
 }

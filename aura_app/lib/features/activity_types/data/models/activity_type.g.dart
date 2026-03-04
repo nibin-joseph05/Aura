@@ -24,19 +24,17 @@ class ActivityTypeAdapter extends TypeAdapter<ActivityType> {
       description: fields[4] as String?,
       allowAlarm: fields[5] as bool,
       allowNotes: fields[6] as bool,
-      requiresDuration: fields[7] as bool,
-      requiresDistance: fields[8] as bool,
-      requiresCalories: fields[9] as bool,
-      isGymActivity: fields[10] as bool,
-      icon: fields[11] as String?,
-      isActive: fields[12] as bool,
+      metrics: (fields[7] as List).cast<ActivityMetric>(),
+      isGymActivity: fields[8] as bool,
+      icon: fields[9] as String?,
+      isActive: fields[10] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, ActivityType obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -52,16 +50,12 @@ class ActivityTypeAdapter extends TypeAdapter<ActivityType> {
       ..writeByte(6)
       ..write(obj.allowNotes)
       ..writeByte(7)
-      ..write(obj.requiresDuration)
+      ..write(obj.metrics)
       ..writeByte(8)
-      ..write(obj.requiresDistance)
-      ..writeByte(9)
-      ..write(obj.requiresCalories)
-      ..writeByte(10)
       ..write(obj.isGymActivity)
-      ..writeByte(11)
+      ..writeByte(9)
       ..write(obj.icon)
-      ..writeByte(12)
+      ..writeByte(10)
       ..write(obj.isActive);
   }
 

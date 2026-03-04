@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import 'activity_status.dart';
+import 'activity_log_metric.dart';
 
 part 'activity_log.g.dart';
 
@@ -27,18 +28,12 @@ class ActivityLog extends HiveObject {
   final ActivityStatus status;
 
   @HiveField(7)
-  final int? actualDuration;
+  final List<ActivityLogMetric>? metrics;
 
   @HiveField(8)
-  final double? distanceKm;
-
-  @HiveField(9)
-  final int? caloriesBurned;
-
-  @HiveField(10)
   final String? note;
 
-  @HiveField(11)
+  @HiveField(9)
   final DateTime? completedAt;
 
   ActivityLog({
@@ -49,9 +44,7 @@ class ActivityLog extends HiveObject {
     this.customTitle,
     required this.logDate,
     this.status = ActivityStatus.pending,
-    this.actualDuration,
-    this.distanceKm,
-    this.caloriesBurned,
+    this.metrics,
     this.note,
     this.completedAt,
   });
@@ -70,9 +63,11 @@ class ActivityLog extends HiveObject {
       status: ActivityStatusExtension.fromString(
         json['status'] as String? ?? 'PENDING',
       ),
-      actualDuration: json['actualDuration'] as int?,
-      distanceKm: (json['distanceKm'] as num?)?.toDouble(),
-      caloriesBurned: json['caloriesBurned'] as int?,
+      metrics: json['metrics'] != null
+          ? (json['metrics'] as List)
+                .map((m) => ActivityLogMetric.fromJson(m))
+                .toList()
+          : null,
       note: json['note'] as String?,
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'] as String)
@@ -89,9 +84,7 @@ class ActivityLog extends HiveObject {
       'customTitle': customTitle,
       'logDate': logDate.toIso8601String().split('T').first,
       'status': status.name.toUpperCase(),
-      'actualDuration': actualDuration,
-      'distanceKm': distanceKm,
-      'caloriesBurned': caloriesBurned,
+      'metrics': metrics?.map((m) => m.toJson()).toList(),
       'note': note,
       'completedAt': completedAt?.toIso8601String(),
     };
@@ -99,9 +92,7 @@ class ActivityLog extends HiveObject {
 
   ActivityLog copyWith({
     ActivityStatus? status,
-    int? actualDuration,
-    double? distanceKm,
-    int? caloriesBurned,
+    List<ActivityLogMetric>? metrics,
     String? note,
     DateTime? completedAt,
   }) {
@@ -113,9 +104,7 @@ class ActivityLog extends HiveObject {
       customTitle: customTitle,
       logDate: logDate,
       status: status ?? this.status,
-      actualDuration: actualDuration ?? this.actualDuration,
-      distanceKm: distanceKm ?? this.distanceKm,
-      caloriesBurned: caloriesBurned ?? this.caloriesBurned,
+      metrics: metrics ?? this.metrics,
       note: note ?? this.note,
       completedAt: completedAt ?? this.completedAt,
     );

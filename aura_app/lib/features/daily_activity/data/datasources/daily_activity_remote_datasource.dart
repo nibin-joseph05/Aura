@@ -23,9 +23,16 @@ class DailyActivityRemoteDataSource {
 
   Future<UserActivityModel> createActivity(UserActivityModel activity) async {
     try {
+      final payload = activity.toJson();
+      if (activity.metricLogs.isNotEmpty) {
+        payload['metrics'] = activity.metricLogs.entries
+            .map((e) => {'activityMetricId': e.key, 'value': e.value})
+            .toList();
+      }
+
       final response = await _dio.post(
         ApiEndpoints.dailyActivities,
-        data: activity.toJson(),
+        data: payload,
       );
       return UserActivityModel.fromJson(response.data);
     } catch (e) {
@@ -35,9 +42,19 @@ class DailyActivityRemoteDataSource {
 
   Future<void> syncActivities(List<UserActivityModel> activities) async {
     try {
+      final payloads = activities.map((a) {
+        final j = a.toJson();
+        if (a.metricLogs.isNotEmpty) {
+          j['metrics'] = a.metricLogs.entries
+              .map((e) => {'activityMetricId': e.key, 'value': e.value})
+              .toList();
+        }
+        return j;
+      }).toList();
+
       await _dio.post(
         ApiEndpoints.syncDailyActivities,
-        data: {'activities': activities.map((a) => a.toJson()).toList()},
+        data: {'activities': payloads},
       );
     } catch (e) {
       throw Exception('Failed to sync activities: ${e.toString()}');
@@ -54,9 +71,16 @@ class DailyActivityRemoteDataSource {
 
   Future<UserActivityModel> updateActivity(UserActivityModel activity) async {
     try {
+      final payload = activity.toJson();
+      if (activity.metricLogs.isNotEmpty) {
+        payload['metrics'] = activity.metricLogs.entries
+            .map((e) => {'activityMetricId': e.key, 'value': e.value})
+            .toList();
+      }
+
       final response = await _dio.put(
         '${ApiEndpoints.dailyActivities}/${activity.id}',
-        data: activity.toJson(),
+        data: payload,
       );
       return UserActivityModel.fromJson(response.data);
     } catch (e) {
