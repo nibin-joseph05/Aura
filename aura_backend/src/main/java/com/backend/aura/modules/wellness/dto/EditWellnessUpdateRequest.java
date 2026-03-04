@@ -12,4 +12,6 @@ public class EditWellnessUpdateRequest {
     private String content;
 
     private WellnessCategory category;
+
+    private String imageUrl;
 }

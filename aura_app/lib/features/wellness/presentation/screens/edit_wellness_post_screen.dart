@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 
+import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
 import '../../../../core/widgets/navigation/app_header.dart';
@@ -21,6 +25,8 @@ class _EditWellnessPostScreenState
     extends ConsumerState<EditWellnessPostScreen> {
   late TextEditingController _contentController;
   late WellnessCategory _selectedCategory;
+  File? _selectedImage;
+  String? _currentImageUrl;
   bool _isLoading = false;
   bool _hasChanged = false;
 
@@ -29,12 +35,107 @@ class _EditWellnessPostScreenState
     super.initState();
     _contentController = TextEditingController(text: widget.update.content);
     _selectedCategory = widget.update.category;
-    _contentController.addListener(() {
-      final changed =
-          _contentController.text != widget.update.content ||
-          _selectedCategory != widget.update.category;
-      if (changed != _hasChanged) setState(() => _hasChanged = changed);
-    });
+    _currentImageUrl = widget.update.imageUrl;
+    _contentController.addListener(_checkChanges);
+  }
+
+  void _checkChanges() {
+    final changed =
+        _contentController.text != widget.update.content ||
+        _selectedCategory != widget.update.category ||
+        _selectedImage != null ||
+        _currentImageUrl != widget.update.imageUrl;
+    if (changed != _hasChanged) setState(() => _hasChanged = changed);
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: source, imageQuality: 85);
+    if (picked == null) return;
+
+    final cropped = await ImageCropper().cropImage(
+      sourcePath: picked.path,
+      uiSettings: [
+        AndroidUiSettings(
+          toolbarTitle: 'Crop Photo',
+          toolbarColor: AppColors.primary,
+          toolbarWidgetColor: Colors.white,
+          initAspectRatio: CropAspectRatioPreset.original,
+          lockAspectRatio: false,
+        ),
+        IOSUiSettings(title: 'Crop Photo'),
+      ],
+    );
+
+    if (cropped != null) {
+      setState(() {
+        _selectedImage = File(cropped.path);
+        _currentImageUrl = null;
+        _checkChanges();
+      });
+    }
+  }
+
+  void _showImageSourceSheet() {
+    final brightness = Theme.of(context).brightness;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.containerFill(brightness),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.containerBorder(brightness),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.camera_alt_outlined, color: AppColors.accent),
+              title: const Text('Camera'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.photo_library_outlined,
+                color: AppColors.accent,
+              ),
+              title: const Text('Gallery'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            if (_selectedImage != null || _currentImageUrl != null)
+              ListTile(
+                leading: const Icon(Icons.delete_outline, color: Colors.red),
+                title: const Text(
+                  'Remove Image',
+                  style: TextStyle(color: Colors.red),
+                ),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  setState(() {
+                    _selectedImage = null;
+                    _currentImageUrl = null;
+                    _checkChanges();
+                  });
+                },
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -79,6 +180,8 @@ class _EditWellnessPostScreenState
       id: widget.update.id,
       content: _contentController.text.trim(),
       category: _selectedCategory,
+      imageFile: _selectedImage,
+      currentImageUrl: _currentImageUrl,
     );
     if (mounted) {
       setState(() => _isLoading = false);
@@ -93,6 +196,12 @@ class _EditWellnessPostScreenState
         );
       }
     }
+  }
+
+  String _buildImageUrl(String? url) {
+    if (url == null || url.isEmpty) return '';
+    if (url.startsWith('http')) return url;
+    return '${AppConfig.baseUrl}$url';
   }
 
   @override
@@ -180,10 +289,7 @@ class _EditWellnessPostScreenState
                                 onTap: () {
                                   setState(() {
                                     _selectedCategory = cat;
-                                    _hasChanged =
-                                        cat != widget.update.category ||
-                                        _contentController.text !=
-                                            widget.update.content;
+                                    _checkChanges();
                                   });
                                 },
                                 child: AnimatedContainer(
@@ -244,7 +350,6 @@ class _EditWellnessPostScreenState
                               fontSize: 15,
                               height: 1.5,
                             ),
-                            onChanged: (_) => setState(() {}),
                             decoration: InputDecoration(
                               hintText: "What's on your mind?",
                               hintStyle: TextStyle(
@@ -256,6 +361,8 @@ class _EditWellnessPostScreenState
                             ),
                           ),
                         ),
+                        SizedBox(height: responsive.h(2.5)),
+                        _buildImageSection(responsive, brightness),
                       ],
                     ),
                   ),
@@ -265,6 +372,123 @@ class _EditWellnessPostScreenState
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildImageSection(Responsive responsive, Brightness brightness) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'IMAGE',
+          style: TextStyle(
+            color: AppColors.onSurfaceMuted(brightness),
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1,
+          ),
+        ),
+        SizedBox(height: responsive.h(1)),
+        if (_selectedImage != null || _currentImageUrl != null)
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: _selectedImage != null
+                    ? Image.file(
+                        _selectedImage!,
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.network(
+                        _buildImageUrl(_currentImageUrl),
+                        width: double.infinity,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 200,
+                          color: AppColors.containerBorder(brightness),
+                          child: const Icon(Icons.broken_image_outlined),
+                        ),
+                      ),
+              ),
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.black54,
+                      radius: 18,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        onPressed: _showImageSourceSheet,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    CircleAvatar(
+                      backgroundColor: Colors.black54,
+                      radius: 18,
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _selectedImage = null;
+                            _currentImageUrl = null;
+                            _checkChanges();
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          )
+        else
+          GestureDetector(
+            onTap: _showImageSourceSheet,
+            child: Container(
+              width: double.infinity,
+              height: 120,
+              decoration: BoxDecoration(
+                color: AppColors.containerFill(brightness),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.containerBorder(brightness),
+                  style: BorderStyle.solid,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.add_photo_alternate_outlined,
+                    color: AppColors.accent,
+                    size: 32,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Add a photo',
+                    style: TextStyle(
+                      color: AppColors.accent,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

@@ -125,11 +125,13 @@ class WellnessRepository {
     required String id,
     required String content,
     required WellnessCategory category,
+    String? imageUrl,
   }) async {
     return await _remoteDataSource.editUpdate(
       id: id,
       content: content,
       category: category,
+      imageUrl: imageUrl,
     );
   }
 

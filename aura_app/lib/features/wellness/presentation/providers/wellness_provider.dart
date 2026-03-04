@@ -80,12 +80,19 @@ class WellnessNotifier extends StateNotifier<AsyncValue<void>> {
     required String id,
     required String content,
     required WellnessCategory category,
+    File? imageFile,
+    String? currentImageUrl,
   }) async {
     try {
+      String? imageUrl = currentImageUrl;
+      if (imageFile != null) {
+        imageUrl = await _repository.uploadImage(imageFile);
+      }
       final update = await _repository.editUpdate(
         id: id,
         content: content,
         category: category,
+        imageUrl: imageUrl,
       );
       _ref.invalidate(wellnessFeedProvider);
       _ref.invalidate(myWellnessUpdatesProvider);

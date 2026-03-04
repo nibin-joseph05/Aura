@@ -103,6 +103,9 @@ public class WellnessService {
         if (request.getCategory() != null) {
             update.setCategory(request.getCategory());
         }
+        if (request.getImageUrl() != null) {
+            update.setImageUrl(request.getImageUrl());
+        }
         WellnessUpdate saved = updateRepository.save(update);
         boolean liked = likeRepository.existsByUpdateIdAndUserId(saved.getId(), userId);
         return enrich(saved, liked);

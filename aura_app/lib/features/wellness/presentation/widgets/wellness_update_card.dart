@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/config/app_config.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/routes/app_routes.dart';
 import '../../data/models/wellness_update.dart';
 import '../providers/wellness_provider.dart';
 import '../screens/edit_wellness_post_screen.dart';
@@ -50,6 +49,14 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard>
               _likeAnimController.reverse();
             }
           });
+  }
+
+  @override
+  void didUpdateWidget(WellnessUpdateCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.update != oldWidget.update) {
+      setState(() => _update = widget.update);
+    }
   }
 
   @override
@@ -183,212 +190,249 @@ class _WellnessUpdateCardState extends ConsumerState<WellnessUpdateCard>
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final bottomInset = MediaQuery.of(context).padding.bottom;
     final brightness = Theme.of(context).brightness;
-    final isOwn = _update.userId == widget.currentUserId;
     final profileImageUrl = _buildImageUrl(_update.userProfileImage);
     final postImageUrl = _buildImageUrl(_update.imageUrl);
     final name = _update.userName?.isNotEmpty == true
         ? _update.userName!
         : 'User';
-    final initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    final isOwn = _update.userId == widget.currentUserId;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.containerFill(brightness),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.containerBorder(brightness)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      width: size.width,
+      height: size.height,
+      color: Colors.black,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 8, 8),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    AppRoutes.userProfile,
-                    arguments: _update.userId,
-                  ),
-                  child: CircleAvatar(
-                    radius: 22,
-                    backgroundImage: profileImageUrl.isNotEmpty
-                        ? NetworkImage(profileImageUrl)
-                        : null,
-                    backgroundColor: AppColors.accent.withValues(alpha: 0.2),
-                    child: profileImageUrl.isEmpty
-                        ? Text(
-                            initials,
-                            style: TextStyle(
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
-                  ),
+          if (postImageUrl.isNotEmpty)
+            Image.network(
+              postImageUrl,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _buildPlaceholder(brightness),
+            )
+          else
+            _buildPlaceholder(brightness),
+
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.4),
+                    Colors.transparent,
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.8),
+                  ],
+                  stops: const [0.0, 0.2, 0.6, 1.0],
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          AppRoutes.userProfile,
-                          arguments: _update.userId,
-                        ),
-                        child: Text(
-                          name,
-                          style: TextStyle(
-                            color: AppColors.onSurface(brightness),
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                        ),
+              ),
+            ),
+          ),
+
+          Positioned(
+            right: 12,
+            bottom: 100 + bottomInset,
+            child: Column(
+              children: [
+                _buildActionButton(
+                  icon: _update.likedByCurrentUser
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  label: '${_update.likesCount}',
+                  color: _update.likedByCurrentUser ? Colors.red : Colors.white,
+                  onTap: _toggleLike,
+                  isAnimated: true,
+                ),
+                const SizedBox(height: 20),
+                _buildActionButton(
+                  icon: Icons.chat_bubble_outline_rounded,
+                  label: '${_update.commentsCount}',
+                  onTap: _showComments,
+                ),
+                const SizedBox(height: 20),
+                _buildActionButton(
+                  icon: Icons.share_outlined,
+                  label: 'Share',
+                  onTap: () {
+                    // TODO: Implement share
+                  },
+                ),
+                if (isOwn) ...[
+                  const SizedBox(height: 20),
+                  _buildActionButton(
+                    icon: Icons.more_vert_rounded,
+                    label: 'Options',
+                    onTap: _showOptionsMenu,
+                  ),
+                ],
+              ],
+            ),
+          ),
+
+          Positioned(
+            left: 16,
+            right: 80,
+            bottom: 40 + bottomInset,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        '/user-profile',
+                        arguments: _update.userId,
                       ),
-                      Row(
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundImage: profileImageUrl.isNotEmpty
+                            ? NetworkImage(profileImageUrl)
+                            : null,
+                        backgroundColor: AppColors.accent.withValues(
+                          alpha: 0.3,
+                        ),
+                        child: profileImageUrl.isEmpty
+                            ? Text(
+                                name[0].toUpperCase(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            margin: const EdgeInsets.only(top: 2),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _update.category.color.withValues(
-                                alpha: 0.15,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '${_update.category.emoji} ${_update.category.displayName}',
-                              style: TextStyle(
-                                color: _update.category.color,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              shadows: [
+                                Shadow(blurRadius: 4, color: Colors.black54),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 6),
                           Text(
                             _timeAgo(_update.createdAt),
                             style: TextStyle(
-                              color: AppColors.onSurfaceFaint(brightness),
-                              fontSize: 11,
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: 12,
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                if (isOwn)
-                  IconButton(
-                    onPressed: _showOptionsMenu,
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: AppColors.onSurfaceMuted(brightness),
-                      size: 20,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
-            child: Text(
-              _update.content,
-              style: TextStyle(
-                color: AppColors.onSurface(brightness),
-                fontSize: 15,
-                height: 1.5,
-              ),
-            ),
-          ),
-          if (postImageUrl.isNotEmpty)
-            ClipRRect(
-              borderRadius: BorderRadius.zero,
-              child: Image.network(
-                postImageUrl,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox(),
-              ),
-            ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Row(
-              children: [
-                GestureDetector(
-                  onTap: _toggleLike,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
+                  decoration: BoxDecoration(
+                    color: _update.category.color.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _update.category.color.withValues(alpha: 0.5),
                     ),
-                    child: Row(
-                      children: [
-                        ScaleTransition(
-                          scale: _likeScale,
-                          child: Icon(
-                            _update.likedByCurrentUser
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            color: _update.likedByCurrentUser
-                                ? Colors.red
-                                : AppColors.onSurfaceMuted(brightness),
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${_update.likesCount}',
-                          style: TextStyle(
-                            color: _update.likedByCurrentUser
-                                ? Colors.red
-                                : AppColors.onSurfaceMuted(brightness),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                  ),
+                  child: Text(
+                    '${_update.category.emoji} ${_update.category.displayName}',
+                    style: TextStyle(
+                      color: _update.category.color,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: _showComments,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 8,
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.chat_bubble_outline_rounded,
-                          color: AppColors.onSurfaceMuted(brightness),
-                          size: 20,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${_update.commentsCount}',
-                          style: TextStyle(
-                            color: AppColors.onSurfaceMuted(brightness),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+                const SizedBox(height: 8),
+                Text(
+                  _update.content,
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    height: 1.4,
+                    shadows: [Shadow(blurRadius: 4, color: Colors.black54)],
                   ),
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(Brightness brightness) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.primary.withValues(alpha: 0.8),
+            AppColors.accent.withValues(alpha: 0.6),
+          ],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.spa_rounded,
+          size: 100,
+          color: Colors.white.withValues(alpha: 0.2),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    Color color = Colors.white,
+    required VoidCallback onTap,
+    bool isAnimated = false,
+  }) {
+    Widget iconWidget = Icon(icon, color: color, size: 30);
+    if (isAnimated) {
+      iconWidget = ScaleTransition(scale: _likeScale, child: iconWidget);
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+            ),
+            child: iconWidget,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              shadows: [Shadow(blurRadius: 2, color: Colors.black)],
             ),
           ),
         ],

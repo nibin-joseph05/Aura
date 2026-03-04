@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/ui/responsive/responsive.dart';
-import '../../../../core/widgets/navigation/app_header.dart';
 import '../../../../core/widgets/screens/empty_state_widget.dart';
 import '../../../user/presentation/providers/user_provider.dart';
 import '../../data/models/wellness_category.dart';
@@ -23,100 +22,138 @@ class WellnessFeedScreen extends ConsumerWidget {
     final currentUserId = currentUser?.uid ?? '';
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: AppColors.backgroundGradient(brightness),
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(context, responsive),
-              _buildCategoryFilter(context, ref, responsive, selectedCategory),
-              Expanded(
-                child: feedAsync.when(
-                  data: (updates) {
-                    if (updates.isEmpty) {
-                      return const EmptyStateWidget(
-                        icon: Icons.spa_outlined,
-                        title: 'No wellness updates yet',
-                        description: 'Be the first to share!',
-                      );
+      backgroundColor: Colors.black,
+      body: Stack(
+        children: [
+          feedAsync.when(
+            data: (updates) {
+              if (updates.isEmpty) {
+                return Center(
+                  child: EmptyStateWidget(
+                    icon: Icons.spa_outlined,
+                    title: 'No wellness updates yet',
+                    description: 'Be the first to share!',
+                  ),
+                );
+              }
+              return RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(wellnessFeedProvider(selectedCategory));
+                },
+                child: PageView.builder(
+                  scrollDirection: Axis.vertical,
+                  itemCount: updates.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == updates.length) {
+                      return _buildNoMorePosts(brightness);
                     }
-                    return RefreshIndicator(
-                      onRefresh: () async {
-                        ref.invalidate(wellnessFeedProvider(selectedCategory));
-                      },
-                      child: PageView.builder(
-                        scrollDirection: Axis.vertical,
-                        itemCount: updates.length,
-                        itemBuilder: (context, index) {
-                          return Center(
-                            child: SingleChildScrollView(
-                              child: WellnessUpdateCard(
-                                update: updates[index],
-                                currentUserId: currentUserId,
-                                onDeleted: () => ref.invalidate(
-                                  wellnessFeedProvider(selectedCategory),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
+                    return WellnessUpdateCard(
+                      update: updates[index],
+                      currentUserId: currentUserId,
+                      onDeleted: () => ref.invalidate(
+                        wellnessFeedProvider(selectedCategory),
                       ),
                     );
                   },
-                  loading: () => Center(
-                    child: CircularProgressIndicator(color: AppColors.accent),
+                ),
+              );
+            },
+            loading: () => Center(
+              child: CircularProgressIndicator(color: AppColors.accent),
+            ),
+            error: (e, _) => Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline, color: Colors.white70, size: 48),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Failed to load feed',
+                    style: TextStyle(color: Colors.white70),
                   ),
-                  error: (e, _) => Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                  TextButton(
+                    onPressed: () =>
+                        ref.invalidate(wellnessFeedProvider(selectedCategory)),
+                    child: Text(
+                      'Retry',
+                      style: TextStyle(color: AppColors.accent),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.7),
+                    Colors.black.withValues(alpha: 0.0),
+                  ],
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: AppColors.onSurfaceMuted(brightness),
-                          size: 48,
-                        ),
-                        SizedBox(height: responsive.h(2)),
-                        Text(
-                          'Failed to load feed',
+                        const Text(
+                          'AURA WELLNESS',
                           style: TextStyle(
-                            color: AppColors.onSurfaceMuted(brightness),
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2,
+                            shadows: [
+                              Shadow(blurRadius: 4, color: Colors.black),
+                            ],
                           ),
                         ),
-                        TextButton(
-                          onPressed: () => ref.invalidate(
-                            wellnessFeedProvider(selectedCategory),
-                          ),
-                          child: Text(
-                            'Retry',
-                            style: TextStyle(color: AppColors.accent),
-                          ),
+                        IconButton(
+                          icon: const Icon(Icons.search, color: Colors.white),
+                          onPressed: () {
+                            // TODO: Implement search
+                          },
                         ),
                       ],
                     ),
                   ),
-                ),
+                  _buildCategoryFilter(
+                    context,
+                    ref,
+                    responsive,
+                    selectedCategory,
+                  ),
+                  const SizedBox(height: 12),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.pushNamed(context, '/wellness-create'),
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
+        backgroundColor: AppColors.accent,
+        elevation: 4,
+        child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, Responsive responsive) {
-    return const AppHeader(title: 'Wellness Feed');
-  }
 
   Widget _buildCategoryFilter(
     BuildContext context,
@@ -124,20 +161,30 @@ class WellnessFeedScreen extends ConsumerWidget {
     Responsive responsive,
     WellnessCategory? selected,
   ) {
+    final brightness = Theme.of(context).brightness;
     return SizedBox(
       height: responsive.h(5),
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.symmetric(horizontal: responsive.w(4)),
         children: [
-          _buildFilterChip(context, ref, null, 'All', selected == null),
+          _buildCategoryButton(
+            label: 'All',
+            isSelected: selected == null,
+            onTap: () =>
+                ref.read(selectedCategoryProvider.notifier).state = null,
+            brightness: brightness,
+          ),
           ...WellnessCategory.values.map(
-            (cat) => _buildFilterChip(
-              context,
-              ref,
-              cat,
-              '${cat.emoji} ${cat.displayName}',
-              selected == cat,
+            (cat) => Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: _buildCategoryButton(
+                label: '${cat.emoji} ${cat.displayName}',
+                isSelected: selected == cat,
+                onTap: () =>
+                    ref.read(selectedCategoryProvider.notifier).state = cat,
+                brightness: brightness,
+              ),
             ),
           ),
         ],
@@ -145,42 +192,87 @@ class WellnessFeedScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildFilterChip(
-    BuildContext context,
-    WidgetRef ref,
-    WellnessCategory? category,
-    String label,
-    bool isSelected,
-  ) {
-    final brightness = Theme.of(context).brightness;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTap: () =>
-            ref.read(selectedCategoryProvider.notifier).state = category,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
+  Widget _buildCategoryButton({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required Brightness brightness,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.accent
+              : AppColors.iconButtonFill(brightness),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
             color: isSelected
                 ? AppColors.accent
-                : AppColors.iconButtonFill(brightness),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected
-                  ? AppColors.accent
-                  : AppColors.iconButtonBorder(brightness),
-            ),
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isSelected
-                  ? Colors.white
-                  : AppColors.onSurfaceMuted(brightness),
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
+                : AppColors.iconButtonBorder(brightness),
           ),
         ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected
+                ? Colors.white
+                : AppColors.onSurfaceMuted(brightness),
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoMorePosts(Brightness brightness) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.spa_rounded, size: 64, color: AppColors.accent),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            "You've reached the end!",
+            style: TextStyle(
+              color: AppColors.onSurface(brightness),
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Check back later for more updates.",
+            style: TextStyle(
+              color: AppColors.onSurfaceMuted(brightness),
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 32),
+          TextButton.icon(
+            onPressed: () {
+              // TODO: Scroll to top
+            },
+            icon: const Icon(Icons.arrow_upward_rounded),
+            label: const Text('Back to Top'),
+            style: TextButton.styleFrom(
+              foregroundColor: AppColors.accent,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+                side: BorderSide(color: AppColors.accent),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

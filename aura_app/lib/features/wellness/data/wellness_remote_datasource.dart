@@ -88,10 +88,15 @@ class WellnessRemoteDataSource {
     required String id,
     required String content,
     required WellnessCategory category,
+    String? imageUrl,
   }) async {
     final response = await _dio.put(
       '${ApiEndpoints.wellnessUpdates}/$id',
-      data: {'content': content, 'category': category.name.toUpperCase()},
+      data: {
+        'content': content,
+        'category': category.name.toUpperCase(),
+        'imageUrl': imageUrl,
+      },
     );
     if (response.data['success'] == true) {
       return WellnessUpdate.fromJson(response.data['data']);
