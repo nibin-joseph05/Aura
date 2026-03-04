@@ -53,6 +53,7 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
   final DailyActivityLocalDataSource _localDataSource;
   final DailyActivityRemoteDataSource _remoteDataSource;
   final Ref _ref;
+  DateTime? _lastFetchedAt;
 
   DailyActivityNotifier(this._ref)
     : _localDataSource = DailyActivityLocalDataSource(),
@@ -80,30 +81,64 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       await _updateState();
       print('[DailyActivityProvider] loadActivities - local data loaded');
 
-      _tryFetchFromRemote();
+      _tryFetchFromRemoteWithUserWait();
     } catch (e) {
       print('[DailyActivityProvider] loadActivities ERROR: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
-  Future<void> _tryFetchFromRemote() async {
-    try {
-      final userId = _ref.read(currentUserProvider)?.uid;
-      if (userId == null) {
-        print(
-          '[DailyActivityProvider] _tryFetchFromRemote - userId is null, skipping',
-        );
-        return;
-      }
+  Future<void> _tryFetchFromRemoteWithUserWait() async {
+    String? userId = _ref.read(currentUserProvider)?.uid;
 
+    if (userId == null) {
+      print('[DailyActivityProvider] userId null, waiting up to 3s...');
+      for (int i = 0; i < 30; i++) {
+        await Future.delayed(const Duration(milliseconds: 100));
+        userId = _ref.read(currentUserProvider)?.uid;
+        if (userId != null) break;
+      }
+    }
+
+    if (userId == null) {
+      print(
+        '[DailyActivityProvider] _tryFetchFromRemote - userId still null after wait, skipping',
+      );
+      return;
+    }
+
+    final now = DateTime.now();
+    if (_lastFetchedAt != null &&
+        now.difference(_lastFetchedAt!).inSeconds < 30) {
+      print(
+        '[DailyActivityProvider] _tryFetchFromRemote - skipping, fetched recently',
+      );
+      return;
+    }
+
+    _lastFetchedAt = now;
+    await _tryFetchFromRemote(userId);
+  }
+
+  Future<void> _tryFetchFromRemote(String userId) async {
+    try {
       final remoteActivities = await _remoteDataSource.fetchActivities(userId);
       print(
         '[DailyActivityProvider] fetchFromRemote - got ${remoteActivities.length} activities',
       );
 
-      for (var activity in remoteActivities) {
-        await _localDataSource.save(activity);
+      for (var remote in remoteActivities) {
+        final local = await _localDataSource.getById(remote.id);
+        if (local != null) {
+          final merged = remote.copyWith(
+            completionTimes: local.completionTimes,
+            completedAt: local.completedAt,
+            metricLogs: local.metricLogs,
+          );
+          await _localDataSource.save(merged);
+        } else {
+          await _localDataSource.save(remote);
+        }
       }
 
       await _updateState();
@@ -175,7 +210,13 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       );
 
       await _localDataSource.delete(activity.id);
-      await _localDataSource.save(syncedActivity);
+      final mergedSynced = syncedActivity.copyWith(
+        completionTimes: activity.completionTimes,
+        completedAt: activity.completedAt,
+        metricLogs: activity.metricLogs,
+      );
+      await _localDataSource.save(mergedSynced);
+      _lastFetchedAt = DateTime.now();
 
       await _updateState();
     } catch (e) {
@@ -228,7 +269,6 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
 
     await _updateState();
 
-    _trySyncActivity(updatedActivity);
     _trySyncLog(log);
   }
 
@@ -275,8 +315,12 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
       );
     }
 
-    _trySyncActivity(updatedActivity);
     _trySyncLog(log);
+  }
+
+  Future<void> forceRefreshActivities() async {
+    _lastFetchedAt = null;
+    await loadActivities();
   }
 
   Future<void> deleteActivity(String id) async {

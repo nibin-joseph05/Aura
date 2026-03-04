@@ -845,8 +845,7 @@ class _CreateAlarmScreenState extends ConsumerState<CreateAlarmScreen> {
       final state = ref.read(alarmProvider);
       final alarm = state.alarms.firstWhere(
         (a) => a.id == widget.editAlarmId,
-        orElse: () =>
-            state.alarms.first, // fallback; _loadAlarm already checked
+        orElse: () => state.alarms.first,
       );
       alarm.hour = _hour;
       alarm.minute = _minute;

@@ -124,6 +124,15 @@ class DailyActivityLocalDataSource {
     }
   }
 
+  Future<UserActivityModel?> getById(String id) async {
+    try {
+      final box = await _openBox();
+      return box.get(id);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> markLogAsSynced(String logId) async {
     try {
       final box = await _openLogBox();

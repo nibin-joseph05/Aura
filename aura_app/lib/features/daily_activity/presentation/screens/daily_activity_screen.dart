@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show FontFeature;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -60,11 +61,17 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
               ),
               _buildProgressCard(state, responsive, brightness),
               Expanded(
-                child: state.isLoading
-                    ? _buildLoadingState(brightness)
-                    : state.todayActivities.isEmpty
-                    ? _buildEmptyState(responsive, brightness)
-                    : _buildActivityList(state, responsive, brightness),
+                child: RefreshIndicator(
+                  onRefresh: () => ref
+                      .read(dailyActivityProvider.notifier)
+                      .forceRefreshActivities(),
+                  color: AppColors.accent,
+                  child: state.isLoading
+                      ? _buildLoadingState(brightness)
+                      : state.todayActivities.isEmpty
+                      ? _buildEmptyState(responsive, brightness)
+                      : _buildActivityList(state, responsive, brightness),
+                ),
               ),
             ],
           ),
@@ -217,38 +224,48 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   }
 
   Widget _buildEmptyState(Responsive responsive, Brightness brightness) {
-    return Center(
-      child: Padding(
-        padding: responsive.horizontal(10),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.track_changes_rounded,
-              size: responsive.icon(56),
-              color: AppColors.accent,
-            ),
-            SizedBox(height: responsive.space(20)),
-            Text(
-              'No activities yet',
-              style: TextStyle(
-                color: AppColors.onSurface(brightness),
-                fontSize: responsive.text(20),
-                fontWeight: FontWeight.w600,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: SizedBox(
+            height: constraints.maxHeight,
+            child: Center(
+              child: Padding(
+                padding: responsive.horizontal(10),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.track_changes_rounded,
+                      size: responsive.icon(56),
+                      color: AppColors.accent,
+                    ),
+                    SizedBox(height: responsive.space(20)),
+                    Text(
+                      'No activities yet',
+                      style: TextStyle(
+                        color: AppColors.onSurface(brightness),
+                        fontSize: responsive.text(20),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    SizedBox(height: responsive.space(8)),
+                    Text(
+                      'Start tracking your daily activities\nby adding your first one!\n\nPull down to refresh',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.onSurfaceMuted(brightness),
+                        fontSize: responsive.text(14),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            SizedBox(height: responsive.space(8)),
-            Text(
-              'Start tracking your daily activities\nby adding your first one!',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: AppColors.onSurfaceMuted(brightness),
-                fontSize: responsive.text(14),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -275,208 +292,43 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
     Responsive responsive,
     Brightness brightness,
   ) {
-    final isCompleted = activity.isRepeating
-        ? activity.isFullyCompleted
-        : activity.completedAt != null;
-
-    return Container(
-      margin: EdgeInsets.only(bottom: responsive.space(10)),
-      decoration: BoxDecoration(
-        color: AppColors.containerFill(brightness),
-        borderRadius: BorderRadius.circular(responsive.radius(14)),
-        border: Border.all(
-          color: isCompleted
-              ? AppColors.success.withValues(alpha: 0.3)
-              : activity.isRepeating && activity.isDueNow
-              ? AppColors.accent.withValues(alpha: 0.4)
-              : AppColors.containerBorder(brightness),
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(responsive.radius(14)),
-          onTap: isCompleted
-              ? null
-              : () async {
-                  if (activity.metrics.isNotEmpty) {
-                    final metricValues =
-                        await AppBottomSheet.show<Map<String, String>>(
-                          context: context,
-                          title: 'Log ${activity.title}',
-                          child: _DynamicMetricsDialog(activity: activity),
-                        );
-                    if (metricValues == null) return;
-
-                    if (activity.isRepeating) {
-                      ref
-                          .read(dailyActivityProvider.notifier)
-                          .recordCompletion(
-                            activity.id,
-                            metricValues: metricValues,
-                          );
-                    } else {
-                      ref
-                          .read(dailyActivityProvider.notifier)
-                          .completeActivity(
-                            activity.id,
-                            metricValues: metricValues,
-                          );
-                    }
-                  } else {
-                    if (activity.isRepeating) {
-                      ref
-                          .read(dailyActivityProvider.notifier)
-                          .recordCompletion(activity.id);
-                    } else {
-                      ref
-                          .read(dailyActivityProvider.notifier)
-                          .completeActivity(activity.id);
-                    }
-                  }
-                },
-          child: Padding(
-            padding: EdgeInsets.all(responsive.space(14)),
-            child: Row(
-              children: [
-                Icon(
-                  _getActivityIcon(activity.activityType),
-                  color: _getActivityColor(activity.activityType),
-                  size: responsive.icon(26),
-                ),
-                SizedBox(width: responsive.space(14)),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        activity.title,
-                        style: TextStyle(
-                          color: AppColors.onSurface(brightness),
-                          fontSize: responsive.text(15),
-                          fontWeight: FontWeight.w600,
-                          decoration: isCompleted
-                              ? TextDecoration.lineThrough
-                              : null,
-                          decorationColor: AppColors.onSurfaceMuted(brightness),
-                        ),
-                      ),
-                      if (activity.description != null) ...[
-                        SizedBox(height: responsive.space(3)),
-                        Text(
-                          activity.description!,
-                          style: TextStyle(
-                            color: AppColors.onSurfaceFaint(brightness),
-                            fontSize: responsive.text(12),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                      SizedBox(height: responsive.space(6)),
-                      Row(
-                        children: [
-                          Text(
-                            activity.activityType,
-                            style: TextStyle(
-                              color: _getActivityColor(activity.activityType),
-                              fontSize: responsive.text(11),
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          if (activity.isRepeating) ...[
-                            SizedBox(width: responsive.space(10)),
-                            Icon(
-                              Icons.repeat_rounded,
-                              color: AppColors.accent,
-                              size: responsive.icon(12),
-                            ),
-                            SizedBox(width: responsive.space(3)),
-                            Text(
-                              '${activity.completionTimes.length}/${activity.targetCompletions}',
-                              style: TextStyle(
-                                color: AppColors.accent,
-                                fontSize: responsive.text(11),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            if (activity.intervalMinutes != null) ...[
-                              SizedBox(width: responsive.space(6)),
-                              Text(
-                                _formatInterval(activity.intervalMinutes!),
-                                style: TextStyle(
-                                  color: AppColors.onSurfaceFaint(brightness),
-                                  fontSize: responsive.text(10),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ],
-                      ),
-                      if (activity.isRepeating) ...[
-                        SizedBox(height: responsive.space(8)),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            responsive.radius(3),
-                          ),
-                          child: LinearProgressIndicator(
-                            value: activity.completionProgress.clamp(0.0, 1.0),
-                            backgroundColor: AppColors.iconButtonFill(
-                              brightness,
-                            ),
-                            valueColor: AlwaysStoppedAnimation(
-                              isCompleted
-                                  ? AppColors.success
-                                  : _getActivityColor(activity.activityType),
-                            ),
-                            minHeight: responsive.space(4),
-                          ),
-                        ),
-                      ],
-                      if (!isCompleted) ...[
-                        SizedBox(height: responsive.space(6)),
-                        _CountdownLabel(
-                          activity: activity,
-                          responsive: responsive,
-                          brightness: brightness,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                if (isCompleted)
-                  Icon(
-                    Icons.check_circle_rounded,
-                    color: AppColors.success,
-                    size: responsive.icon(26),
-                  )
-                else
-                  Container(
-                    width: responsive.icon(24),
-                    height: responsive.icon(24),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppColors.containerBorder(brightness),
-                        width: 2,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return _ActivityCard(
+      key: ValueKey(activity.id),
+      activity: activity,
+      responsive: responsive,
+      brightness: brightness,
+      activityColor: _getActivityColor(activity.activityType),
+      activityIcon: _getActivityIcon(activity.activityType),
+      onComplete: () async {
+        if (activity.metrics.isNotEmpty) {
+          final metricValues = await AppBottomSheet.show<Map<String, String>>(
+            context: context,
+            title: 'Log ${activity.title}',
+            child: _DynamicMetricsDialog(activity: activity),
+          );
+          if (metricValues == null) return;
+          if (activity.isRepeating) {
+            ref
+                .read(dailyActivityProvider.notifier)
+                .recordCompletion(activity.id, metricValues: metricValues);
+          } else {
+            ref
+                .read(dailyActivityProvider.notifier)
+                .completeActivity(activity.id, metricValues: metricValues);
+          }
+        } else {
+          if (activity.isRepeating) {
+            ref
+                .read(dailyActivityProvider.notifier)
+                .recordCompletion(activity.id);
+          } else {
+            ref
+                .read(dailyActivityProvider.notifier)
+                .completeActivity(activity.id);
+          }
+        }
+      },
     );
-  }
-
-  String _formatInterval(int minutes) {
-    if (minutes >= 60) {
-      final hrs = minutes ~/ 60;
-      final mins = minutes % 60;
-      return mins > 0 ? 'every ${hrs}h${mins}m' : 'every ${hrs}h';
-    }
-    return 'every ${minutes}m';
   }
 
   IconData _getActivityIcon(String type) {
@@ -580,37 +432,56 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
   }
 }
 
-class _CountdownLabel extends StatefulWidget {
+class _ActivityCard extends StatefulWidget {
   final UserActivityModel activity;
   final Responsive responsive;
   final Brightness brightness;
+  final Color activityColor;
+  final IconData activityIcon;
+  final VoidCallback onComplete;
 
-  const _CountdownLabel({
+  const _ActivityCard({
+    super.key,
     required this.activity,
     required this.responsive,
     required this.brightness,
+    required this.activityColor,
+    required this.activityIcon,
+    required this.onComplete,
   });
 
   @override
-  State<_CountdownLabel> createState() => _CountdownLabelState();
+  State<_ActivityCard> createState() => _ActivityCardState();
 }
 
-class _CountdownLabelState extends State<_CountdownLabel> {
+class _ActivityCardState extends State<_ActivityCard>
+    with SingleTickerProviderStateMixin {
   late Timer _timer;
   Duration _remaining = Duration.zero;
+  bool _isDueNow = false;
+  late AnimationController _pulseCtrl;
+  late Animation<double> _pulseAnim;
 
   @override
   void initState() {
     super.initState();
-    _calcRemaining();
+    _pulseCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+    _pulseAnim = Tween<double>(
+      begin: 0.7,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _pulseCtrl, curve: Curves.easeInOut));
+    _recalc();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) _calcRemaining();
+      if (mounted) _recalc();
     });
   }
 
-  void _calcRemaining() {
-    final now = DateTime.now();
+  void _recalc() {
     final activity = widget.activity;
+    final now = DateTime.now();
 
     if (activity.isRepeating && activity.intervalMinutes != null) {
       final lastDone = activity.completionTimes.isNotEmpty
@@ -618,16 +489,29 @@ class _CountdownLabelState extends State<_CountdownLabel> {
           : activity.date;
       final next = lastDone.add(Duration(minutes: activity.intervalMinutes!));
       final diff = next.difference(now);
-      setState(() => _remaining = diff.isNegative ? Duration.zero : diff);
-    } else {
+      final due = !diff.isNegative;
+      setState(() {
+        _remaining = due ? diff : Duration.zero;
+        _isDueNow = !due;
+      });
+    } else if (!activity.isRepeating && activity.completedAt == null) {
       final midnight = DateTime(now.year, now.month, now.day + 1);
-      setState(() => _remaining = midnight.difference(now));
+      setState(() {
+        _remaining = midnight.difference(now);
+        _isDueNow = true;
+      });
+    } else {
+      setState(() {
+        _remaining = Duration.zero;
+        _isDueNow = true;
+      });
     }
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    _pulseCtrl.dispose();
     super.dispose();
   }
 
@@ -636,36 +520,331 @@ class _CountdownLabelState extends State<_CountdownLabel> {
     final h = d.inHours;
     final m = d.inMinutes.remainder(60);
     final s = d.inSeconds.remainder(60);
-    if (h > 0) return '${h}h ${m}m remaining';
-    if (m > 0) return '${m}m ${s}s remaining';
-    return '${s}s remaining';
+    if (h > 0) return '${h}h ${m}m ${s}s';
+    if (m > 0) return '${m}m ${s}s';
+    return '${s}s';
   }
 
   @override
   Widget build(BuildContext context) {
-    final isDue = _remaining == Duration.zero;
-    return Row(
-      children: [
-        Icon(
-          isDue ? Icons.alarm_on_rounded : Icons.timer_outlined,
-          size: widget.responsive.icon(11),
-          color: isDue
-              ? AppColors.accent
-              : AppColors.onSurfaceFaint(widget.brightness),
-        ),
-        SizedBox(width: widget.responsive.space(4)),
-        Text(
-          _fmt(_remaining),
-          style: TextStyle(
-            color: isDue
-                ? AppColors.accent
-                : AppColors.onSurfaceFaint(widget.brightness),
-            fontSize: widget.responsive.text(10),
-            fontWeight: isDue ? FontWeight.w600 : FontWeight.w400,
+    final activity = widget.activity;
+    final r = widget.responsive;
+    final br = widget.brightness;
+    final color = widget.activityColor;
+
+    final isCompleted = activity.isRepeating
+        ? activity.isFullyCompleted
+        : activity.completedAt != null;
+
+    Color borderColor;
+    if (isCompleted) {
+      borderColor = AppColors.success.withValues(alpha: 0.35);
+    } else if (_isDueNow) {
+      borderColor = color.withValues(alpha: 0.55);
+    } else {
+      borderColor = AppColors.containerBorder(br);
+    }
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: EdgeInsets.only(bottom: r.space(10)),
+      decoration: BoxDecoration(
+        color: isCompleted
+            ? AppColors.success.withValues(alpha: 0.06)
+            : AppColors.containerFill(br),
+        borderRadius: BorderRadius.circular(r.radius(14)),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.vertical(
+                top: Radius.circular(r.radius(14)),
+                bottom: isCompleted || (!_isDueNow && activity.isRepeating)
+                    ? Radius.circular(r.radius(14))
+                    : Radius.zero,
+              ),
+              onTap: isCompleted
+                  ? null
+                  : () {
+                      if (activity.isRepeating && !_isDueNow) {
+                        ScaffoldMessenger.of(context)
+                          ..clearSnackBars()
+                          ..showSnackBar(
+                            SnackBar(
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: AppColors.containerFill(br),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(
+                                  r.radius(12),
+                                ),
+                              ),
+                              content: Row(
+                                children: [
+                                  Icon(
+                                    Icons.timer_outlined,
+                                    color: color,
+                                    size: r.icon(18),
+                                  ),
+                                  SizedBox(width: r.space(10)),
+                                  Expanded(
+                                    child: Text(
+                                      'Next session in ${_fmt(_remaining)}',
+                                      style: TextStyle(
+                                        color: AppColors.onSurface(br),
+                                        fontSize: r.text(13),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        return;
+                      }
+                      widget.onComplete();
+                    },
+              child: Padding(
+                padding: EdgeInsets.all(r.space(14)),
+                child: Row(
+                  children: [
+                    Container(
+                      width: r.space(44),
+                      height: r.space(44),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(r.radius(12)),
+                      ),
+                      child: Icon(
+                        widget.activityIcon,
+                        color: color,
+                        size: r.icon(22),
+                      ),
+                    ),
+                    SizedBox(width: r.space(12)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            activity.title,
+                            style: TextStyle(
+                              color: AppColors.onSurface(br),
+                              fontSize: r.text(15),
+                              fontWeight: FontWeight.w600,
+                              decoration: isCompleted
+                                  ? TextDecoration.lineThrough
+                                  : null,
+                              decorationColor: AppColors.onSurfaceMuted(br),
+                            ),
+                          ),
+                          SizedBox(height: r.space(4)),
+                          Row(
+                            children: [
+                              Text(
+                                activity.activityType,
+                                style: TextStyle(
+                                  color: color,
+                                  fontSize: r.text(11),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              if (activity.intervalMinutes != null) ...[
+                                SizedBox(width: r.space(6)),
+                                Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: r.space(6),
+                                    vertical: r.space(2),
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.iconButtonFill(br),
+                                    borderRadius: BorderRadius.circular(
+                                      r.radius(6),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    _formatInterval(activity.intervalMinutes!),
+                                    style: TextStyle(
+                                      color: AppColors.onSurfaceMuted(br),
+                                      fontSize: r.text(10),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              if (activity.isRepeating) ...[
+                                SizedBox(width: r.space(6)),
+                                Text(
+                                  '${activity.completionTimes.length}/${activity.targetCompletions}',
+                                  style: TextStyle(
+                                    color: AppColors.accent,
+                                    fontSize: r.text(11),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          if (activity.isRepeating) ...[
+                            SizedBox(height: r.space(8)),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(r.radius(3)),
+                              child: LinearProgressIndicator(
+                                value: activity.completionProgress.clamp(
+                                  0.0,
+                                  1.0,
+                                ),
+                                backgroundColor: AppColors.iconButtonFill(br),
+                                valueColor: AlwaysStoppedAnimation(
+                                  isCompleted ? AppColors.success : color,
+                                ),
+                                minHeight: r.space(4),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: r.space(10)),
+                    if (isCompleted)
+                      Icon(
+                        Icons.check_circle_rounded,
+                        color: AppColors.success,
+                        size: r.icon(28),
+                      )
+                    else if (_isDueNow)
+                      FadeTransition(
+                        opacity: _pulseAnim,
+                        child: Container(
+                          width: r.icon(28),
+                          height: r.icon(28),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: color, width: 2.5),
+                            color: color.withValues(alpha: 0.15),
+                          ),
+                          child: Icon(
+                            Icons.touch_app_rounded,
+                            color: color,
+                            size: r.icon(14),
+                          ),
+                        ),
+                      )
+                    else
+                      Icon(
+                        Icons.lock_clock_outlined,
+                        color: AppColors.onSurfaceFaint(br),
+                        size: r.icon(22),
+                      ),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-      ],
+
+          if (!isCompleted)
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              decoration: BoxDecoration(
+                color: _isDueNow
+                    ? color.withValues(alpha: 0.12)
+                    : AppColors.iconButtonFill(br),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(r.radius(13)),
+                ),
+              ),
+              padding: EdgeInsets.symmetric(
+                horizontal: r.space(14),
+                vertical: r.space(9),
+              ),
+              child: _isDueNow
+                  ? Row(
+                      children: [
+                        FadeTransition(
+                          opacity: _pulseAnim,
+                          child: Icon(
+                            Icons.check_circle_outline_rounded,
+                            color: color,
+                            size: r.icon(16),
+                          ),
+                        ),
+                        SizedBox(width: r.space(8)),
+                        Expanded(
+                          child: Text(
+                            'Time\'s up! Have you done it?',
+                            style: TextStyle(
+                              color: color,
+                              fontSize: r.text(12),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          'Tap to mark →',
+                          style: TextStyle(
+                            color: color.withValues(alpha: 0.8),
+                            fontSize: r.text(11),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Icon(
+                          Icons.timer_outlined,
+                          color: AppColors.onSurfaceFaint(br),
+                          size: r.icon(14),
+                        ),
+                        SizedBox(width: r.space(6)),
+                        Text(
+                          'Next in ',
+                          style: TextStyle(
+                            color: AppColors.onSurfaceFaint(br),
+                            fontSize: r.text(11),
+                          ),
+                        ),
+                        Text(
+                          _fmt(_remaining),
+                          style: TextStyle(
+                            color: AppColors.onSurfaceMuted(br),
+                            fontSize: r.text(12),
+                            fontWeight: FontWeight.w700,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
+                        ),
+                        const Spacer(),
+                        Icon(
+                          Icons.lock_clock_outlined,
+                          color: AppColors.onSurfaceFaint(br),
+                          size: r.icon(12),
+                        ),
+                        SizedBox(width: r.space(4)),
+                        Text(
+                          'Not due yet',
+                          style: TextStyle(
+                            color: AppColors.onSurfaceFaint(br),
+                            fontSize: r.text(10),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+        ],
+      ),
     );
+  }
+
+  String _formatInterval(int minutes) {
+    if (minutes >= 60) {
+      final hrs = minutes ~/ 60;
+      final mins = minutes % 60;
+      return mins > 0 ? 'every ${hrs}h ${mins}m' : 'every ${hrs}h';
+    }
+    return 'every ${minutes}m';
   }
 }
 
