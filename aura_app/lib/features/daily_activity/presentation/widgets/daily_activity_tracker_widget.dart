@@ -181,9 +181,11 @@ class _DailyActivityTrackerWidgetState
     int totalDone = 0;
     for (final a in state.todayActivities) {
       totalTarget += a.targetCompletions;
-      totalDone += a.isRepeating
-          ? a.completionTimes.length
-          : (a.completedAt != null ? 1 : 0);
+      totalDone +=
+          (a.isRepeating
+                  ? a.completionTimes.length
+                  : (a.completedAt != null ? 1 : 0))
+              as int;
     }
     final pending = totalTarget - totalDone;
 

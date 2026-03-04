@@ -33,10 +33,19 @@ class ActivityType extends HiveObject {
   final bool isGymActivity;
 
   @HiveField(9)
-  final String? icon;
+  final String icon;
 
   @HiveField(10)
   final bool isActive;
+
+  @HiveField(11)
+  final String color;
+
+  @HiveField(12)
+  final int? defaultIntervalMinutes;
+
+  @HiveField(13)
+  final int? defaultTargetCompletions;
 
   ActivityType({
     required this.id,
@@ -48,8 +57,11 @@ class ActivityType extends HiveObject {
     this.allowNotes = true,
     this.metrics = const [],
     this.isGymActivity = false,
-    this.icon,
+    this.icon = '',
     this.isActive = true,
+    this.color = '#7C3AED',
+    this.defaultIntervalMinutes,
+    this.defaultTargetCompletions,
   });
 
   factory ActivityType.fromJson(Map<String, dynamic> json) {
@@ -67,8 +79,11 @@ class ActivityType extends HiveObject {
                 .toList()
           : [],
       isGymActivity: json['isGymActivity'] as bool? ?? false,
-      icon: json['icon'] as String?,
+      icon: (json['icon'] as String? ?? '').trim(),
       isActive: json['isActive'] as bool? ?? true,
+      color: json['color'] as String? ?? '#7C3AED',
+      defaultIntervalMinutes: json['defaultIntervalMinutes'] as int?,
+      defaultTargetCompletions: json['defaultTargetCompletions'] as int?,
     );
   }
 
@@ -85,6 +100,11 @@ class ActivityType extends HiveObject {
       'isGymActivity': isGymActivity,
       'icon': icon,
       'isActive': isActive,
+      'color': color,
+      if (defaultIntervalMinutes != null)
+        'defaultIntervalMinutes': defaultIntervalMinutes,
+      if (defaultTargetCompletions != null)
+        'defaultTargetCompletions': defaultTargetCompletions,
     };
   }
 }

@@ -13,8 +13,9 @@ class ApiEndpoints {
   static const forgotPassword = "/api/auth/password/forgot";
   static const resetPassword = "/api/auth/password/reset";
 
-  static const dailyActivities = "/api/daily-activities";
-  static const syncDailyActivities = "/api/daily-activities/sync";
+  static const dailyActivities = "/api/user/activities";
+  static String syncDailyActivities(String userId) =>
+      "/api/user/activities/$userId/sync";
 
   static const activityCategories = "/api/admin/activity-categories";
   static const activityCategoriesActive =

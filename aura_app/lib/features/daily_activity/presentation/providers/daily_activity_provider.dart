@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../user/presentation/providers/user_provider.dart';
 import '../../../../core/network/connectivity/internet_status_provider.dart';
 import '../../../../core/services/local_notification_service.dart';
 import '../../data/datasources/daily_activity_local_datasource.dart';
 import '../../data/datasources/daily_activity_remote_datasource.dart';
 import '../../data/models/user_activity_model.dart';
+import '../../data/models/activity_log_model.dart';
 import '../../../activity_types/data/models/activity_metric.dart';
 
 class DailyActivityState {
@@ -14,6 +16,7 @@ class DailyActivityState {
   final bool isSyncing;
   final String? error;
   final int pendingSyncCount;
+  final int pendingLogCount;
 
   const DailyActivityState({
     this.activities = const [],
@@ -22,6 +25,7 @@ class DailyActivityState {
     this.isSyncing = false,
     this.error,
     this.pendingSyncCount = 0,
+    this.pendingLogCount = 0,
   });
 
   DailyActivityState copyWith({
@@ -31,6 +35,7 @@ class DailyActivityState {
     bool? isSyncing,
     String? error,
     int? pendingSyncCount,
+    int? pendingLogCount,
   }) {
     return DailyActivityState(
       activities: activities ?? this.activities,
@@ -39,6 +44,7 @@ class DailyActivityState {
       isSyncing: isSyncing ?? this.isSyncing,
       error: error,
       pendingSyncCount: pendingSyncCount ?? this.pendingSyncCount,
+      pendingLogCount: pendingLogCount ?? this.pendingLogCount,
     );
   }
 }
@@ -62,51 +68,48 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
 
       if (wasOffline && isOnline) {
         syncPendingActivities();
+        syncPendingLogs();
       }
     });
   }
 
   Future<void> loadActivities() async {
     state = state.copyWith(isLoading: true, error: null);
-
     try {
-      final activities = await _localDataSource.getAll();
-      final today = DateTime.now();
-      final todayActivities = await _localDataSource.getByDate(today);
-      final pending = await _localDataSource.getPendingSync();
-
-      state = state.copyWith(
-        activities: activities,
-        todayActivities: todayActivities,
-        isLoading: false,
-        pendingSyncCount: pending.length,
-      );
+      print('[DailyActivityProvider] loadActivities - starting');
+      await _updateState();
+      print('[DailyActivityProvider] loadActivities - local data loaded');
 
       _tryFetchFromRemote();
     } catch (e) {
+      print('[DailyActivityProvider] loadActivities ERROR: $e');
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
   Future<void> _tryFetchFromRemote() async {
-    final isOnline = _ref.read(internetStatusProvider).valueOrNull ?? false;
-    if (!isOnline) return;
-
     try {
-      final remoteActivities = await _remoteDataSource.fetchActivities();
+      final userId = _ref.read(currentUserProvider)?.uid;
+      if (userId == null) {
+        print(
+          '[DailyActivityProvider] _tryFetchFromRemote - userId is null, skipping',
+        );
+        return;
+      }
+
+      final remoteActivities = await _remoteDataSource.fetchActivities(userId);
+      print(
+        '[DailyActivityProvider] fetchFromRemote - got ${remoteActivities.length} activities',
+      );
+
       for (var activity in remoteActivities) {
         await _localDataSource.save(activity);
       }
 
-      final activities = await _localDataSource.getAll();
-      final today = DateTime.now();
-      final todayActivities = await _localDataSource.getByDate(today);
-
-      state = state.copyWith(
-        activities: activities,
-        todayActivities: todayActivities,
-      );
-    } catch (_) {}
+      await _updateState();
+    } catch (e) {
+      print('[DailyActivityProvider] fetchFromRemote ERROR: $e');
+    }
   }
 
   Future<void> addActivity({
@@ -138,14 +141,11 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
     );
 
     await _localDataSource.save(activity);
-
-    final todayActivities = await _localDataSource.getByDate(now);
-    final pending = await _localDataSource.getPendingSync();
-
-    state = state.copyWith(
-      todayActivities: todayActivities,
-      pendingSyncCount: pending.length,
+    print(
+      '[DailyActivityProvider] addActivity - local save done: ${activity.title}',
     );
+
+    await _updateState();
 
     await LocalNotificationService.instance.showActivityReminder(
       id: now.millisecondsSinceEpoch % 100000,
@@ -157,16 +157,30 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
   }
 
   Future<void> _trySyncActivity(UserActivityModel activity) async {
-    final isOnline = _ref.read(internetStatusProvider).valueOrNull ?? false;
-    if (!isOnline) return;
-
     try {
-      await _remoteDataSource.createActivity(activity);
-      await _localDataSource.markAsSynced(activity.id);
+      final userId = _ref.read(currentUserProvider)?.uid;
+      if (userId == null) {
+        print(
+          '[DailyActivityProvider] _trySyncActivity - userId is null, skipping',
+        );
+        return;
+      }
 
-      final pending = await _localDataSource.getPendingSync();
-      state = state.copyWith(pendingSyncCount: pending.length);
-    } catch (_) {}
+      final syncedActivity = await _remoteDataSource.createActivity(
+        userId,
+        activity,
+      );
+      print(
+        '[DailyActivityProvider] _trySyncActivity - sync SUCCESS: ${syncedActivity.id}',
+      );
+
+      await _localDataSource.delete(activity.id);
+      await _localDataSource.save(syncedActivity);
+
+      await _updateState();
+    } catch (e) {
+      print('[DailyActivityProvider] _trySyncActivity ERROR: $e');
+    }
   }
 
   Future<void> syncPendingActivities() async {
@@ -176,13 +190,10 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
     state = state.copyWith(isSyncing: true);
 
     try {
-      await _remoteDataSource.syncActivities(pending);
-
       for (var activity in pending) {
-        await _localDataSource.markAsSynced(activity.id);
+        await _trySyncActivity(activity);
       }
-
-      state = state.copyWith(isSyncing: false, pendingSyncCount: 0);
+      state = state.copyWith(isSyncing: false);
     } catch (_) {
       state = state.copyWith(isSyncing: false);
     }
@@ -205,15 +216,20 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
 
     await _localDataSource.save(updatedActivity);
 
-    final todayActivities = await _localDataSource.getByDate(DateTime.now());
-    final pending = await _localDataSource.getPendingSync();
-
-    state = state.copyWith(
-      todayActivities: todayActivities,
-      pendingSyncCount: pending.length,
+    final now = DateTime.now();
+    final log = ActivityLogModel(
+      id: now.millisecondsSinceEpoch.toString(),
+      userActivityId: activity.id,
+      completedAt: now,
+      metrics: metricValues ?? {},
     );
+    await _localDataSource.saveLog(log);
+    print('[DailyActivityProvider] completeActivity - log saved locally');
+
+    await _updateState();
 
     _trySyncActivity(updatedActivity);
+    _trySyncLog(log);
   }
 
   Future<void> recordCompletion(
@@ -240,13 +256,16 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
 
     await _localDataSource.save(updatedActivity);
 
-    final todayActivities = await _localDataSource.getByDate(DateTime.now());
-    final pending = await _localDataSource.getPendingSync();
-
-    state = state.copyWith(
-      todayActivities: todayActivities,
-      pendingSyncCount: pending.length,
+    final log = ActivityLogModel(
+      id: now.millisecondsSinceEpoch.toString(),
+      userActivityId: activity.id,
+      completedAt: now,
+      metrics: metricValues ?? {},
     );
+    await _localDataSource.saveLog(log);
+    print('[DailyActivityProvider] recordCompletion - log saved locally');
+
+    await _updateState();
 
     if (updatedTimes.length >= activity.targetCompletions) {
       await LocalNotificationService.instance.showImmediate(
@@ -257,18 +276,63 @@ class DailyActivityNotifier extends StateNotifier<DailyActivityState> {
     }
 
     _trySyncActivity(updatedActivity);
+    _trySyncLog(log);
   }
 
   Future<void> deleteActivity(String id) async {
     await _localDataSource.delete(id);
+    print('[DailyActivityProvider] deleteActivity - done: $id');
+    await _updateState();
+  }
 
-    final todayActivities = await _localDataSource.getByDate(DateTime.now());
-    final pending = await _localDataSource.getPendingSync();
+  Future<void> _updateState() async {
+    final allActivities = await _localDataSource.getAll();
+    final today = DateTime.now();
+    final todayActivities = await _localDataSource.getByDate(today);
+    final pendingSync = await _localDataSource.getPendingSync();
+    final pendingLogs = await _localDataSource.getPendingLogs();
+
+    print(
+      '[DailyActivityProvider] state update - all: ${allActivities.length}, today: ${todayActivities.length}',
+    );
 
     state = state.copyWith(
+      activities: allActivities,
       todayActivities: todayActivities,
-      pendingSyncCount: pending.length,
+      pendingSyncCount: pendingSync.length,
+      pendingLogCount: pendingLogs.length,
+      isLoading: false,
     );
+  }
+
+  Future<void> _trySyncLog(ActivityLogModel log) async {
+    try {
+      final userId = _ref.read(currentUserProvider)?.uid;
+      if (userId == null) return;
+
+      final syncedLog = await _remoteDataSource.createLog(userId, log);
+      await _localDataSource.deleteLog(log.id);
+      await _localDataSource.saveLog(syncedLog);
+
+      final pendingLogs = await _localDataSource.getPendingLogs();
+      state = state.copyWith(pendingLogCount: pendingLogs.length);
+    } catch (_) {}
+  }
+
+  Future<void> syncPendingLogs() async {
+    final pending = await _localDataSource.getPendingLogs();
+    if (pending.isEmpty) return;
+
+    state = state.copyWith(isSyncing: true);
+
+    try {
+      for (var log in pending) {
+        await _trySyncLog(log);
+      }
+      state = state.copyWith(isSyncing: false);
+    } catch (_) {
+      state = state.copyWith(isSyncing: false);
+    }
   }
 }
 

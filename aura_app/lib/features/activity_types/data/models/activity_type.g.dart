@@ -26,15 +26,18 @@ class ActivityTypeAdapter extends TypeAdapter<ActivityType> {
       allowNotes: fields[6] as bool,
       metrics: (fields[7] as List).cast<ActivityMetric>(),
       isGymActivity: fields[8] as bool,
-      icon: fields[9] as String?,
+      icon: fields[9] as String,
       isActive: fields[10] as bool,
+      color: fields[11] as String,
+      defaultIntervalMinutes: fields[12] as int?,
+      defaultTargetCompletions: fields[13] as int?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ActivityType obj) {
     writer
-      ..writeByte(11)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -56,7 +59,13 @@ class ActivityTypeAdapter extends TypeAdapter<ActivityType> {
       ..writeByte(9)
       ..write(obj.icon)
       ..writeByte(10)
-      ..write(obj.isActive);
+      ..write(obj.isActive)
+      ..writeByte(11)
+      ..write(obj.color)
+      ..writeByte(12)
+      ..write(obj.defaultIntervalMinutes)
+      ..writeByte(13)
+      ..write(obj.defaultTargetCompletions);
   }
 
   @override

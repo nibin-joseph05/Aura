@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +12,7 @@ import '../providers/daily_activity_provider.dart';
 import '../../../activity_types/state/activity_type_providers.dart';
 import '../../../activity_types/data/models/activity_type.dart';
 import '../../../activity_types/data/models/activity_metric.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 final selectedActivityTypeProvider = StateProvider<ActivityType?>(
   (ref) => null,
@@ -79,9 +81,13 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
 
   Widget _buildSyncButton(DailyActivityState state, Responsive responsive) {
     return GestureDetector(
-      onTap: state.pendingSyncCount > 0 && !state.isSyncing
-          ? () =>
-                ref.read(dailyActivityProvider.notifier).syncPendingActivities()
+      onTap:
+          (state.pendingSyncCount > 0 || state.pendingLogCount > 0) &&
+              !state.isSyncing
+          ? () {
+              ref.read(dailyActivityProvider.notifier).syncPendingActivities();
+              ref.read(dailyActivityProvider.notifier).syncPendingLogs();
+            }
           : null,
       child: state.isSyncing
           ? SizedBox(
@@ -96,18 +102,20 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  state.pendingSyncCount > 0
+                  (state.pendingSyncCount > 0 || state.pendingLogCount > 0)
                       ? Icons.cloud_sync_rounded
                       : Icons.cloud_done_rounded,
-                  color: state.pendingSyncCount > 0
+                  color:
+                      (state.pendingSyncCount > 0 || state.pendingLogCount > 0)
                       ? AppColors.warning
                       : AppColors.success,
                   size: responsive.icon(20),
                 ),
-                if (state.pendingSyncCount > 0) ...[
+                if (state.pendingSyncCount > 0 ||
+                    state.pendingLogCount > 0) ...[
                   SizedBox(width: responsive.space(4)),
                   Text(
-                    '${state.pendingSyncCount}',
+                    '${state.pendingSyncCount + state.pendingLogCount}',
                     style: TextStyle(
                       color: AppColors.warning,
                       fontSize: responsive.text(12),
@@ -129,9 +137,11 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
     int totalDone = 0;
     for (final a in state.todayActivities) {
       totalTarget += a.targetCompletions;
-      totalDone += a.isRepeating
-          ? a.completionTimes.length
-          : (a.completedAt != null ? 1 : 0);
+      totalDone +=
+          (a.isRepeating
+                  ? a.completionTimes.length
+                  : (a.completedAt != null ? 1 : 0))
+              as int;
     }
     final progress = totalTarget > 0 ? totalDone / totalTarget : 0.0;
 
@@ -296,7 +306,7 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                           title: 'Log ${activity.title}',
                           child: _DynamicMetricsDialog(activity: activity),
                         );
-                    if (metricValues == null) return; // User cancelled
+                    if (metricValues == null) return;
 
                     if (activity.isRepeating) {
                       ref
@@ -401,22 +411,6 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                               ),
                             ],
                           ],
-                          if (!activity.isSynced) ...[
-                            SizedBox(width: responsive.space(10)),
-                            Icon(
-                              Icons.cloud_off_rounded,
-                              color: AppColors.warning,
-                              size: responsive.icon(12),
-                            ),
-                            SizedBox(width: responsive.space(3)),
-                            Text(
-                              'Offline',
-                              style: TextStyle(
-                                color: AppColors.warning,
-                                fontSize: responsive.text(10),
-                              ),
-                            ),
-                          ],
                         ],
                       ),
                       if (activity.isRepeating) ...[
@@ -437,6 +431,14 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                             ),
                             minHeight: responsive.space(4),
                           ),
+                        ),
+                      ],
+                      if (!isCompleted) ...[
+                        SizedBox(height: responsive.space(6)),
+                        _CountdownLabel(
+                          activity: activity,
+                          responsive: responsive,
+                          brightness: brightness,
                         ),
                       ],
                     ],
@@ -574,6 +576,95 @@ class _DailyActivityScreenState extends ConsumerState<DailyActivityScreen> {
                   );
             },
       ),
+    );
+  }
+}
+
+class _CountdownLabel extends StatefulWidget {
+  final UserActivityModel activity;
+  final Responsive responsive;
+  final Brightness brightness;
+
+  const _CountdownLabel({
+    required this.activity,
+    required this.responsive,
+    required this.brightness,
+  });
+
+  @override
+  State<_CountdownLabel> createState() => _CountdownLabelState();
+}
+
+class _CountdownLabelState extends State<_CountdownLabel> {
+  late Timer _timer;
+  Duration _remaining = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _calcRemaining();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) _calcRemaining();
+    });
+  }
+
+  void _calcRemaining() {
+    final now = DateTime.now();
+    final activity = widget.activity;
+
+    if (activity.isRepeating && activity.intervalMinutes != null) {
+      final lastDone = activity.completionTimes.isNotEmpty
+          ? activity.completionTimes.last
+          : activity.date;
+      final next = lastDone.add(Duration(minutes: activity.intervalMinutes!));
+      final diff = next.difference(now);
+      setState(() => _remaining = diff.isNegative ? Duration.zero : diff);
+    } else {
+      final midnight = DateTime(now.year, now.month, now.day + 1);
+      setState(() => _remaining = midnight.difference(now));
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  String _fmt(Duration d) {
+    if (d == Duration.zero) return 'Due now!';
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    final s = d.inSeconds.remainder(60);
+    if (h > 0) return '${h}h ${m}m remaining';
+    if (m > 0) return '${m}m ${s}s remaining';
+    return '${s}s remaining';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDue = _remaining == Duration.zero;
+    return Row(
+      children: [
+        Icon(
+          isDue ? Icons.alarm_on_rounded : Icons.timer_outlined,
+          size: widget.responsive.icon(11),
+          color: isDue
+              ? AppColors.accent
+              : AppColors.onSurfaceFaint(widget.brightness),
+        ),
+        SizedBox(width: widget.responsive.space(4)),
+        Text(
+          _fmt(_remaining),
+          style: TextStyle(
+            color: isDue
+                ? AppColors.accent
+                : AppColors.onSurfaceFaint(widget.brightness),
+            fontSize: widget.responsive.text(10),
+            fontWeight: isDue ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -812,13 +903,16 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
   int _targetCompletions = 1;
   int _intervalHours = 2;
   int _intervalMinutes = 0;
-  bool _isAlarmEnabled = true;
-  bool _isPushEnabled = true;
+  bool _isAlarmEnabled = false;
+  bool _isPushEnabled = false;
+  bool _isCustomActivity = false;
+  final _customTypeController = TextEditingController();
 
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
+    _customTypeController.dispose();
     super.dispose();
   }
 
@@ -846,16 +940,14 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
               .watch(activityTypesProvider)
               .when(
                 data: (types) {
-                  if (types.isEmpty) {
-                    return Text(
-                      'No activity types available.',
-                      style: TextStyle(
-                        color: AppColors.onSurfaceMuted(brightness),
-                      ),
-                    );
+                  if (types.isEmpty && !_isCustomActivity) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      setState(() => _isCustomActivity = true);
+                    });
                   }
-                  // Set default if null
-                  if (selectedType == null) {
+                  if (!_isCustomActivity &&
+                      selectedType == null &&
+                      types.isNotEmpty) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       ref.read(selectedActivityTypeProvider.notifier).state =
                           types.first;
@@ -864,29 +956,102 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                   return Wrap(
                     spacing: responsive.space(8),
                     runSpacing: responsive.space(8),
-                    children: types.map((type) {
-                      final isSelected = selectedType?.id == type.id;
-                      return GestureDetector(
-                        onTap: () =>
+                    children: [
+                      ...types.map((type) {
+                        final isSelected =
+                            !_isCustomActivity && selectedType?.id == type.id;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _isCustomActivity = false;
+                              if (type.defaultIntervalMinutes != null &&
+                                  type.defaultIntervalMinutes! > 0) {
+                                _isRepeating = true;
+                                _intervalHours =
+                                    type.defaultIntervalMinutes! ~/ 60;
+                                _intervalMinutes =
+                                    type.defaultIntervalMinutes! % 60;
+                                _targetCompletions =
+                                    type.defaultTargetCompletions ?? 1;
+                              } else {
+                                _isRepeating = false;
+                              }
+                              _isAlarmEnabled = type.allowAlarm;
+                              _isPushEnabled = type.allowNotes;
+                            });
                             ref
                                     .read(selectedActivityTypeProvider.notifier)
                                     .state =
-                                type,
+                                type;
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: responsive.space(14),
+                              vertical: responsive.space(8),
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? _colorFromHex(type.color)
+                                  : AppColors.iconButtonFill(brightness),
+                              borderRadius: BorderRadius.circular(
+                                responsive.radius(20),
+                              ),
+                              border: Border.all(
+                                color: isSelected
+                                    ? _colorFromHex(type.color)
+                                    : AppColors.iconButtonBorder(brightness),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  type.icon.isNotEmpty ? type.icon : '🎯',
+                                  style: TextStyle(
+                                    fontSize: responsive.text(14),
+                                  ),
+                                ),
+                                SizedBox(width: responsive.space(6)),
+                                Text(
+                                  type.name,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : AppColors.onSurfaceMuted(brightness),
+                                    fontSize: responsive.text(13),
+                                    fontWeight: isSelected
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                      GestureDetector(
+                        onTap: () {
+                          setState(() => _isCustomActivity = true);
+                          ref
+                                  .read(selectedActivityTypeProvider.notifier)
+                                  .state =
+                              null;
+                        },
                         child: Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: responsive.space(14),
                             vertical: responsive.space(8),
                           ),
                           decoration: BoxDecoration(
-                            color: isSelected
-                                ? _getActivityColor(type.name)
+                            color: _isCustomActivity
+                                ? AppColors.accent
                                 : AppColors.iconButtonFill(brightness),
                             borderRadius: BorderRadius.circular(
                               responsive.radius(20),
                             ),
                             border: Border.all(
-                              color: isSelected
-                                  ? _getActivityColor(type.name)
+                              color: _isCustomActivity
+                                  ? AppColors.accent
                                   : AppColors.iconButtonBorder(brightness),
                             ),
                           ),
@@ -894,30 +1059,28 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _getActivityIcon(type.name),
-                                color: isSelected
+                                Icons.add_circle_outline_rounded,
+                                color: _isCustomActivity
                                     ? Colors.white
-                                    : _getActivityColor(type.name),
-                                size: responsive.icon(16),
+                                    : AppColors.accent,
+                                size: responsive.icon(15),
                               ),
                               SizedBox(width: responsive.space(6)),
                               Text(
-                                type.name,
+                                'Custom',
                                 style: TextStyle(
-                                  color: isSelected
+                                  color: _isCustomActivity
                                       ? Colors.white
-                                      : AppColors.onSurfaceMuted(brightness),
+                                      : AppColors.accent,
                                   fontSize: responsive.text(13),
-                                  fontWeight: isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w400,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      );
-                    }).toList(),
+                      ),
+                    ],
                   );
                 },
                 loading: () => Center(
@@ -931,6 +1094,16 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                 ),
               ),
           SizedBox(height: responsive.space(20)),
+          if (_isCustomActivity) ...[
+            _buildTextField(
+              controller: _customTypeController,
+              label: 'Activity Name / Type',
+              hint: 'e.g. Yoga, Cold Shower, Journaling...',
+              responsive: responsive,
+              brightness: brightness,
+            ),
+            SizedBox(height: responsive.space(16)),
+          ],
           _buildTextField(
             controller: _titleController,
             label: 'Title',
@@ -956,13 +1129,34 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                if (_titleController.text.trim().isNotEmpty &&
-                    selectedType != null) {
+                final hasType = _isCustomActivity
+                    ? _customTypeController.text.trim().isNotEmpty
+                    : selectedType != null;
+
+                if (_titleController.text.trim().isNotEmpty && hasType) {
                   final totalMin = _isRepeating
                       ? (_intervalHours * 60 + _intervalMinutes)
                       : null;
+
+                  final effectiveType = _isCustomActivity
+                      ? ActivityType(
+                          id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+                          categoryId: '',
+                          categoryName: 'Custom',
+                          name: _customTypeController.text.trim(),
+                          description: '',
+                          icon: '🎯',
+                          color: '#7C3AED',
+                          isActive: true,
+                          isGymActivity: false,
+                          allowAlarm: true,
+                          allowNotes: true,
+                          metrics: const [],
+                        )
+                      : selectedType!;
+
                   widget.onAdd(
-                    selectedType,
+                    effectiveType,
                     _titleController.text.trim(),
                     _descController.text.trim().isNotEmpty
                         ? _descController.text.trim()
@@ -976,7 +1170,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Please enter an activity title'),
+                      content: Text('Please select a type and enter a title'),
                     ),
                   );
                 }
@@ -1114,7 +1308,10 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                 Expanded(
                   child: _buildDropdown(
                     value: _intervalHours,
-                    items: List.generate(13, (i) => i),
+                    items: {
+                      ...List.generate(13, (i) => i),
+                      _intervalHours,
+                    }.toList()..sort(),
                     suffix: 'hrs',
                     onChanged: (v) => setState(() => _intervalHours = v),
                     responsive: responsive,
@@ -1125,7 +1322,7 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
                 Expanded(
                   child: _buildDropdown(
                     value: _intervalMinutes,
-                    items: [0, 15, 30, 45],
+                    items: {0, 15, 30, 45, _intervalMinutes}.toList()..sort(),
                     suffix: 'min',
                     onChanged: (v) => setState(() => _intervalMinutes = v),
                     responsive: responsive,
@@ -1188,7 +1385,24 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
               ),
               Switch(
                 value: _isPushEnabled,
-                onChanged: (v) => setState(() => _isPushEnabled = v),
+                onChanged: (v) async {
+                  if (v) {
+                    final status = await Permission.notification.request();
+                    if (!status.isGranted) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Notification permission denied. Enable it in Settings.',
+                            ),
+                          ),
+                        );
+                      }
+                      return;
+                    }
+                  }
+                  setState(() => _isPushEnabled = v);
+                },
                 activeThumbColor: AppColors.accent,
                 inactiveTrackColor: AppColors.iconButtonFill(brightness),
               ),
@@ -1220,7 +1434,25 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
               ),
               Switch(
                 value: _isAlarmEnabled,
-                onChanged: (v) => setState(() => _isAlarmEnabled = v),
+                onChanged: (v) async {
+                  if (v) {
+                    final status = await Permission.scheduleExactAlarm
+                        .request();
+                    if (!status.isGranted) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Alarm permission denied. Enable it in Settings.',
+                            ),
+                          ),
+                        );
+                      }
+                      return;
+                    }
+                  }
+                  setState(() => _isAlarmEnabled = v);
+                },
                 activeThumbColor: AppColors.accent,
                 inactiveTrackColor: AppColors.iconButtonFill(brightness),
               ),
@@ -1343,6 +1575,15 @@ class _AddActivityContentState extends ConsumerState<_AddActivityContent> {
         ),
       ],
     );
+  }
+
+  Color _colorFromHex(String hex) {
+    try {
+      final h = hex.replaceAll('#', '');
+      return Color(int.parse(h.length == 6 ? 'FF$h' : h, radix: 16));
+    } catch (_) {
+      return AppColors.accent;
+    }
   }
 
   IconData _getActivityIcon(String type) {
