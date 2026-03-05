@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/navigation/app_header.dart';
@@ -17,28 +21,15 @@ class LiveLocationScreen extends ConsumerStatefulWidget {
 }
 
 class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
+  static const MethodChannel _smsChannel = MethodChannel('com.aura.sms/native');
+
   int _selectedDuration = 15;
-  Timer? _uiTimer;
 
   final _durations = [
     {'label': '15 min', 'value': 15},
     {'label': '1 hour', 'value': 60},
     {'label': 'Until stopped', 'value': 0},
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _uiTimer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
-    });
-  }
-
-  @override
-  void dispose() {
-    _uiTimer?.cancel();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -80,8 +71,10 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
 
   Widget _buildStartSession(String userId, Brightness brightness) {
     final contacts = ref.watch(trustedContactsProvider(userId));
+    final currentLocation = ref.watch(currentLocationProvider).valueOrNull;
 
     return Column(
+      key: const ValueKey('start_session_column'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
@@ -119,6 +112,18 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
             ],
           ),
         ),
+        if (currentLocation != null) ...[
+          const SizedBox(height: 16),
+          LiveMapWidget(
+            points: [
+              {
+                'lat': currentLocation.latitude,
+                'lng': currentLocation.longitude,
+              },
+            ],
+            height: 200,
+          ),
+        ],
         const SizedBox(height: 24),
         Text(
           'Duration',
@@ -214,16 +219,82 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
           width: double.infinity,
           height: 52,
           child: ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final contactList =
                   ref.read(trustedContactsProvider(userId)).valueOrNull ?? [];
               final contactIds = contactList.map((c) => c.id).toList();
-              ref
+              final success = await ref
                   .read(liveLocationProvider(userId).notifier)
                   .startSharing(
                     durationMinutes: _selectedDuration,
                     contactIds: contactIds,
                   );
+
+              if (success && mounted) {
+                final state = ref.read(liveLocationProvider(userId));
+                final sessionId = state.sessionId;
+                final location = ref.read(currentLocationProvider).valueOrNull;
+
+                if (sessionId != null && location != null) {
+                  final mapsUrl =
+                      'https://www.google.com/maps?q=${location.latitude},${location.longitude}';
+                  final messageBody =
+                      'Emergency SOS: I am sharing my live location with you.\n\nMy location: $mapsUrl\n\nLat: ${location.latitude}\nLng: ${location.longitude}';
+
+                  bool hasSmsPermission = false;
+                  if (Platform.isAndroid) {
+                    final status = await Permission.sms.request();
+                    hasSmsPermission = status.isGranted;
+                  }
+
+                  for (final contact in contactList) {
+                    if (Platform.isAndroid && hasSmsPermission) {
+                      try {
+                        await _smsChannel.invokeMethod('sendSms', {
+                          'phone': contact.phone,
+                          'message': messageBody,
+                        });
+                      } catch (e) {
+                        debugPrint(
+                          '[Live Location] Background SMS error for ${contact.name}: $e',
+                        );
+                      }
+                    } else if (Platform.isIOS ||
+                        (Platform.isAndroid && !hasSmsPermission)) {
+                      try {
+                        final separator = Platform.isIOS ? '&' : '?';
+                        final smsUri = Uri.parse(
+                          'sms:${contact.phone}$separator'
+                          'body=${Uri.encodeComponent(messageBody)}',
+                        );
+
+                        if (await canLaunchUrl(smsUri)) {
+                          await launchUrl(smsUri);
+                        }
+                      } catch (e) {
+                        debugPrint(
+                          '[Live Location] SMS launch to ${contact.name} failed: $e',
+                        );
+                      }
+                    }
+
+                    if (contact.email != null && contact.email!.isNotEmpty) {
+                      try {
+                        final emailUri = Uri.parse(
+                          'mailto:${contact.email}?subject=${Uri.encodeComponent('Live Location Shared')}&body=${Uri.encodeComponent(messageBody)}',
+                        );
+                        if (await canLaunchUrl(emailUri)) {
+                          await launchUrl(emailUri);
+                        }
+                      } catch (e) {
+                        debugPrint(
+                          '[Live Location] Email launch to ${contact.name} failed: $e',
+                        );
+                      }
+                    }
+                  }
+                }
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
@@ -255,11 +326,8 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
     String userId,
     Brightness brightness,
   ) {
-    final remaining = liveState.remainingSeconds;
-    final minutes = remaining ~/ 60;
-    final seconds = remaining % 60;
-
     return Column(
+      key: const ValueKey('active_session_column'),
       children: [
         Container(
           padding: const EdgeInsets.all(20),
@@ -286,14 +354,9 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
               ),
               if (liveState.durationMinutes != null) ...[
                 const SizedBox(height: 8),
-                Text(
-                  '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')} remaining',
-                  style: const TextStyle(
-                    color: AppColors.warning,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'monospace',
-                  ),
+                LiveLocationCountdown(
+                  startedAt: liveState.startedAt!,
+                  durationMinutes: liveState.durationMinutes!,
                 ),
               ],
             ],
@@ -353,6 +416,61 @@ class _LiveLocationScreenState extends ConsumerState<LiveLocationScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class LiveLocationCountdown extends StatefulWidget {
+  final DateTime startedAt;
+  final int durationMinutes;
+
+  const LiveLocationCountdown({
+    super.key,
+    required this.startedAt,
+    required this.durationMinutes,
+  });
+
+  @override
+  State<LiveLocationCountdown> createState() => _LiveLocationCountdownState();
+}
+
+class _LiveLocationCountdownState extends State<LiveLocationCountdown> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final elapsed = DateTime.now().difference(widget.startedAt).inSeconds;
+    final total = widget.durationMinutes * 60;
+    final remaining = (total - elapsed).clamp(0, total);
+    final minutes = remaining ~/ 60;
+    final seconds = remaining % 60;
+
+    return Text(
+      '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')} remaining',
+      style: const TextStyle(
+        color: AppColors.warning,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        fontFamily: 'monospace',
+      ),
     );
   }
 }

@@ -57,7 +57,7 @@ class LiveLocationNotifier extends StateNotifier<LiveLocationState> {
 
   LiveLocationNotifier(this._userId) : super(const LiveLocationState());
 
-  Future<void> startSharing({
+  Future<bool> startSharing({
     required int durationMinutes,
     required List<String> contactIds,
   }) async {
@@ -84,11 +84,14 @@ class LiveLocationNotifier extends StateNotifier<LiveLocationState> {
         if (durationMinutes > 0) {
           _startCountdown(durationMinutes);
         }
+        return true;
       } else {
         state = state.copyWith(error: 'Failed to start sharing');
+        return false;
       }
     } catch (e) {
       state = state.copyWith(error: e.toString());
+      return false;
     }
   }
 
