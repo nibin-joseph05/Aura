@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:background_sms/background_sms.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -23,6 +23,8 @@ class SOSTriggerScreen extends ConsumerStatefulWidget {
 
 class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
     with SingleTickerProviderStateMixin {
+  static const MethodChannel _smsChannel = MethodChannel('com.aura.sms/native');
+
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   bool _isTriggering = false;
@@ -108,7 +110,6 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
     final messageBody =
         '${settings.customMessage}\n\nMy location: $mapsUrl\n\nLat: ${location.latitude}\nLng: ${location.longitude}';
 
-     
     bool hasSmsPermission = false;
     if (Platform.isAndroid) {
       final status = await Permission.sms.request();
@@ -117,24 +118,18 @@ class _SOSTriggerScreenState extends ConsumerState<SOSTriggerScreen>
 
     for (final contact in contacts) {
       if (Platform.isAndroid && hasSmsPermission) {
-         
         try {
-           
-           
-          SmsStatus result = await BackgroundSms.sendMessage(
-            phoneNumber: contact.phone,
-            message: messageBody,
+          final String result = await _smsChannel.invokeMethod('sendSms', {
+            'phone': contact.phone,
+            'message': messageBody,
+          });
+          debugPrint(
+            '[SOS] Background SMS status for ${contact.name}: $result',
           );
-          if (result == SmsStatus.sent) {
-            debugPrint('[SOS] Background SMS sent to ${contact.name}');
-          } else {
-            debugPrint('[SOS] Background SMS failed to ${contact.name}');
-          }
         } catch (e) {
           debugPrint('[SOS] Background SMS error for ${contact.name}: $e');
         }
       } else if (Platform.isIOS || (Platform.isAndroid && !hasSmsPermission)) {
-         
         try {
           final separator = Platform.isIOS ? '&' : '?';
           final smsUri = Uri.parse(

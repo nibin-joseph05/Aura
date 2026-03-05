@@ -60,7 +60,6 @@ dependencies:
 
   timezone: any
   http: any
-  background_sms: ^0.0.4
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.telephony.SmsManager
 import com.example.aura_app.alarm.AlarmReceiver
 import com.example.aura_app.alarm.AlarmScheduler
 import com.example.aura_app.alarm.AlarmService
@@ -169,6 +170,43 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.aura.sms/native")
+                .setMethodCallHandler { call, result ->
+                    if (call.method == "sendSms") {
+                        val phone = call.argument<String>("phone")
+                        val message = call.argument<String>("message")
+                        if (phone != null && message != null) {
+                            try {
+                                val smsManager: SmsManager =
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                            this.getSystemService(SmsManager::class.java)
+                                        } else {
+                                            @Suppress("DEPRECATION") SmsManager.getDefault()
+                                        }
+                                val parts = smsManager.divideMessage(message)
+                                if (parts.size > 1) {
+                                    smsManager.sendMultipartTextMessage(
+                                            phone,
+                                            null,
+                                            parts,
+                                            null,
+                                            null
+                                    )
+                                } else {
+                                    smsManager.sendTextMessage(phone, null, message, null, null)
+                                }
+                                result.success("SMS_SENT")
+                            } catch (e: Exception) {
+                                result.error("SMS_ERROR", e.message, null)
+                            }
+                        } else {
+                            result.error("INVALID_ARGS", "Phone or message missing", null)
+                        }
+                    } else {
+                        result.notImplemented()
+                    }
+                }
     }
 
     private fun persistAlarm(

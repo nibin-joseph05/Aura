@@ -51,10 +51,12 @@
                                         <table role="presentation" style="width: 100%;">
                                             <tr>
                                                 <td style="padding: 8px 0;">
-                                                    <span style="color: #FCA5A5; font-weight: bold;">📍 Last Known
-                                                        Location:</span>
-                                                    <span th:text="${location}"
-                                                        style="color: #FECACA; margin-left: 10px;">Unknown</span>
+                                                    <span style="color: #FCA5A5; font-weight: bold;">📍 Last Known Location:</span><br/>
+                                                    <a th:href="@{'https://www.google.com/maps?q=' + ${location}}" 
+                                                       style="display: inline-block; margin-top: 8px; background-color: #EF4444; color: white; text-decoration: none; padding: 10px 16px; border-radius: 6px; font-weight: bold;">
+                                                       Open in Google Maps
+                                                    </a>
+                                                    <div th:text="${location}" style="color: #FECACA; margin-top: 5px; font-size: 14px;">Unknown</div>
                                                 </td>
                                             </tr>
                                             <tr>
