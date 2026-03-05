@@ -184,6 +184,10 @@ class WellnessRepository {
     await _remoteDataSource.deleteComment(commentId);
   }
 
+  Future<WellnessComment> translateComment(String commentId) async {
+    return await _remoteDataSource.translateComment(commentId);
+  }
+
   Future<WellnessUpdate> getUpdateById(String id) async {
     try {
       if (await _isOnline()) {

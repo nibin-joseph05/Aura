@@ -51,4 +51,10 @@ public class WellnessCommentController {
         commentService.deleteComment(commentId, userId);
         return ResponseEntity.ok(ApiResponse.success(null, "Comment deleted"));
     }
+
+    @PostMapping("/comments/{commentId}/translate")
+    public ResponseEntity<ApiResponse<CommentDTO>> translateComment(@PathVariable String commentId) {
+        CommentDTO comment = commentService.translateComment(commentId);
+        return ResponseEntity.ok(ApiResponse.success(comment));
+    }
 }

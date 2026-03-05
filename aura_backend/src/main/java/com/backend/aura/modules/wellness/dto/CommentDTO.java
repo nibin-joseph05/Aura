@@ -17,6 +17,9 @@ public class CommentDTO {
     private String userName;
     private String userProfileImage;
     private String content;
+    private String translatedContent;
+    private String detectedLanguage;
+    private String translationStatus;
     private String createdAt;
 
     public static CommentDTO from(WellnessComment comment) {
@@ -25,6 +28,9 @@ public class CommentDTO {
                 .postId(comment.getPostId())
                 .userId(comment.getUserId())
                 .content(comment.getOriginalContent())
+                .translatedContent(comment.getTranslatedContent())
+                .detectedLanguage(comment.getDetectedLanguage())
+                .translationStatus(comment.getTranslationStatus() != null ? comment.getTranslationStatus().name() : null)
                 .createdAt(comment.getCreatedAt().toString())
                 .build();
     }

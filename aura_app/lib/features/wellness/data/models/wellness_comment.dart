@@ -5,6 +5,9 @@ class WellnessComment {
   final String? userName;
   final String? userProfileImage;
   final String content;
+  final String? translatedContent;
+  final String? detectedLanguage;
+  final String translationStatus;
   final DateTime createdAt;
 
   WellnessComment({
@@ -14,8 +17,20 @@ class WellnessComment {
     this.userName,
     this.userProfileImage,
     required this.content,
+    this.translatedContent,
+    this.detectedLanguage,
+    this.translationStatus = 'PENDING',
     required this.createdAt,
   });
+
+  bool get isEnglish =>
+      detectedLanguage?.toLowerCase() == 'en' ||
+      translationStatus == 'NOT_NEEDED';
+
+  bool get canTranslate => translationStatus == 'PENDING' && !isEnglish;
+
+  bool get hasTranslation =>
+      translatedContent != null && translationStatus == 'TRANSLATED';
 
   factory WellnessComment.fromJson(Map<String, dynamic> json) {
     return WellnessComment(
@@ -25,6 +40,9 @@ class WellnessComment {
       userName: json['userName'],
       userProfileImage: json['userProfileImage'],
       content: json['content'] ?? '',
+      translatedContent: json['translatedContent'],
+      detectedLanguage: json['detectedLanguage'],
+      translationStatus: json['translationStatus'] ?? 'PENDING',
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),

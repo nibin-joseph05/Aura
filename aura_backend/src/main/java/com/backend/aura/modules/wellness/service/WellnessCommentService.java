@@ -23,6 +23,7 @@ public class WellnessCommentService {
     private final WellnessCommentRepository commentRepository;
     private final UserRepository userRepository;
     private final WellnessService wellnessService;
+    private final com.backend.aura.modules.translation.service.TranslationService translationService;
 
     private CommentDTO toDto(WellnessComment comment) {
         User user = userRepository.findById(comment.getUserId()).orElse(null);
@@ -39,7 +40,7 @@ public class WellnessCommentService {
                 .postId(postId)
                 .userId(userId)
                 .originalContent(request.getContent())
-                .translationStatus(WellnessComment.TranslationStatus.NOT_NEEDED)
+                .translationStatus(WellnessComment.TranslationStatus.PENDING)
                 .build();
 
         WellnessComment saved = commentRepository.save(comment);
@@ -73,5 +74,31 @@ public class WellnessCommentService {
 
     public long getCommentCount(String postId) {
         return commentRepository.countByPostIdAndIsHiddenFalse(postId);
+    }
+
+    @Transactional
+    public CommentDTO translateComment(String commentId) {
+        WellnessComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        if (comment.getTranslationStatus() == WellnessComment.TranslationStatus.TRANSLATED) {
+            return toDto(comment);
+        }
+
+        var resultOpt = translationService.translateToEnglish(comment.getOriginalContent());
+        if (resultOpt.isPresent()) {
+            var result = resultOpt.get();
+            if (result.isEnglish()) {
+                comment.setTranslationStatus(WellnessComment.TranslationStatus.NOT_NEEDED);
+            } else {
+                comment.setTranslatedContent(result.getTranslatedText());
+                comment.setDetectedLanguage(result.getDetectedLanguage());
+                comment.setTranslationStatus(WellnessComment.TranslationStatus.TRANSLATED);
+            }
+        } else {
+            comment.setTranslationStatus(WellnessComment.TranslationStatus.FAILED);
+        }
+
+        return toDto(commentRepository.save(comment));
     }
 }

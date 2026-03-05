@@ -180,6 +180,16 @@ class WellnessRemoteDataSource {
     }
   }
 
+  Future<WellnessComment> translateComment(String commentId) async {
+    final response = await _dio.post(
+      '${ApiEndpoints.wellnessComments}/$commentId/translate',
+    );
+    if (response.data['success'] == true) {
+      return WellnessComment.fromJson(response.data['data']);
+    }
+    throw Exception(response.data['error'] ?? 'Failed to translate comment');
+  }
+
   Future<WellnessUpdate> getUpdateById(String id) async {
     final response = await _dio.get('${ApiEndpoints.wellnessUpdates}/$id');
     if (response.data['success'] == true) {

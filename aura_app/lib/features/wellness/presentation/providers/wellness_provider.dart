@@ -155,6 +155,13 @@ class WellnessNotifier extends StateNotifier<AsyncValue<void>> {
       return false;
     }
   }
+
+  Future<void> translateComment(String commentId, String postId) async {
+    try {
+      await _repository.translateComment(commentId);
+      _ref.invalidate(wellnessCommentsProvider(postId));
+    } catch (_) {}
+  }
 }
 
 final wellnessNotifierProvider =

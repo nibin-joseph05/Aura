@@ -25,6 +25,7 @@ class WellnessCommentsSheet extends ConsumerStatefulWidget {
 
 class _WellnessCommentsSheetState extends ConsumerState<WellnessCommentsSheet> {
   final _commentController = TextEditingController();
+  final Set<String> _translatingIds = {};
   bool _isSubmitting = false;
 
   @override
@@ -49,6 +50,16 @@ class _WellnessCommentsSheetState extends ConsumerState<WellnessCommentsSheet> {
           context,
         ).showSnackBar(const SnackBar(content: Text('Failed to add comment')));
       }
+    }
+  }
+
+  Future<void> _translateComment(String commentId) async {
+    setState(() => _translatingIds.add(commentId));
+    await ref
+        .read(wellnessNotifierProvider.notifier)
+        .translateComment(commentId, widget.post.id);
+    if (mounted) {
+      setState(() => _translatingIds.remove(commentId));
     }
   }
 
@@ -170,6 +181,10 @@ class _WellnessCommentsSheetState extends ConsumerState<WellnessCommentsSheet> {
                       isOwn: comment.userId == widget.currentUserId,
                       brightness: brightness,
                       timeAgo: _timeAgo(comment.createdAt),
+                      isTranslating: _translatingIds.contains(comment.id),
+                      onTranslate: comment.canTranslate
+                          ? () => _translateComment(comment.id)
+                          : null,
                       onDelete: () async {
                         final notifier = ref.read(
                           wellnessNotifierProvider.notifier,
@@ -264,12 +279,14 @@ class _WellnessCommentsSheetState extends ConsumerState<WellnessCommentsSheet> {
   }
 }
 
-class _CommentTile extends StatelessWidget {
+class _CommentTile extends StatefulWidget {
   final WellnessComment comment;
   final bool isOwn;
   final Brightness brightness;
   final String timeAgo;
   final VoidCallback onDelete;
+  final VoidCallback? onTranslate;
+  final bool isTranslating;
 
   const _CommentTile({
     required this.comment,
@@ -277,7 +294,16 @@ class _CommentTile extends StatelessWidget {
     required this.brightness,
     required this.timeAgo,
     required this.onDelete,
+    this.onTranslate,
+    this.isTranslating = false,
   });
+
+  @override
+  State<_CommentTile> createState() => _CommentTileState();
+}
+
+class _CommentTileState extends State<_CommentTile> {
+  bool _showTranslation = false;
 
   String _buildImageUrl(String? url) {
     if (url == null || url.isEmpty) return '';
@@ -287,6 +313,7 @@ class _CommentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final comment = widget.comment;
     final imageUrl = _buildImageUrl(comment.userProfileImage);
     final name = comment.userName ?? 'User';
     final initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
@@ -317,14 +344,14 @@ class _CommentTile extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.containerFill(brightness),
+                color: AppColors.containerFill(widget.brightness),
                 borderRadius: const BorderRadius.only(
                   topRight: Radius.circular(16),
                   bottomLeft: Radius.circular(16),
                   bottomRight: Radius.circular(16),
                 ),
                 border: Border.all(
-                  color: AppColors.containerBorder(brightness),
+                  color: AppColors.containerBorder(widget.brightness),
                 ),
               ),
               child: Column(
@@ -335,23 +362,23 @@ class _CommentTile extends StatelessWidget {
                       Text(
                         name,
                         style: TextStyle(
-                          color: AppColors.onSurface(brightness),
+                          color: AppColors.onSurface(widget.brightness),
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
                       ),
                       const Spacer(),
                       Text(
-                        timeAgo,
+                        widget.timeAgo,
                         style: TextStyle(
-                          color: AppColors.onSurfaceFaint(brightness),
+                          color: AppColors.onSurfaceFaint(widget.brightness),
                           fontSize: 11,
                         ),
                       ),
-                      if (isOwn) ...[
+                      if (widget.isOwn) ...[
                         const SizedBox(width: 6),
                         GestureDetector(
-                          onTap: onDelete,
+                          onTap: widget.onDelete,
                           child: Icon(
                             Icons.delete_outline,
                             size: 16,
@@ -363,13 +390,68 @@ class _CommentTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    comment.content,
+                    _showTranslation && comment.hasTranslation
+                        ? comment.translatedContent!
+                        : comment.content,
                     style: TextStyle(
-                      color: AppColors.onSurfaceMuted(brightness),
+                      color: AppColors.onSurfaceMuted(widget.brightness),
                       fontSize: 14,
                       height: 1.4,
                     ),
                   ),
+                  if (comment.canTranslate || comment.hasTranslation) ...[
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: () {
+                        if (comment.hasTranslation) {
+                          setState(() => _showTranslation = !_showTranslation);
+                        } else if (widget.onTranslate != null) {
+                          widget.onTranslate!();
+                        }
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (widget.isTranslating)
+                            const SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          else
+                            Icon(
+                              Icons.translate,
+                              size: 14,
+                              color: AppColors.accent,
+                            ),
+                          const SizedBox(width: 4),
+                          Text(
+                            comment.hasTranslation
+                                ? (_showTranslation
+                                      ? 'Show original'
+                                      : 'Show translation')
+                                : 'See translation ✦',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.accent,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (comment.translationStatus == 'FAILED') ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      'Translation unavailable',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.orange,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
