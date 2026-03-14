@@ -1,4 +1,4 @@
-# AURA: Integrated AI Safety, Wellness, and Social Social Platform
+# AURA: Integrated AI Safety, Wellness, and Social Platform
 ## Technical System Overview & Documentation
 
 **AURA** (AI-powered Universal Relief and Assistance) is a multi-dimensional platform designed to provide a cohesive ecosystem for personal safety, community wellness, and real-time social engagement. It integrates mobile applications, a robust backend, an administrative dashboard, and a custom blockchain layer to ensure data integrity and real-time response.
@@ -36,7 +36,7 @@ AURA follows a micro-service inspired modular monolithic architecture for its ba
 ### High-Level Architecture
 ```mermaid
 graph TD
-    User([Mobile User - Flutter]) <--> Backend[Spring Boot Backend]
+    User([Mobile User - Flutter/Kotlin]) <--> Backend[Spring Boot Backend]
     Admin([Administrator - Next.js]) <--> Backend
     Backend <--> DB[(PostgreSQL)]
     Backend <--> Firebase[Firebase - Auth/FCM/Cloud Storage]
@@ -313,8 +313,9 @@ lib/
 │   ├── walking/        # GPS tracking, walking sessions
 │   └── messaging/      # Chat UI and WebSocket logic
 └── main.dart           # Application entry point
+```
 
-**Android Platform Layer (`aura_app/android/app/src/main/kotlin/com/example/aura_app/`)**
+**Android Platform Layer** (`aura_app/android/app/src/main/kotlin/com/example/aura_app/`)
 ```text
 .
 ├── MainActivity.kt     # Platform channel bridge (Alarms, SMS)
@@ -322,7 +323,6 @@ lib/
     ├── AlarmScheduler  # OS-level scheduling
     ├── AlarmService    # Background execution
     └── AlarmReceiver   # Broadcast handling
-```
 ```
 
 ### Backend System (`aura_backend/`)
