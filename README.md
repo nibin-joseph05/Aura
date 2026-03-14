@@ -12,10 +12,13 @@
 
 ## 📸 Visual Showcase
 
-| Home & Wellness | SOS & Navigation | Messaging & Chat | Activity Tracking |
+### Mobile Application
+| Home | Wellness Feed | SOS System | Activity Tracking |
 | :---: | :---: | :---: | :---: |
-| ![Wellness Feed](assets/screenshots/wellness_feed.png) | ![SOS System](assets/screenshots/sos_map.png) | ![Chat UI](assets/screenshots/chat_screen.png) | ![Walking Tracker](assets/screenshots/activity_tracking.png) |
-| *Place your screenshots in `assets/screenshots/`* | | | |
+| ![Home](assets/screenshots/app/home.jpg) | ![Wellness](assets/screenshots/app/post-list-vibes.jpg) | ![SOS](assets/screenshots/app/sos.jpg) | ![Activity](assets/screenshots/app/daily-activity.jpg) |
+
+### Admin Dashboard
+![Admin Dashboard](assets/screenshots/admin/admin-dashboard.png)
 
 ---
 
