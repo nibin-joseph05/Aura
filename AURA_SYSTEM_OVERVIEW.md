@@ -300,7 +300,44 @@ Security is built into every layer of AURA to protect user data and ensure syste
 
 ---
 
-## 13. File Structure
+
+## 13. Key Features Summary
+
+| Feature | Platform(s) | Impact | Description |
+| :--- | :--- | :--- | :--- |
+| **Pulse SOS** | Mobile, Backend, Chain | Safety | Immediate emergency trigger with immutable logging. |
+| **Live Tracking** | Mobile, Backend, Admin | Response | Real-time GPS streaming during emergencies. |
+| **Wellness Feed** | Mobile, Backend, Admin | Social | Community wellness updates with AI moderation. |
+| **AI Translation** | Mobile, Backend | Inclusivity | Automatic translation of wellness posts to English. |
+| **Step/Walk Tracking**| Mobile | Health | Monitors physical activity and walking sessions. |
+| **Secure Messaging** | Mobile, Backend | Social | Real-time chat powered by STOMP WebSockets. |
+| **Admin Panel** | Admin Dashboard | Governance | Centralized management of users and content. |
+
+---
+
+## 14. System Workflows
+
+### User Registration & Onboarding
+1.  **Mobile App**: User signs up via Firebase (Phone/Email).
+2.  **Backend**: Receives `uid` and creates a corresponding `User` entity.
+3.  **Mobile App**: User completes profile details (name, dob, bio).
+
+### SOS Trigger & Finalization
+1.  **Mobile App**: User triggers SOS.
+2.  **Backend**: Dispatches FCM alerts to trusted contacts and admins.
+3.  **Backend**: Opens WebSocket channel for live location updates.
+4.  **Backend → Blockchain**: At event closure, hashes metadata and sends to Go service.
+5.  **Chain Service**: Mines a new block and returns the hash to the backend.
+
+### Wellness Post & AI Moderation
+1.  **Mobile App**: User submits a wellness post with text and optional image.
+2.  **Backend**: Sends text to Gemini AI for language detection and translation.
+3.  **Backend**: Stores original and translated text.
+4.  **Admin Dashboard**: Moderator reviews the post and marks as `isApproved`.
+5.  **Mobile App**: Post appears in the community-wide wellness feed.
+
+   
+## 15. File Structure
 
 ### Mobile Application (`aura_app/`)
 ```text
@@ -356,49 +393,4 @@ app/
 │   └── wellness/       # Content moderation tools
 ├── components/         # Shared UI components
 └── core/               # Networking and constants
-
----
-
-## 14. Key Features Summary
-
-| Feature | Platform(s) | Impact | Description |
-| :--- | :--- | :--- | :--- |
-| **Pulse SOS** | Mobile, Backend, Chain | Safety | Immediate emergency trigger with immutable logging. |
-| **Live Tracking** | Mobile, Backend, Admin | Response | Real-time GPS streaming during emergencies. |
-| **Wellness Feed** | Mobile, Backend, Admin | Social | Community wellness updates with AI moderation. |
-| **AI Translation** | Mobile, Backend | Inclusivity | Automatic translation of wellness posts to English. |
-| **Step/Walk Tracking**| Mobile | Health | Monitors physical activity and walking sessions. |
-| **Secure Messaging** | Mobile, Backend | Social | Real-time chat powered by STOMP WebSockets. |
-| **Admin Panel** | Admin Dashboard | Governance | Centralized management of users and content. |
-
----
-
-## 15. System Workflows
-
-### User Registration & Onboarding
-1.  **Mobile App**: User signs up via Firebase (Phone/Email).
-2.  **Backend**: Receives `uid` and creates a corresponding `User` entity.
-3.  **Mobile App**: User completes profile details (name, dob, bio).
-
-### SOS Trigger & Finalization
-1.  **Mobile App**: User triggers SOS.
-2.  **Backend**: Dispatches FCM alerts to trusted contacts and admins.
-3.  **Backend**: Opens WebSocket channel for live location updates.
-4.  **Backend → Blockchain**: At event closure, hashes metadata and sends to Go service.
-5.  **Chain Service**: Mines a new block and returns the hash to the backend.
-
-### Wellness Post & AI Moderation
-1.  **Mobile App**: User submits a wellness post with text and optional image.
-2.  **Backend**: Sends text to Gemini AI for language detection and translation.
-3.  **Backend**: Stores original and translated text.
-4.  **Admin Dashboard**: Moderator reviews the post and marks as `isApproved`.
-5.  **Mobile App**: Post appears in the community-wide wellness feed.
-
----
-
-**End of AURA System Documentation.**
-
-```
-
-
 
