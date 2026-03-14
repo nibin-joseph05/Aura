@@ -1,4 +1,4 @@
-# AURA: Safety, Wellness & Community AI Platform
+# AURA: Integrated AI Safety, Wellness & Community Platform
 
 ![AURA Banner](https://img.shields.io/badge/AURA-Safety--Wellness-2F80ED?style=for-the-badge)
 ![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
@@ -6,65 +6,76 @@
 ![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 
-**AURA** (AI-powered Universal Relief and Assistance) is an integrated ecosystem designed to redefine personal safety and community wellness. By combining real-time emergency response, social wellness engagement, and immutable blockchain logging, AURA provides a holistic solution for modern safety and health monitoring.
+**AURA** (AI-powered Universal Relief and Assistance) is an enterprise-grade ecosystem that bridges the gap between digital safety and community wellness. By intertwining real-time emergency response, social wellness engagement, and immutable blockchain logging, AURA provides a holistic solution for modern life.
 
 ---
 
-## 🌟 Key Pillars
+## 📸 Visual Showcase
 
-- **🚨 Immediate Safety**: Pulse-trigger SOS system with live location streaming and automated notification pipeline.
-- **🌱 Community Wellness**: A social platform for sharing health goals, activities, and achievements with AI-powered moderation and translation.
-- **🛡️ Data Integrity**: A custom Go-based blockchain service ensuring all emergency logs are immutable and verifiable.
-- **🤖 Intelligent Assistance**: Integrated LLMs (Gemini AI) for real-time language detection, translation, and content safety.
-
----
-
-## 🏗️ Project Architecture
-
-AURA is composed of four primary modules:
-
-1.  **Mobile App (`/aura_app`)**: The user interface for safety triggers, social feed, and activity tracking (Flutter).
-2.  **Backend (`/aura_backend`)**: The central engine orchestrating services, databases, and external integrations (Spring Boot).
-3.  **Blockchain (`/aura_chain`)**: A secure ledger for logging critical system events (Go).
-4.  **Admin Dashboard (`/aura_admin`)**: A command center for platform administrators and moderators (Next.js).
+| Home & Wellness | SOS & Navigation | Messaging & Chat | Activity Tracking |
+| :---: | :---: | :---: | :---: |
+| ![Wellness Feed](assets/screenshots/wellness_feed.png) | ![SOS System](assets/screenshots/sos_map.png) | ![Chat UI](assets/screenshots/chat_screen.png) | ![Walking Tracker](assets/screenshots/activity_tracking.png) |
+| *Place your screenshots in `assets/screenshots/`* | | | |
 
 ---
 
-## 🛠️ Technology Stack
+## 🔥 Key Platform Features
 
-| Module | Core Technologies |
-| :--- | :--- |
-| **Frontend** | Flutter, Riverpod, Hive, Dio, STOMP |
-| **Backend** | Spring Boot 3, JPA, PostgreSQL, Spring Security, JWT |
-| **Blockchain** | Go, SHA-256 Hashing, File Persistence |
-| **Admin Panel** | Next.js, Tailwind CSS, TypeScript |
-| **AI/Cloud** | Gemini AI, Firebase Auth, FCM, Cloud Storage |
+### 🚨 Safety & Emergency Response (Pulse SOS)
+- **Instant SOS Activation**: Pulse-trigger mechanism for immediate emergency alerts.
+- **Live Location Streaming**: Real-time GPS broadcasting to trusted contacts and the Admin dashboard.
+- **Smart Notification Pipeline**: Multi-channel alerts (Push, SMS, Mail) triggered automatically during SOS events.
+- **Blockchain Audit Trail**: Every SOS event is hashed and logged on an immutable ledger for verified auditing.
+
+### 🌱 Community Wellness & Social Engagement
+- **Interactive Wellness Feed**: Share updates, photos, and milestones within a supportive community.
+- **AI-Driven Translation**: Break language barriers with automatic detection and translation (Gemini AI) of multilingual posts.
+- **Dynamic Content Moderation**: Intelligent filtering and professional moderation tools to maintain a healthy community environment.
+- **Engagement Analytics**: Social metrics including likes, comments, and community trending topics.
+
+### 🏃 Activity & Health Monitoring
+- **GPS Walking Tracker**: Precise tracking of walking sessions with distance, duration, and path visualization.
+- **Personalized Goal Setting**: Set and monitor daily wellness targets.
+- **Integrated Reminder System**: Smart alarms for medications, hydration, and scheduled activities.
+- **Activity History**: Comprehensive logs of your physical progress over time.
+
+### 🛡️ Secure & Scalable Infrastructure
+- **Stateless Authentication**: High-security JWT-based auth with multi-platform (Google/Phone/Email) support.
+- **Real-time Engine**: STOMP over WebSockets for zero-latency messaging and state updates.
+- **Centralized Admin Dashboard**: Full control over user management, SOS monitoring, and platform configuration.
+
+---
+
+## 🏗️ System Architecture
+
+AURA is built on a modular, high-performance architecture:
+- **Mobile Client**: Feature-rich Flutter app with Riverpod state management.
+- **Service Core**: Robust Spring Boot 3 backend orchestrating complex workflows.
+- **Integrity Layer**: Custom Go-based blockchain for high-integrity logging.
+- **Management Portal**: Next.js Admin Panel for real-time monitoring and governance.
 
 ---
 
 ## 🚀 Getting Started
 
-For detailed setup instructions, architecture deep-dives, and technical workflows, please refer to the comprehensive system documentation:
+For deep technical insights, setup guides, and API documentation:
 
-👉 **[AURA_SYSTEM_OVERVIEW.md](./AURA_SYSTEM_OVERVIEW.md)**
+👉 **[READ THE FULL SYSTEM OVERVIEW](./AURA_SYSTEM_OVERVIEW.md)**
 
-### Quick Summary of Modules:
-- **`aura_app`**: Run `flutter pub get` followed by `flutter run`.
-- **`aura_backend`**: Use `mvn spring-boot:run` (requires PostgreSQL and Firebase setup).
-- **`aura_chain`**: Run `go run cmd/main.go` from the blockchain directory.
-- **`aura_admin`**: Run `npm install` and `npm run dev`.
-
----
-
-## 📄 Documentation
-
-A complete technical manual is available in this repository:
-- [AURA System Overview](./AURA_SYSTEM_OVERVIEW.md)
-- [Project Features Summary](./AURA_SYSTEM_OVERVIEW.md#14-key-features-summary)
-- [System Workflows](./AURA_SYSTEM_OVERVIEW.md#15-system-workflows)
+### Installation Quick Links:
+- **Backend Setup**: [Spring Boot Configuration](./AURA_SYSTEM_OVERVIEW.md#5-backend-system-spring-boot)
+- **Mobile Setup**: [Flutter Development Guide](./AURA_SYSTEM_OVERVIEW.md#4-mobile-application-flutter)
+- **Blockchain Setup**: [Go Service Deployment](./AURA_SYSTEM_OVERVIEW.md#7-blockchain-system-go)
+- **Admin Dashboard**: [Next.js Portal Requirements](./AURA_SYSTEM_OVERVIEW.md#8-admin-dashboard-nextjs)
 
 ---
 
-## 🛡️ License
+## 🛡️ Professional Documentation
+- [Architecture Deep-Dive](./AURA_SYSTEM_OVERVIEW.md#2-system-architecture)
+- [Database Schema](./AURA_SYSTEM_OVERVIEW.md#6-database-design)
+- [Real-Time Systems](./AURA_SYSTEM_OVERVIEW.md#9-real-time-systems)
+- [AI & Gemini Workflows](./AURA_SYSTEM_OVERVIEW.md#10-ai-integration)
 
-This project is documented for professional review and system overview purposes.
+---
+
+**© 2026 AURA Team. All rights reserved.**
