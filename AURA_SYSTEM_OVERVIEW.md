@@ -61,6 +61,7 @@ graph TD
 - **Local Storage**: Hive, Shared Preferences
 - **Networking**: Dio
 - **Real-time**: stomp_dart_client, web_socket_channel
+- **Native Integration**: Kotlin (Android Platform Channels for Alarms & SMS)
 - **Services**: Firebase (Auth, Analytics, Crashlytics, Messaging)
 
 ### Backend System
@@ -129,6 +130,12 @@ The AURA mobile application is built using a feature-based architecture, ensurin
 #### Alarm System
 - **Description**: Integrated health and activity reminders.
 - **Functionality**: Personalized alarms for medications, workouts, or wellness checks.
+- **Implementation**: Utilizes a native Kotlin `AlarmScheduler` for precise OS-level scheduling even when the app is in the background.
+
+#### SMS Integration
+- **Description**: Automated emergency notification.
+- **Functionality**: Sends SMS alerts to trusted contacts during SOS events.
+- **Implementation**: Leveraging Kotlin `SmsManager` via Flutter Platform Channels.
 
 ---
 
@@ -306,6 +313,16 @@ lib/
 │   ├── walking/        # GPS tracking, walking sessions
 │   └── messaging/      # Chat UI and WebSocket logic
 └── main.dart           # Application entry point
+
+**Android Platform Layer (`aura_app/android/app/src/main/kotlin/com/example/aura_app/`)**
+```text
+.
+├── MainActivity.kt     # Platform channel bridge (Alarms, SMS)
+└── alarm/              # Kotlin Alarm services
+    ├── AlarmScheduler  # OS-level scheduling
+    ├── AlarmService    # Background execution
+    └── AlarmReceiver   # Broadcast handling
+```
 ```
 
 ### Backend System (`aura_backend/`)
