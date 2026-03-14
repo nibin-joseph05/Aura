@@ -63,12 +63,22 @@ public class FirebaseAuthFilter extends OncePerRequestFilter {
             }
         } else if (xUserId != null && !xUserId.isBlank()) {
             log.debug("FILTER - No Bearer token, checking X-User-Id: {}", xUserId);
-            if (userRepository.existsById(xUserId)) {
+            userRepository.findByUid(xUserId).ifPresent(user -> {
+                AuthenticatedUserContext authContext = new AuthenticatedUserContext(
+                        user.getUid(),
+                        user.getEmail(),
+                        user.getPhone(),
+                        user.getSignupMethod() != null ? user.getSignupMethod().name() : "EMAIL");
+                request.setAttribute("AUTH_CONTEXT", authContext);
+
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                         xUserId, null, Collections.emptyList());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                log.debug("FILTER - X-User-Id auth SUCCESS | uid: {}", xUserId);
-            } else {
+                log.debug("FILTER - X-User-Id auth SUCCESS | uid: {} | email: {}",
+                        xUserId, authContext.getEmail());
+            });
+
+            if (SecurityContextHolder.getContext().getAuthentication() == null) {
                 log.debug("FILTER - X-User-Id uid not found in DB: {}", xUserId);
             }
         } else {

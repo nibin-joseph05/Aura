@@ -157,6 +157,11 @@ class MessagingApiService {
       '/api/user/search',
       queryParameters: {'q': query, 'page': page, 'size': size},
     );
-    return response.data;
+
+    if (response.data is Map && response.data.containsKey('content')) {
+      return response.data['content'] as List<dynamic>;
+    }
+
+    return response.data is List ? response.data : [];
   }
 }
